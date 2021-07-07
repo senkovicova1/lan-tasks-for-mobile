@@ -8,8 +8,8 @@ import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 import {
-  TagsCollection
-} from '/imports/api/tagsCollection';
+  FoldersCollection
+} from '/imports/api/foldersCollection';
 import {
   UsersCollection
 } from '/imports/api/usersCollection';

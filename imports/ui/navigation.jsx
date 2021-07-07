@@ -13,9 +13,10 @@ import {
 
 import Header from './header';
 import Login from './login';
-import Sidebar from './sidebar';
-import TaskList from './tasks/taskList';
-import UserList from './users/userList';
+import List from './list';
+import FolderList from './folders/folderList';
+import FolderEdit from './folders/editFolderContainer';
+import EditUserContainer from './users/editUserContainer';
 
 import {
   Content
@@ -23,7 +24,7 @@ import {
 
 export default function MainPage( props ) {
   const user = useTracker( () => Meteor.user() );
-
+console.log(user);
   return (
     <div>
       <BrowserRouter>
@@ -35,9 +36,13 @@ export default function MainPage( props ) {
         }
         {user &&
           <Content>
-            <Route exact path={["/", "/tasks", "/tasks/:tagID", "/tasks/:tagID/:listType", "/users", "/users/:userID"]} component={Sidebar} />
-            <Route exact path={["/", "/tasks", "/tasks/:tagID", "/tasks/:tagID/:listType"]} component={TaskList} />
-            <Route exact path={["/users", "/users/:userID"]} component={UserList} />
+            <Route exact path={["/", "/tasks", "/tasks/:folderID"]} component={List} />
+              <Route
+                exact
+                path={"/settings"}
+                render={(props) => (
+                  <EditUserContainer {...props} user={user} />
+  )}/>
           </Content>
         }
       </BrowserRouter>

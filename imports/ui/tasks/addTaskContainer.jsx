@@ -25,7 +25,7 @@ export default function AddTaskContainer( props ) {
 
   const {
     users,
-    tags
+    folders
   } = props;
 
   const [ search, setSearch ] = useState( "" );
@@ -33,14 +33,14 @@ export default function AddTaskContainer( props ) {
 
   const toggleAddTaskModal = () => showAddTaskModal( !addTaskModalOpen );
 
-  const addNewTask = ( title, important, description, status, assigned, tag, actions, materials, deadline ) => {
+  const addNewTask = ( title, important, description, status, assigned, folder, actions, materials, deadline ) => {
     TasksCollection.insert( {
       title,
       important,
       description,
       status,
       assigned,
-      tag,
+      folder,
       actions,
       materials,
       deadline
@@ -57,7 +57,7 @@ export default function AddTaskContainer( props ) {
       <LinkButton onClick={toggleAddTaskModal}> <Icon iconName="Add"/> Task </LinkButton>
       <Modal isOpen={addTaskModalOpen} toggle={toggleAddTaskModal}>
         <ModalBody>
-          <TaskForm users={users} tags={tags} onSubmit={addNewTask} onCancel={closeModal}/>
+          <TaskForm users={users} folders={folders} onSubmit={addNewTask} onCancel={closeModal}/>
         </ModalBody>
       </Modal>
     </div>

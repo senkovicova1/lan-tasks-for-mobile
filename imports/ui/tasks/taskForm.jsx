@@ -35,12 +35,12 @@ export default function TaskForm( props ) {
     description: taskDescription,
     status: taskStatus,
     assigned: taskAssigned,
-    tag: taskTag,
+    folder: taskFolder,
     actions: taskActions,
     materials: taskMaterials,
     deadline: taskDeadline,
     users,
-    tags,
+    folders,
     onSubmit,
     onCancel,
     onRemove
@@ -51,7 +51,7 @@ export default function TaskForm( props ) {
   const [ description, setDescription ] = useState( "" );
   const [ status, setStatus ] = useState( false );
   const [ assigned, setAssigned ] = useState( [] );
-  const [ tag, setTag ] = useState( null );
+  const [ folder, setFolder ] = useState( null );
   const [ deadline, setDeadline ] = useState( null );
 
   const [ actions, setActions ] = useState( [] );
@@ -92,14 +92,14 @@ export default function TaskForm( props ) {
     } else {
       setAssigned( [] );
     }
-    if ( taskTag ) {
-      setTag( {
-        ...taskTag,
-        label: taskTag.title,
-        value: taskTag._id
+    if ( taskFolder ) {
+      setFolder( {
+        ...taskFolder,
+        label: taskFolder.title,
+        value: taskFolder._id
       } );
     } else {
-      setTag( null );
+      setFolder( null );
     }
     if ( taskActions ) {
       setActions( taskActions );
@@ -116,7 +116,7 @@ export default function TaskForm( props ) {
     } else {
       setDeadline( null );
     }
-  }, [ taskTitle, taskImportant, taskDescription, taskStatus, taskAssigned, taskTag, taskActions, taskMaterials, taskDeadline ] )
+  }, [ taskTitle, taskImportant, taskDescription, taskStatus, taskAssigned, taskFolder, taskActions, taskMaterials, taskDeadline ] )
 
 
   const createReactSelectValue = ( array, label = "title", value = "_id" ) => {
@@ -134,7 +134,7 @@ export default function TaskForm( props ) {
     } ) ), "fullName" ),
     [ users ] );
 
-  const allTags = useMemo( () => createReactSelectValue( tags ), [ tags ] );
+  const allFolders = useMemo( () => createReactSelectValue( folders ), [ folders ] );
 
   return (
     <Form>
@@ -166,12 +166,12 @@ export default function TaskForm( props ) {
       </section>
 
       <section className="useOffset">
-        <label htmlFor="tag">Tag</label>
+        <label htmlFor="folder">Folder</label>
         <Select
           styles={selectStyle}
-          value={tag}
-          onChange={(e) => setTag(e)}
-          options={allTags}
+          value={folder}
+          onChange={(e) => setFolder(e)}
+          options={allFolders}
           />
       </section>
 
@@ -429,7 +429,7 @@ export default function TaskForm( props ) {
             description,
             status,
             assigned.map(user => user._id),
-            tag?._id,
+            folder?._id,
             actions,
             materials,
             deadline

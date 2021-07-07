@@ -216,7 +216,7 @@ section {
     font-weight: 500;
     width: 200px;
   }
-  input:not(#title)[type=text], input:not(#title)[type=color], input:not(#title)[type=password], &>div {
+  input[type=text], input[type=color], input[type=password], &>div {
     width: 85%;
   }
 

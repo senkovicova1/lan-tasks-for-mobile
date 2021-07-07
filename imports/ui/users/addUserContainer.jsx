@@ -26,14 +26,16 @@ export default function AddUserContainer( props ) {
 
   const toggleAddUserModal = () => showAddUserModal( !addUserModalOpen );
 
-  const addNewUser = ( name, surname, showMyTasks, email, password ) => {
+  const addNewUser = ( name, surname, avatar, colour, language, email, password ) => {
     Accounts.createUser( {
       password,
       email,
       profile: {
         name,
         surname,
-        showMyTasks
+        avatar,
+        colour,
+        language
       }
     } );
     showAddUserModal( false );

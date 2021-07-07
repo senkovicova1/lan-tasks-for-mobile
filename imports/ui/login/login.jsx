@@ -21,7 +21,7 @@ export default function LoginForm( props ) {
 
   const onSubmit = e => {
     e.preventDefault();
-    history.push("tasks/all/all");
+    history.push("tasks/all");
     Meteor.loginWithPassword( email, password );
   };
 

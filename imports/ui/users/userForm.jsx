@@ -3,9 +3,19 @@ import React, {
   useEffect,
 } from 'react';
 
+import Select from 'react-select';
+
+import {
+  selectStyle
+} from '../../other/styles/selectStyles';
+
 import {
   isEmail
 } from '../../other/helperFunctions.js';
+
+import {
+  LANGUAGES
+} from '../../other/constants';
 
 import {
   Form,
@@ -28,7 +38,9 @@ export default function UserForm( props ) {
   const [ name, setName ] = useState( "" );
   const [ surname, setSurname ] = useState( "" );
   const [ email, setEmail ] = useState( "" );
-  const [ showMyTasks, setShowMyTasks ] = useState( false );
+  const [ avatar, setAvatar ] = useState( {} );
+  const [ language, setLanguage ] = useState( LANGUAGES[0] );
+  const [ colour, setColour ] = useState( "#FFF" );
   const [ password1, setPassword1 ] = useState( '' );
   const [ password2, setPassword2 ] = useState( '' );
 
@@ -43,10 +55,22 @@ export default function UserForm( props ) {
     } else {
       setSurname( "" );
     }
-    if ( profile?.showMyTasks ) {
-      setShowMyTasks( profile.showMyTasks );
+    if ( profile?.avatar ) {
+      const blob = new Blob([profile.avatar], {type:"image/jpeg"} );
+      const img = URL.createObjectURL(blob);
+      setAvatar( {name: "", buffer: profile.avatar, img} );
     } else {
-      setShowMyTasks( false );
+      setAvatar( {name: "", buffer: null, img: null} );
+    }
+    if ( profile?.colour ) {
+      setColour( profile.colour );
+    } else {
+      setColour( "#FFF" );
+    }
+    if ( profile?.language ) {
+      setLanguage( LANGUAGES.find(lang => lang.value === profile.language ) );
+    } else {
+      setLanguage( LANGUAGES[0] );
     }
   }, [ profile ] );
 
@@ -91,16 +115,55 @@ export default function UserForm( props ) {
       }
 
       <section>
+        <label  htmlFor="color">Color</label>
         <Input
-          id="showMyTasks"
-          type="checkbox"
-          name="showMyTasks"
-          checked={showMyTasks}
-          onChange={() =>  setShowMyTasks(!showMyTasks)}
+          type="color"
+          name="color"
+          id="color"
+          placeholder="Choose colour"
+          value={colour}
+          onChange={(e) => setColour(e.target.value)}
           />
-        <label style={{width: "99%"}} htmlFor="showMyTasks">Show only my tasks by default</label>
       </section>
 
+      <section>
+        <label htmlFor="lang">Language</label>
+        <Select
+          styles={selectStyle}
+          value={language}
+          onChange={(e) => setLanguage(e)}
+          options={LANGUAGES}
+          />
+      </section>
+
+      <section>
+        <label htmlFor="avatar">Profile picture</label>
+        <Input
+          id="avatar"
+          name="avatar"
+          type="file"
+          value={avatar.name}
+          onChange={(e) =>  {
+            e.persist();
+            var file = e.target.files[0];
+            if (!file) return;
+
+            var reader = new FileReader();
+
+            reader.onload = function(event){
+              var buffer = new Uint8Array(reader.result)
+
+              const blob = new Blob([buffer], {type:"image/jpeg"} );
+               const img = URL.createObjectURL(blob);
+
+              setAvatar({name: e.target.value, buffer, img});
+            }
+
+            reader.readAsArrayBuffer(file);
+          }}
+          />
+      </section>
+<img src={avatar.img} alt="avatar" width="100" height="100"/>
       { !profile &&
         <section>
           <label htmlFor="password1">Password</label>
@@ -130,7 +193,7 @@ export default function UserForm( props ) {
 
       <ButtonRow>
         {onCancel &&
-          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>Cancel</FullButton>
+          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>Back</FullButton>
         }
         {onRemove &&
           <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(userId); onCancel();}}>Delete</FullButton>
@@ -143,7 +206,9 @@ export default function UserForm( props ) {
             onSubmit(
               name,
               surname,
-              showMyTasks,
+              avatar.buffer,
+              colour,
+              language.value,
               email,
               password1
             );

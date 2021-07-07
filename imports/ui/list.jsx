@@ -10,7 +10,7 @@ import Select from 'react-select';
 
 import {
   selectStyle
-} from '../../other/styles/selectStyles';
+} from '../other/styles/selectStyles';
 
 import {
   Icon
@@ -23,6 +23,9 @@ import {
 import {
   FoldersCollection
 } from '/imports/api/foldersCollection';
+
+import AddFolderContainer from './folders/addFolderContainer';
+import EditFolderContainer from './folders/editFolderContainer';
 /*
 import {
   TasksCollection
@@ -39,7 +42,7 @@ import {
   SearchSection,
   Input,
   LinkButton
-} from "../../other/styles/styledComponents";
+} from "../other/styles/styledComponents";
 
 export default function TaskList( props ) {
 
@@ -49,6 +52,7 @@ export default function TaskList( props ) {
 
   const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
+  const [ openEdit, setOpenEdit ] = useState(false);
   const [ selectedFolder, setSelectedFolder ] = useState({label: "All folders", value: "all"});
 
   const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
@@ -59,7 +63,7 @@ export default function TaskList( props ) {
     newMyFolders = newMyFolders.map(folder => ({...folder, label: folder.name, value: folder._id}));
     newMyFolders = newMyFolders.sort((f1, f2) => (f1.archived > f2.archived ? 1 : -1));
     return [{label: "All folders", value: "all"}, ...newMyFolders];
-  }, [userId]);
+  }, [userId, folders]);
 
   useEffect(() => {
     if (match.params.folderID === "all"){
@@ -93,12 +97,19 @@ export default function TaskList( props ) {
       <Select
         styles={selectStyle}
         value={selectedFolder}
-        onChange={(e) => {setSelectedFolder(e); props.history.push(`/tasks/${e.value}`);}}
+        onChange={(e) => setSelectedFolder(e)}
         options={myFolders}
         />
-      <LinkButton onClick={(e) => {e.preventDefault(); props.history.push(`/folders/edit/${selectedFolder.value}`);}}>
+      <LinkButton onClick={(e) => {e.preventDefault(); setOpenEdit(true);}}>
       <Icon iconName="Settings"/>
     </LinkButton>
+
+    <AddFolderContainer />
+
+  {
+    openEdit &&
+    <EditFolderContainer folderID={selectedFolder._id} closeEdit={() => setOpenEdit(false)} /> 
+  }
 
       <SearchSection>
         <Input width="30%" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />

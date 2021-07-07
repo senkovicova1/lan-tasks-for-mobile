@@ -1,4 +1,16 @@
 body {
-  padding: 10px;
-  font-family: sans-serif;
+  background-color: #f6f6f6 !important;
+}
+
+.modal-dialog{
+  max-width: 1000px !important;
+}
+
+.modal-content{
+  border: none;
+  border-radius: 0px;
+}
+
+.modal-body{
+  padding: 0px !important;
 }

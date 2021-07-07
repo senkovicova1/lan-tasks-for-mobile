@@ -15,30 +15,23 @@ export default function EditUserContainer( props ) {
 
   const {
     user,
-    setChosenUser,
   } = props;
 
-  const [ search, setSearch ] = useState( "" );
-  const [ editUserModalOpen, showEditUserModal ] = useState( false );
 
-  useEffect( () => {
-    if ( user ) {
-      showEditUserModal( true )
-    } else {
-      showEditUserModal( false )
-    }
-  }, [ user ] )
-
-  const editUser = ( name, surname, showMyTasks ) => {
+  const editUser = ( name, surname, avatar, colour, language ) => {
     let data = {};
-    if ( user.name !== name ) {
+    if ( user.profile.name !== name ) {
       data.name = name;
     }
-    if ( user.surname !== surname ) {
+    if ( user.profile.surname !== surname ) {
       data.surname = surname;
     }
-    if ( user.showMyTasks !== showMyTasks ) {
-      data.showMyTasks = showMyTasks;
+    data.avatar = avatar;
+    if ( user.colour !== colour ) {
+      data.colour = colour;
+    }
+    if ( user.profile.language !== language ) {
+      data.language = language;
     }
 
     Meteor.users.update(user._id, {
@@ -46,8 +39,6 @@ export default function EditUserContainer( props ) {
         profile: data
       }
     });
-
-    setChosenUser( null );
   };
 
   const removeUser = ( userId ) => {
@@ -58,15 +49,8 @@ export default function EditUserContainer( props ) {
     }
   }
 
-  const closeModal = () => {
-    setChosenUser( null );
-  }
 
   return (
-    <Modal isOpen={editUserModalOpen} toggle={() => setChosenUser( null )}>
-      <ModalBody>
-        <UserForm {...user} onSubmit={editUser} onCancel={closeModal}/>
-      </ModalBody>
-    </Modal>
+        <UserForm {...user} onSubmit={editUser} onCancel={() => props.history.push("/tasks")}/>
   );
 };

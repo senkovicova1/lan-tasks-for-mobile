@@ -20,7 +20,7 @@ export default function EditTaskContainer( props ) {
     task,
     setChosenTask,
     users,
-    tags,
+    folders,
   } = props;
 
   const [ search, setSearch ] = useState( "" );
@@ -34,7 +34,7 @@ export default function EditTaskContainer( props ) {
     }
   }, [ task ] )
 
-  const editTask = ( title, important, description, status, assigned, tag, actions, materials, deadline ) => {
+  const editTask = ( title, important, description, status, assigned, folder, actions, materials, deadline ) => {
     let data = {};
     if ( task.title !== title ) {
       data.title = title;
@@ -51,8 +51,8 @@ export default function EditTaskContainer( props ) {
     if ( task.assigned.length != assigned.length || task.assigned.filter( user => !assigned.includes( user._id ) ) ) {
       data.assigned = assigned;
     }
-    if ( !task.tag || ( task.tag._id !== tag ) ) {
-      data.tag = tag;
+    if ( !task.folder || ( task.folder._id !== folder ) ) {
+      data.folder = folder;
     }
     data.actions = actions;
     data.materials = materials;
@@ -80,7 +80,7 @@ export default function EditTaskContainer( props ) {
   return (
     <Modal isOpen={editTaskModalOpen} toggle={() => setChosenTask( null )}>
       <ModalBody>
-        <TaskForm {...task} users={users} tags={tags} onSubmit={editTask} onCancel={closeModal} onRemove={removeTask}/>
+        <TaskForm {...task} users={users} folders={folders} onSubmit={editTask} onCancel={closeModal} onRemove={removeTask}/>
       </ModalBody>
     </Modal>
   );
