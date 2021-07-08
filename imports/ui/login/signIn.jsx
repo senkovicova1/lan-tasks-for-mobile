@@ -18,7 +18,7 @@ export default function SignInForm( props ) {
 
   const onSubmit = ( name, surname, avatar, colour, language, email, password ) => {
     createUser( name, surname, avatar, colour, language, email, password );
-    history.push("tasks/all");
+    history.push("/all/list");
   };
 
   const createUser = ( name, surname, avatar, colour, language, email, password ) => {

@@ -17,7 +17,7 @@ export default function Header( props ) {
 
   return (
     <PageHeader>
-      <h1 onClick={(e) => props.history.push("/tasks/all")}>TaskApp</h1>
+      <h1 onClick={(e) => props.history.push("/all/list")}>TaskApp</h1>
         {!props.location.pathname.includes("login") &&
           <LinkButton font="white" onClick={(e) => {e.preventDefault(); props.history.push("/settings"); }}><Icon  iconName="Settings" /></LinkButton>
         }

@@ -7,9 +7,14 @@ import React, {
 } from 'react';
 
 import {
+  Accounts
+} from 'meteor/accounts-base';
+
+import {
   Form,
   Input,
-  FullButton
+  FullButton,
+  LinkButton
 } from "../../other/styles/styledComponents";
 
 export default function LoginForm( props ) {
@@ -21,9 +26,13 @@ export default function LoginForm( props ) {
 
   const onSubmit = e => {
     e.preventDefault();
-    history.push("tasks/all");
+    history.push("/all/list");
     Meteor.loginWithPassword( email, password );
   };
+
+  const handleForgotPassword = () => {
+    Accounts.forgotPassword({email});
+  } ;
 
   return (
     <Form onSubmit={onSubmit}>
@@ -52,7 +61,10 @@ export default function LoginForm( props ) {
           />
       </section>
 
+      <LinkButton disabled={email.length === 0} onClick={(e) => {e.preventDefault(); handleForgotPassword()}}>Forgot password</LinkButton>
+
       <FullButton type="submit" style={{marginLeft: "auto"}}>Log In</FullButton>
+
 
     </Form>
   );

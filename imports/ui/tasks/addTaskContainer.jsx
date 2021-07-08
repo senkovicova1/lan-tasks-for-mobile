@@ -24,42 +24,33 @@ import {
 export default function AddTaskContainer( props ) {
 
   const {
-    users,
-    folders
+    match
   } = props;
 
-  const [ search, setSearch ] = useState( "" );
-  const [ addTaskModalOpen, showAddTaskModal ] = useState( false );
+  const [ addTaskOpen, showAddTask ] = useState( false );
 
-  const toggleAddTaskModal = () => showAddTaskModal( !addTaskModalOpen );
+  const toggleAddTask = () => showAddTask( !addTaskOpen );
 
-  const addNewTask = ( title, important, description, status, assigned, folder, actions, materials, deadline ) => {
+  const addNewTask = ( name, folder, dateCreated ) => {
     TasksCollection.insert( {
-      title,
-      important,
-      description,
-      status,
-      assigned,
+      name,
       folder,
-      actions,
-      materials,
-      deadline
+      dateCreated,
+      closed: false
     } );
-    showAddTaskModal( false );
+    showAddTask( false );
   }
 
-  const closeModal = () => {
-    showAddTaskModal( false );
+  const close = () => {
+    showAddTask( false );
   }
 
   return (
     <div>
-      <LinkButton onClick={toggleAddTaskModal}> <Icon iconName="Add"/> Task </LinkButton>
-      <Modal isOpen={addTaskModalOpen} toggle={toggleAddTaskModal}>
-        <ModalBody>
-          <TaskForm users={users} folders={folders} onSubmit={addNewTask} onCancel={closeModal}/>
-        </ModalBody>
-      </Modal>
+      <LinkButton onClick={toggleAddTask}> <Icon iconName="Add"/> Task </LinkButton>
+          {addTaskOpen &&
+          <TaskForm {...props} onSubmit={addNewTask} onCancel={close}/>
+        }
     </div>
   );
 };

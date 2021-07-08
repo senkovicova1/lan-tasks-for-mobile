@@ -20,9 +20,11 @@ import FolderForm from './folderForm';
 export default function EditFolderContainer( props ) {
 
   const {
-    folderID,
-    closeEdit
+    match,
+    history
   } = props;
+
+  const { folderID } = match.params;
 
   const folder = useTracker( () => FoldersCollection.find( {
       _id: folderID
@@ -30,8 +32,18 @@ export default function EditFolderContainer( props ) {
 
   const userId = Meteor.userId();
 
+
+    useEffect( () => {
+        const userIsAdmin = folder[0].users.find(user => user._id === userId).admin;
+
+        if ( !userIsAdmin ) {
+          history.push(`/${folderID}/list`);
+        }
+
+    }, [ folderID, userId, folder ] );
+
+
   const editFolder = ( name, colour, archived, users ) => {
-    console.log(archived);
     let data = {
       name, colour, archived
     };
@@ -39,7 +51,8 @@ export default function EditFolderContainer( props ) {
       $set: {
         ...data
       }
-    } )
+    } );
+    cancel();
   };
 
   const removeFolder = ( folderId ) => {
@@ -47,10 +60,15 @@ export default function EditFolderContainer( props ) {
       FoldersCollection.remove( {
         _id: folderId
       } );
+      cancel();
     }
   }
 
+  const cancel = () => {
+  props.history.push(`/${folderID}/list`);
+  }
+
   return (
-      <FolderForm {...folder[0]} onSubmit={editFolder} onCancel={closeEdit} onRemove={removeFolder}/>
+      <FolderForm {...folder[0]} onSubmit={editFolder} onCancel={cancel} onRemove={removeFolder}/>
   );
 };

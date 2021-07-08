@@ -41,6 +41,8 @@ export default function FolderForm( props ) {
     onSubmit,
     onRemove,
     onCancel,
+    match,
+    location
   } = props;
 
 
@@ -53,7 +55,6 @@ const userId = Meteor.userId();
   const [ archived, setArchived ] = useState( false );
   const [ colour, setColor ] = useState( "#FFFFFF" );
   const [ users, setUsers ] = useState( [] );
-  const [ allUsers, setAllUsers ] = useState( [] );
 
   useEffect( () => {
     if ( folderName ) {
@@ -72,10 +73,16 @@ const userId = Meteor.userId();
       setColor( "#FFFFFF" );
     }
 
-    let allNewUsers = [];
-    let newUsers = [];
     if ( folderUsers ) {
-      let newUsers = folderUsers.map(user =>
+      setUsers( folderUsers );
+    } else {
+      setUsers( [{_id: userId, admin: true}] );
+    }
+
+  }, [ folderName, folderArchived, folderColor, folderUsers ] );
+
+  const usersWithRights = useMemo(() => {
+   return users.map(user =>
         {
         let newUser = {...dbUsers.find(u => u._id === user._id).profile, ...user};
         const blob = new Blob([newUser.avatar], {type:"image/jpeg"} );
@@ -83,30 +90,17 @@ const userId = Meteor.userId();
         newUser.img = img;
         return newUser;
       });
-    } else {
-      const owner = {...dbUsers.find(user => user._id === userId).profile, _id: userId};
-      const blob = new Blob([owner.avatar], {type:"image/jpeg"} );
-      const img = URL.createObjectURL(blob);
+  }, [users, dbUsers]);
 
-      newUsers = [ {...owner, admin: true, img} ];
-    }
-
-    allNewUsers = dbUsers.map(user => {
+  const usersToSelect = useMemo(() => {
+    return dbUsers.filter(user => !users.find(u => u._id === user._id)).map(user => {
       const blob = new Blob([user.profile.avatar], {type:"image/jpeg"} );
       const img = URL.createObjectURL(blob);
       return {...user.profile, _id: user._id, admin: false, label: `${user.profile.name} ${user.profile.surname}`, value: user._id, img};
-    });
+    }
+  );
+  }, [dbUsers, users]);
 
-    setUsers( newUsers );
-    setAllUsers(allNewUsers);
-  }, [ folderName, folderArchived, folderColor, folderUsers ] );
-
-  const usersToSelect = allUsers.filter(user => !users.find(u => u._id === user._id));
-  const userIsAdmin = useMemo(() => {
-    return folderUsers?.find(user => user._id === userId).admin;
-  }, [userId, folderUsers]);
-
-  console.log(archived);
 
   return (
     <Form>
@@ -149,7 +143,7 @@ const userId = Meteor.userId();
       <section>
           <label htmlFor="users">Users</label>
           {
-            users.map(user => <div key={user._id}>
+            usersWithRights.map(user => <div key={user._id}>
               <img src={user.img} alt="avatar" width="100" height="100"/>
               {`${user.name} ${user.surname}`}
               {user.admin ? "Administrator" : "User"}
@@ -164,14 +158,16 @@ const userId = Meteor.userId();
       <section>
         <Select
           styles={selectStyle}
-          onChange={(e) => setUsers([...users, {...e}])}
+          onChange={(e) => {
+            setUsers([...users, {_id: e._id, admin: false}]);
+          }}
           options={usersToSelect}
           />
       </section>
 
       <ButtonRow>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>Cancel</FullButton>
-        {onRemove && userIsAdmin &&
+        {onRemove &&
           <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); onCancel();}}>Delete</FullButton>
         }
         <FullButton
