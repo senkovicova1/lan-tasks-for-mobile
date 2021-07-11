@@ -60,7 +60,7 @@ export default function EditFolderContainer( props ) {
       FoldersCollection.remove( {
         _id: folderId
       } );
-      cancel();
+      props.history.push(`/all/list`);
     }
   }
 

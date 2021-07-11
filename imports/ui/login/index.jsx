@@ -19,11 +19,10 @@ export default function LoginForm( props ) {
   return (
     <LoginContainer>
       <div>
-        <GroupButton colour={showLogin ? "#0078d4" : null} onClick={() => setShowLogin(!showLogin)}>Log In</GroupButton>
-        <GroupButton colour={!showLogin ? "#0078d4" : null} onClick={() => setShowLogin(!showLogin)}>Sign In</GroupButton>
-      </div>
-      {showLogin && <Login {...props} />}
-      {!showLogin && <SignIn {...props}/>}
+      <h1>Task App</h1>
+      {showLogin && <Login {...props} openSignUp={() => setShowLogin(!showLogin)} />}
+      {!showLogin && <SignIn {...props} openLogIn={() => setShowLogin(!showLogin)}/>}
+    </div>
     </LoginContainer>
   );
 };

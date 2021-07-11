@@ -15,6 +15,10 @@ import {
 } from '../../other/styles/selectStyles';
 
 import {
+  translations
+} from '../../other/translations.jsx';
+
+import {
   Icon
 } from '@fluentui/react/lib/Icon';
 
@@ -28,6 +32,7 @@ import {
   ButtonRow,
   LinkButton,
   FullButton,
+  UserEntry
 } from "../../other/styles/styledComponents";
 
 export default function FolderForm( props ) {
@@ -101,12 +106,16 @@ const userId = Meteor.userId();
   );
   }, [dbUsers, users]);
 
+  const language = useMemo(() => {
+    return dbUsers.find(user => user._id === userId).profile.language;
+  }, [userId, dbUsers]);
+
 
   return (
     <Form>
 
       <section>
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name">{translations[language].name}</label>
         <Input
           id="name"
           name="name"
@@ -118,7 +127,7 @@ const userId = Meteor.userId();
       </section>
 
       <section>
-        <label  htmlFor="colour">Color</label>
+        <label  htmlFor="colour">{translations[language].colour}</label>
         <Input
           type="color"
           name="colour"
@@ -130,7 +139,7 @@ const userId = Meteor.userId();
       </section>
 
       <section>
-        <label htmlFor="archived">Archived</label>
+        <label htmlFor="archived">{translations[language].archived}</label>
         <Input
           id="archived"
           name="archived"
@@ -141,17 +150,26 @@ const userId = Meteor.userId();
       </section>
 
       <section>
-          <label htmlFor="users">Users</label>
+          <label htmlFor="users">{translations[language].users}</label>
           {
-            usersWithRights.map(user => <div key={user._id}>
-              <img src={user.img} alt="avatar" width="100" height="100"/>
+            usersWithRights.map(user =>
+              <UserEntry key={user._id}>
+                {user.avatar &&
+              <img src={user.img} alt="" />
+            }
+              <div>
+              <label className="name">
               {`${user.name} ${user.surname}`}
-              {user.admin ? "Administrator" : "User"}
+            </label>
+            <label className="role">
+              {user.admin ? translations[language].admin : translations[language].user}
+            </label>
+          </div>
               {
                 !user.admin &&
               <LinkButton onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}><Icon iconName="Delete"/></LinkButton>
             }
-            </div>)
+            </UserEntry>)
           }
       </section>
 
@@ -166,9 +184,9 @@ const userId = Meteor.userId();
       </section>
 
       <ButtonRow>
-        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>Cancel</FullButton>
+        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>{translations[language].cancel}</FullButton>
         {onRemove &&
-          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); onCancel();}}>Delete</FullButton>
+          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); onCancel();}}>{translations[language].delete}</FullButton>
         }
         <FullButton
           colour=""
@@ -183,7 +201,7 @@ const userId = Meteor.userId();
             );
           }}
           >
-          Save
+          {translations[language].save}
         </FullButton>
       </ButtonRow>
 

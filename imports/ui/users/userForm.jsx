@@ -14,6 +14,10 @@ import {
 } from '../../other/helperFunctions.js';
 
 import {
+  translations
+} from '../../other/translations.jsx';
+
+import {
   LANGUAGES
 } from '../../other/constants';
 
@@ -33,6 +37,7 @@ export default function UserForm( props ) {
     onRemove,
     onCancel,
     isSignIn,
+    openLogIn
   } = props;
 
   const [ name, setName ] = useState( "" );
@@ -40,7 +45,7 @@ export default function UserForm( props ) {
   const [ email, setEmail ] = useState( "" );
   const [ avatar, setAvatar ] = useState( {} );
   const [ language, setLanguage ] = useState( LANGUAGES[0] );
-  const [ colour, setColour ] = useState( "#FFF" );
+  const [ colour, setColour ] = useState( "#FFFFFF" );
   const [ password1, setPassword1 ] = useState( '' );
   const [ password2, setPassword2 ] = useState( '' );
 
@@ -65,7 +70,7 @@ export default function UserForm( props ) {
     if ( profile?.colour ) {
       setColour( profile.colour );
     } else {
-      setColour( "#FFF" );
+      setColour( "#FFFFFF" );
     }
     if ( profile?.language ) {
       setLanguage( LANGUAGES.find(lang => lang.value === profile.language ) );
@@ -77,8 +82,13 @@ export default function UserForm( props ) {
   return (
     <Form>
 
+<section>
+
+      <h1>{translations[language.value].userProf}</h1>
+    </section>
+
       <section>
-        <label htmlFor="name">Name</label>
+      <label htmlFor="name">{translations[language.value].name}</label>
         <Input
           id="name"
           name="name"
@@ -90,7 +100,7 @@ export default function UserForm( props ) {
       </section>
 
       <section>
-        <label htmlFor="surname">Surname</label>
+        <label htmlFor="surname">{translations[language.value].surname}</label>
         <Input
           id="surname"
           name="surname"
@@ -115,7 +125,7 @@ export default function UserForm( props ) {
       }
 
       <section>
-        <label  htmlFor="color">Color</label>
+        <label  htmlFor="color">{translations[language.value].profColour}</label>
         <Input
           type="color"
           name="color"
@@ -127,7 +137,7 @@ export default function UserForm( props ) {
       </section>
 
       <section>
-        <label htmlFor="lang">Language</label>
+        <label htmlFor="lang">{translations[language.value].language}</label>
         <Select
           styles={selectStyle}
           value={language}
@@ -137,7 +147,12 @@ export default function UserForm( props ) {
       </section>
 
       <section>
-        <label htmlFor="avatar">Profile picture</label>
+        <label htmlFor="avatar">{translations[language.value].avatar}</label>
+        <div>
+        {
+          avatar.img &&
+          <img src={avatar.img} alt="avatar" width="50" height="50"/>
+        }
         <Input
           id="avatar"
           name="avatar"
@@ -162,11 +177,13 @@ export default function UserForm( props ) {
             reader.readAsArrayBuffer(file);
           }}
           />
+      </div>
       </section>
-<img src={avatar.img} alt="avatar" width="100" height="100"/>
+
+
       { !profile &&
         <section>
-          <label htmlFor="password1">Password</label>
+          <label htmlFor="password1">{translations[language.value].pass}</label>
           <Input
             type="password"
             placeholder="Password"
@@ -179,7 +196,7 @@ export default function UserForm( props ) {
       }
       { !profile &&
         <section>
-          <label htmlFor="password2">Repeat password</label>
+          <label htmlFor="password2">{translations[language.value].repPass}</label>
           <Input
             type="password"
             placeholder="Repeat password"
@@ -193,14 +210,17 @@ export default function UserForm( props ) {
 
       <ButtonRow>
         {onCancel &&
-          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>Back</FullButton>
+          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language.value].back}</FullButton>
+        }
+        {openLogIn &&
+          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); openLogIn()}}>{translations[language.value].cancel}</FullButton>
         }
         {onRemove &&
-          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(userId); onCancel();}}>Delete</FullButton>
+          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(userId); onCancel();}}>{translations[language.value].delete}</FullButton>
         }
         <FullButton
           colour=""
-          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2)}
+          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer}
           onClick={(e) => {
             e.preventDefault();
             onSubmit(
@@ -214,7 +234,7 @@ export default function UserForm( props ) {
             );
           }}
           >
-          { isSignIn ? "Sign in" : "Save"}
+          { isSignIn ? translations[language.value].sign : translations[language.value].save}
         </FullButton>
       </ButtonRow>
 

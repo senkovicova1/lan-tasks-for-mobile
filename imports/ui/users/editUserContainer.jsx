@@ -14,6 +14,7 @@ import UserForm from './userForm';
 export default function EditUserContainer( props ) {
 
   const {
+    history,
     user,
   } = props;
 
@@ -26,6 +27,7 @@ export default function EditUserContainer( props ) {
         profile: data
       }
     });
+    history.push("/all/list");
   };
 
   const removeUser = ( userId ) => {

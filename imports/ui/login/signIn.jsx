@@ -14,7 +14,7 @@ import AddUser from '../users/userForm';
 
 export default function SignInForm( props ) {
 
-  const { history } = props;
+  const { history, openLogIn } = props;
 
   const onSubmit = ( name, surname, avatar, colour, language, email, password ) => {
     createUser( name, surname, avatar, colour, language, email, password );
@@ -36,6 +36,6 @@ export default function SignInForm( props ) {
   };
 
   return (
-    <AddUser onSubmit={onSubmit} isSignIn/>
+    <AddUser onSubmit={onSubmit} isSignIn openLogIn={openLogIn}/>
   );
 };

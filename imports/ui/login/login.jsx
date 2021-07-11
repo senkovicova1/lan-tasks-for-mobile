@@ -19,7 +19,7 @@ import {
 
 export default function LoginForm( props ) {
 
-  const { history } = props;
+  const { history, openSignUp } = props;
 
   const [ email, setEmail ] = useState( '' );
   const [ password, setPassword ] = useState( '' );
@@ -60,10 +60,10 @@ export default function LoginForm( props ) {
           onChange={e => setPassword(e.target.value)}
           />
       </section>
+      <FullButton type="submit" >Log In</FullButton>
 
       <LinkButton disabled={email.length === 0} onClick={(e) => {e.preventDefault(); handleForgotPassword()}}>Forgot password</LinkButton>
-
-      <FullButton type="submit" style={{marginLeft: "auto"}}>Log In</FullButton>
+      <LinkButton onClick={(e) => {e.preventDefault(); openSignUp()}}>Account registration</LinkButton>
 
 
     </Form>

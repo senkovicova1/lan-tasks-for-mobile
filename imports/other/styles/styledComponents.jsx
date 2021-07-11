@@ -7,7 +7,7 @@ const basicBlueColour = "#0078d4";
 const lightBlueColour = "#deeaf3";
 
 //numeric values
-const contentOffset = "10%";
+const contentOffset = "calc((100vw - 800px)/2)";
 const sidebarWidth = "20%";
 const inputOffset = "7px";
 
@@ -31,6 +31,12 @@ export const MainPage = styled.div `
   label {
     margin: 0px;
   }
+
+  hr{
+    color: #d6d6d6;
+    margin: 0px;
+    opacity: 1;
+  }
 `;
 
 export const PageHeader = styled.header `
@@ -38,11 +44,16 @@ export const PageHeader = styled.header `
     justify-content: space-between;
     align-items: center;
   height: 50px;
-  background-color: ${phColour};
+  background-color: ${basicBlueColour};
   padding: 0px ${contentOffset};
 
+
+    i {
+      font-size: 1.5em;
+    }
+
   h1 {
-    padding-left: 0.25em;
+    padding-left: 0em;
     display: inline;
     font-size: 1.5em;
     color: white;
@@ -56,23 +67,17 @@ export const Content = styled.main `
 
 
 export const ButtonRow = styled.section `
-display: flex;
-justify-content: flex-start;
-
-button:first-child{
-  margin-right: 1em;
+margin-top: 0em !important;
+button {
+  margin-bottom: 0.5em;
 }
-
-button:last-child{
-  margin-left: auto;
-  margin-right: 0em;
 }
 `;
 
 export const LinkButton = styled.button `
   color: ${(props) => props.font ? props.font : basicBlueColour};
   padding: 0px;
-  height: 1em;
+  height: 2em;
   background-color: transparent !important;
   outline: none !important;
   border: none !important;
@@ -85,15 +90,14 @@ export const LinkButton = styled.button `
 `;
 
 export const FullButton = styled.button `
+  width: 100%;
   color: white;
   padding: 0px;
-  height: 1em;
   background-color: ${(props) => props.colour ? props.colour : "#0078d4" } !important;
   outline: none !important;
   border: none !important;
   line-height: 2em;
   height: 2em;
-  display: flex;
   align-items: center;
   padding: 0px 0.5em;
   i {
@@ -101,123 +105,102 @@ export const FullButton = styled.button `
   }
 `;
 
-export const Sidebar = styled.nav `
-padding-top: 1em;
- width: ${sidebarWidth};
- display: inline-block;
- vertical-align: top;
- line-height: 2em;
-
- hr{
-   margin-block-start: 0.5em;
-    margin-block-end: 0.5em;
- }
-`;
-
-export const SidebarLink = styled.li `
-  padding-left: 0.4em;
-  background-color: ${(props) => props.active ? lightBlueColour : "transparent"} !important;
-  color: ${basicBlueColour} !important;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 2em;
-
-  a, i, button {
-    vertical-align: middle;
-  }
-`;
-
 export const List = styled.section `
-width: calc(100% - ${sidebarWidth});
-padding: 1em 0em 0em 1em;
+width: 100%;
+padding: 1em 0em 0em 0em;
 display: inline-block;
 verticalAlign: top;
 
-table {
-  line-height: 2em;
-  color: #333333;
-
-  input {
-    width: 100%;
-  }
-
-  tr{
-    line-height: 2em;
-  }
-
-  th {
-    font-weight: 600;
-  }
-
-  tbody>tr{
-    font-size: 0.9em;
-    background-color: white;
-    border-bottom: 2px solid ${backgroundColour};
-    td{
-      padding-left: 0.4em;
-    }
-  }
-
-  tbody>tr:first-child{
-    display: none;
-    background-color: transparent;
-    border-bottom: 2px solid ${backgroundColour};
-    td{
-      padding: 0px !important;
-      border-right: 2px solid ${backgroundColour};
-    }
-    td:last-child{
-      border-right: 0px;
-      input {
-        padding-right: 0px;
-      }
-    }
-  }
+&>div{
+    display: flex;
 }
 `;
 
 export const SearchSection = styled.section `
+margin: 0em 0em 1em 0em;
+input{
+  border-left: none;
+  width: 100%;
+}
+  width: 100%;
+  display: flex;
+  input:focus + i {
+    border: 1px solid ${basicBlueColour} !important;
+    border-right: none !important;
+  }
+  input:focus {
+    border-left: none !important;
+  }
+  i {
+    order: -1;
+    background-color: white;
+    border: 1px solid #d6d6d6;
+    border-right: none !important;
+    padding-left:5px;
+  }
+`;
+
+
+export const ItemContainer = styled.section `
+padding: 0em 1em;
+height: 3em;
 display: flex;
-justify-content: flex-start;
-align-items: center;
-
-margin: 1em 0em;
-
-input, button {
-  margin-right: 1em;
+color: ${basicBlueColour};
+&> input, &> span, &> button{
+  height: 3em !important;
+}
+&> span {
+  padding: 10px;
+}
+&> button{
+  margin-left: auto;
 }
 `;
 
 export const Form = styled.form `
-padding: 30px calc(40px - ${inputOffset});
+padding: 0px;
+width: -webkit-fill-available;
+
+h1{
+  font-size: 1.5em;
+  font-weight: 400;
+}
 
 hr{
   margin: 0em 0em 1em 0em;
 }
 
-.useOffset {
-  margin-left: ${inputOffset};
-  margin-right: ${inputOffset};
-}
-
 section {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  min-height: 3em;
+  margin:  1.5em 0em;
 
   i {
     font-size: 1.5em;
   }
 
-  label{
-    margin: 0px;
-    font-weight: 500;
-    width: 200px;
+  img {
+    width:32px;
+    height: 32px;
+    border-radius: 50px;
+    margin-right: 1em;
   }
-  input[type=text], input[type=color], input[type=password], &>div {
-    width: 85%;
+
+  label{
+    margin: 0px 1em 0em 0em;
+    font-weight: 500;
+  }
+  input[type=text], input[type=color], input[type=password],  &>div {
+    width: 100%;
+  }
+  input[type=color]{
+      border: none;
+      background-color: transparent !important;
+      padding: 0px;
+    }
+
+  input[type=file]{
+    width: calc(100% - 5em);
+    border: none;
+    background-color: transparent !important;
   }
 
   input[type=checkbox] + label{
@@ -232,57 +215,10 @@ input[type=checkbox]{
 }
 `;
 
-export const FormTable = styled.table `
-  line-height: 2em;
-  color: #333333;
-  width: -webkit-fill-available;
-  margin-bottom: 2em;
-
-input[type=text], input[type=number], input[type=datetime-local]{
-  width: 100%;
-}
-
-  td{
-    line-height: 2em;
-    height: 2em;
-    align-tems: center;
-  }
-
-  th{
-    font-weight: normal;
-    font-size: 0.8em;
-  }
-
-  th:first-child {
-    font-weight: 500;
-    font-size: 1em;
-  }
-
-  thead>tr{
-    border-bottom: 2px solid ${backgroundColour};
-  }
-
-  tbody>tr:not(:last-of-type){
-    border-bottom: 1px solid ${backgroundColour};
-
-    td:first-of-type{
-      width: 2em;
-    }
-  }
-  tr:not(:last-of-type)>td:last-of-type{
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    button:first-child{
-      margin-left: auto;
-    }
-
-`;
-
 export const Input = styled.input `
 background-color: white !important;
 outline: none !important;
-border: 1px solid transparent;
+border: 1px solid #d6d6d6;
 width: ${(props) => props.width ? props.width : "auto"};
 padding-left: 0.4em;
 
@@ -338,11 +274,50 @@ export const GroupButton = styled.button `
 
 export const LoginContainer = styled.div`
 width: 500px;
-margin: 10% auto auto auto;
-background-color: white;
-&>div {
-   display: flex;
-   justify-content: space-between;
+height: calc(100vh - 50px);
+margin: auto;
+position: relative;
+
+&>div{
+    height: fit-content;
+    width: inherit;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
 }
 
+h1 {
+  margin: 0px;
+  background-color: ${basicBlueColour};
+  color: white;
+  font-size: 1.5em;
+  font-weight: 400;
+  padding-left: 5px;
+  height: 1.5em;
+}
+`;
+
+export const UserEntry = styled.div`
+display: flex;
+margin-bottom: 0.5em;
+div {
+  display: inline-block;
+}
+label.name {
+display: block;
+font-weight: 400;
+}
+
+label.role {
+display: block;
+font-weight: 400;
+color: ${basicBlueColour};
+font-size: 0.9em;
+}
+
+button{
+  margin-left: auto;
+}
 `;

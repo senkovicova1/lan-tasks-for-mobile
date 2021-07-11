@@ -1,5 +1,6 @@
 import React, {
-  useState
+  useState,
+  useMemo
 } from 'react';
 
 import {
@@ -9,6 +10,14 @@ import {
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
+
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
+
+import {
+  translations
+} from '../../other/translations.jsx';
 
 import {
   Modal,
@@ -24,8 +33,14 @@ import {
 export default function AddTaskContainer( props ) {
 
   const {
-    match
+    match,
+    backgroundColor
   } = props;
+
+  const user = useTracker( () => Meteor.user() );
+  const language = useMemo(() => {
+    return user.profile.language;
+  }, [user]);
 
   const [ addTaskOpen, showAddTask ] = useState( false );
 
@@ -47,9 +62,11 @@ export default function AddTaskContainer( props ) {
 
   return (
     <div>
-      <LinkButton onClick={toggleAddTask}> <Icon iconName="Add"/> Task </LinkButton>
+      {!addTaskOpen &&
+      <LinkButton style={{marginLeft: "1em"}} onClick={toggleAddTask}> <Icon iconName="Add"/> {translations[language].task} </LinkButton>
+    }
           {addTaskOpen &&
-          <TaskForm {...props} onSubmit={addNewTask} onCancel={close}/>
+          <TaskForm {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
         }
     </div>
   );

@@ -15,6 +15,10 @@ import {
 } from '../../other/styles/selectStyles';
 
 import {
+  translations
+} from '../../other/translations.jsx';
+
+import {
   Form,
   FormTable,
   Input,
@@ -32,6 +36,7 @@ export default function TaskForm( props ) {
     match,
     _id: taskId,
     name: taskName,
+    language,
     onSubmit,
     onCancel,
   } = props;
@@ -50,7 +55,7 @@ export default function TaskForm( props ) {
     <Form>
 
       <section>
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name">{translations[language].name}</label>
         <Input
           type="text"
           placeholder="Name"
@@ -59,10 +64,10 @@ export default function TaskForm( props ) {
           />
       </section>
 
-      <ButtonRow className="useOffset">
-        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>Cancel</FullButton>
+      <ButtonRow style={{display: "flex"}}>
+        <FullButton colour="grey" style={{marginRight: "0.5em"}} onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
         <FullButton
-          colour=""
+          colour=""style={{marginLeft: "0.5em"}}
           disabled={name.length === 0}
           onClick={(e) => {e.preventDefault(); onSubmit(
             name,
@@ -70,7 +75,7 @@ export default function TaskForm( props ) {
             moment().unix()
           );}}
           >
-          Save
+          {translations[language].save}
         </FullButton>
       </ButtonRow>
 

@@ -1,10 +1,10 @@
 export const LANGUAGES = [
   {
-    label: "English",
+    label: "Eng",
     value: "en"
   },
     {
-      label: "Slovak",
+      label: "Sk",
       value: "sk"
     }
 ]

@@ -9,8 +9,12 @@ import moment from 'moment';
 import Select from 'react-select';
 
 import {
-  selectStyle
+  invisibleSelectStyle
 } from '../other/styles/selectStyles';
+
+import {
+  translations
+} from '../other/translations.jsx';
 
 import {
   Icon
@@ -35,17 +39,22 @@ export default function ListContainer( props ) {
 
   const {
     match,
-    location
+    location,
+    setBackground
   } = props;
+
+  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
+  const userId = Meteor.userId();
+  const user = useTracker( () => Meteor.user() );
+  const language = useMemo(() => {
+    return user.profile.language;
+  }, [user]);
 
   const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
   const [ openEdit, setOpenEdit ] = useState(false);
   const [ folderListOpen, setFolderListOpen ] = useState(false);
-  const [ selectedFolder, setSelectedFolder ] = useState({label: "All folders", value: "all"});
-
-  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
-  const userId = Meteor.userId();
+  const [ selectedFolder, setSelectedFolder ] = useState({label: translations[language].allFolders, value: "all"});
 
   const myFolders = useMemo(() => {
     let newMyFolders = folders.filter(folder => folder.users.find(user => user._id === userId));
@@ -54,39 +63,36 @@ export default function ListContainer( props ) {
     return newMyFolders;
   }, [userId, folders]);
 
+
   useEffect(() => {
     if (!match.params.folderID || match.params.folderID === "all"){
-      setSelectedFolder({label: "All folders", value: "all"});
+      setSelectedFolder({label: translations[language].allFolders, value: "all"});
+      setBackground("#f6f6f6");
     } else {
-    setSelectedFolder(myFolders.find(folder => folder._id === match.params.folderID));
+      const newFolder = myFolders.find(folder => folder._id === match.params.folderID);
+    setSelectedFolder(newFolder);
+    setBackground(newFolder.colour);
   }
-}, [match.params.folderID, location.pathname])
+}, [match.params.folderID, location.pathname, language])
+
 
   return (
     <List>
 
+      <div>
       <Select
-        styles={selectStyle}
+        styles={invisibleSelectStyle}
         value={selectedFolder}
         onChange={(e) => {
           setSelectedFolder(e);
+          setBackground(e.colour ? e.colour : "#f6f6f6");
           props.history.push(`/${e.value}/list`);
         }}
-        options={[{label: "All folders", value: "all"}, ...myFolders]}
+        options={[{label: translations[language].allFolders, value: "all"}, ...myFolders]}
         />
-      {
-      (  selectedFolder.value === "all" || selectedFolder.users.find(user => user._id === userId).admin )&& 
-      <LinkButton onClick={(e) => {
-          e.preventDefault();
-          if (selectedFolder.value === "all") {
-          props.history.push(`/folders/settings`);
-          } else {
-          props.history.push(`/${selectedFolder.value}/edit`);
-        }
-        }}>
-      <Icon iconName="Settings"/>
-    </LinkButton>
-  }
+
+</div>
+<hr />
 
     </List>
   );
