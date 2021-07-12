@@ -45,11 +45,17 @@ export const PageHeader = styled.header `
     align-items: center;
   height: 50px;
   background-color: ${basicBlueColour};
-  padding: 0px ${contentOffset};
+  padding: 0px calc(${contentOffset} + ${inputOffset});
 
 
     i {
       font-size: 1.5em;
+    }
+
+    button:last-child{
+      i{
+        margin: 0px !important;
+      }
     }
 
   h1 {
@@ -63,6 +69,7 @@ export const PageHeader = styled.header `
 export const Content = styled.main `
   display: block;
   padding: 0px ${contentOffset};
+  height: calc(100vh - 50px);
 `;
 
 
@@ -105,6 +112,20 @@ export const FullButton = styled.button `
   }
 `;
 
+export const FloatingButton = styled.button `
+  color: white;
+  padding: 0px 0.8em;
+  height: 2.5em;
+  background-color: ${(props) => props.font ? props.font : basicBlueColour};
+  outline: none !important;
+  border: none !important;
+  border-radius: 1.5em;
+  align-items: center;
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
+`;
+
 export const List = styled.section `
 width: 100%;
 padding: 1em 0em 0em 0em;
@@ -114,13 +135,24 @@ verticalAlign: top;
 &>div{
     display: flex;
 }
+
+&>section.showClosed{
+  margin-top: 1em;
+  display: block;
+  height: 32px;
+}
+
+&>section.showClosed, button{
+  margin-left: ${inputOffset};
+}
 `;
 
 export const SearchSection = styled.section `
-margin: 0em 0em 1em 0em;
+margin: 0em ${inputOffset} 1em ${inputOffset};
 input{
   border-left: none;
-  width: 100%;
+  width: calc(100% - 28px - ${inputOffset});
+  marginRight: ${inputOffset};
 }
   width: 100%;
   display: flex;
@@ -142,7 +174,11 @@ input{
 
 
 export const ItemContainer = styled.section `
-padding: 0em 1em;
+
+&:hover{
+  cursor: pointer;
+}
+padding: 0em ${inputOffset};
 height: 3em;
 display: flex;
 color: ${basicBlueColour};
@@ -158,7 +194,7 @@ color: ${basicBlueColour};
 `;
 
 export const Form = styled.form `
-padding: 0px;
+padding: 0px ${inputOffset};
 width: -webkit-fill-available;
 
 h1{
@@ -204,8 +240,7 @@ section {
   }
 
   input[type=checkbox] + label{
-      width: 30%;
-      order: -1;
+      vertical-align: middle;
     }
 
 input[type=checkbox]{

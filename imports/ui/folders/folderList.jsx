@@ -19,7 +19,8 @@ import {
   List,
   SearchSection,
   Input,
-  LinkButton
+  LinkButton,
+  ItemContainer
 } from "../../other/styles/styledComponents";
 
 export default function FolderList( props ) {
@@ -29,7 +30,7 @@ export default function FolderList( props ) {
     history
   } = props;
 
-  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
+  const folders = useTracker( () => FoldersCollection.find( {archived: true} ).fetch() );
   const userId = Meteor.userId();
 
   const [ search, setSearch ] = useState( "" );
@@ -38,7 +39,6 @@ export default function FolderList( props ) {
     const myFolders = useMemo(() => {
       let newMyFolders = folders.filter(folder => folder.users.find(user => user._id === userId));
       newMyFolders = newMyFolders.map(folder => ({...folder, label: folder.name, value: folder._id}));
-      newMyFolders = newMyFolders.sort((f1, f2) => (f1.archived > f2.archived ? 1 : -1));
       return newMyFolders;
     }, [userId, folders]);
 
@@ -50,11 +50,20 @@ export default function FolderList( props ) {
     <List>
 
       <SearchSection>
-        <Input width="30%" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Icon iconName="Zoom"/>
       </SearchSection>
 
-      {mySearchedFolders.map(folder => <div key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>{folder.name}</div>)}
-      <LinkButton onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> Folder </LinkButton>
+      {mySearchedFolders.map(folder =>
+        <ItemContainer key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>
+          <span
+            style={{paddingLeft: "0px"}}
+            onClick={() => history.push(`/folders/archived/${folder._id}`)}
+            >
+            {folder.name}
+          </span>
+        </ItemContainer>
+      )}
     </List>
   );
 };

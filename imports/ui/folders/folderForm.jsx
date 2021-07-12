@@ -50,7 +50,6 @@ export default function FolderForm( props ) {
     location
   } = props;
 
-
 const dbUsers = useTracker( () => Meteor.users.find( {} )
   .fetch() );
 
@@ -110,7 +109,6 @@ const userId = Meteor.userId();
     return dbUsers.find(user => user._id === userId).profile.language;
   }, [userId, dbUsers]);
 
-
   return (
     <Form>
 
@@ -139,14 +137,14 @@ const userId = Meteor.userId();
       </section>
 
       <section>
-        <label htmlFor="archived">{translations[language].archived}</label>
         <Input
           id="archived"
           name="archived"
           type="checkbox"
-          value={archived}
+          checked={archived}
           onChange={(e) =>  setArchived(!archived)}
           />
+        <label htmlFor="archived">{translations[language].archived}</label>
       </section>
 
       <section>

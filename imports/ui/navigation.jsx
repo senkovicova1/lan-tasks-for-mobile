@@ -13,6 +13,7 @@ import Header from './header';
 import Login from './login';
 import List from './listContainer';
 import TaskList from './tasks/taskList';
+import ArchviedTaskList from './tasks/archivedTaskList';
 import FolderList from './folders/folderList';
 import FolderEdit from './folders/editFolderContainer';
 import FolderAdd from './folders/addFolderContainer';
@@ -28,7 +29,7 @@ export default function MainPage( props ) {
   const [ background, setBackground ] = useState("#f6f6f6");
 
   return (
-    <div style={{backgroundColor: background, height: "100vh"}}>
+    <div style={{height: "100vh"}}>
       <BrowserRouter>
         <Route path={"/"} render={(props) => (
           <Header {...props} setBackground={setBackground} />
@@ -40,19 +41,22 @@ export default function MainPage( props ) {
         }
         {user &&
           <Content>
-              <Route exact path={["/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/settings"]} render={(props) => (
+            <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
+              <Route exact path={["/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]} render={(props) => (
                 <List {...props} setBackground={setBackground} />
               )}/>
               <Route exact path={"/:folderID/list"} component={TaskList} />
               <Route exact path={"/:folderID/edit"} component={FolderEdit} />
               <Route exact path={"/folders/add"} component={FolderAdd} />
-              <Route exact path={"/folders/settings"} component={FolderList} />
+              <Route exact path={"/folders/archived"} component={FolderList} />
+              <Route exact path={"/folders/archived/:folderID"} component={ArchviedTaskList} />
               <Route
                 exact
                 path={"/settings"}
                 render={(props) => (
                   <EditUserContainer {...props} user={user} />
                 )}/>
+              </div>
           </Content>
         }
       </BrowserRouter>

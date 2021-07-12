@@ -88,6 +88,7 @@ export const invisibleSelectStyle = {
   dropdownIndicator: base => ( {
     ...base,
     padding: 4,
+    paddingRight: "7px",
   } ),
   clearIndicator: base => ( {
     ...base,

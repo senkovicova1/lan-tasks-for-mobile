@@ -45,7 +45,7 @@ export default function EditFolderContainer( props ) {
 
   const editFolder = ( name, colour, archived, users ) => {
     let data = {
-      name, colour, archived
+      name, colour, archived, users
     };
     FoldersCollection.update( folderID, {
       $set: {

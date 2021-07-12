@@ -65,7 +65,7 @@ export default function TaskForm( props ) {
       </section>
 
       <ButtonRow style={{display: "flex"}}>
-        <FullButton colour="grey" style={{marginRight: "0.5em"}} onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
+        <FullButton colour="grey" style={{marginRight: "0.5em", marginLeft: "0px"}} onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
         <FullButton
           colour=""style={{marginLeft: "0.5em"}}
           disabled={name.length === 0}

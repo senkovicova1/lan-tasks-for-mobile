@@ -18,6 +18,7 @@ export const translations = {
     'accountReg': 'Account registration',
 
     'allFolders': 'All folders',
+    'archivedFolders': 'Archived folders',
     'folder': 'Folder',
     'showClosed': 'Show closed',
     'restoreTask': 'Restore task',
@@ -49,6 +50,7 @@ export const translations = {
     'accountReg': 'Registrácia',
 
     'allFolders': 'Všetky priečinky',
+    'archivedFolders': 'Archivované priečinky',
     'folder': 'Priečinok',
     'showClosed': 'Zobraziť uzavreté',
     'restoreTask': 'Obnoviť poslednú zmazanú úlohu',

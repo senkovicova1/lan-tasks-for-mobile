@@ -43,7 +43,8 @@ import {
   SearchSection,
   Input,
   ItemContainer,
-  LinkButton
+  LinkButton,
+  FloatingButton
 } from "../../other/styles/styledComponents";
 
 export default function TaskList( props ) {
@@ -143,7 +144,7 @@ export default function TaskList( props ) {
     <List>
 
       <SearchSection>
-        <Input width="30%" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
         <Icon iconName="Zoom"/>
       </SearchSection>
 
@@ -188,8 +189,7 @@ export default function TaskList( props ) {
       <AddTaskContainer {...props} backgroundColor={folders[0].colour}/>
     }
 <hr/>
-    <div style={{marginLeft: "1em", marginTop: "1em", display: "block"}}>
-      <section key="allStatuses" style={{height: "32px"}}>
+      <section className="showClosed"  key="allStatuses" >
         <Input
           id="allStatuses"
           type="checkbox"
@@ -202,17 +202,18 @@ export default function TaskList( props ) {
           />
         <label htmlFor="allStatuses" style={{color: "#0078d4"}}>{translations[language].showClosed}</label>
       </section>
-      {
-        findFolder &&
-        <LinkButton disabled={deletedTasksInFolder.length === 0} onClick={(e) => {e.preventDefault(); restoreLatestTask()}}><Icon iconName="Refresh"/>{translations[language].restoreTask}</LinkButton>
-      }
-    </div>
+    {
+      findFolder &&
+      <LinkButton disabled={deletedTasksInFolder.length === 0} onClick={(e) => {e.preventDefault(); restoreLatestTask()}}><Icon iconName="Refresh"/>{translations[language].restoreTask}</LinkButton>
+    }
 
-    <LinkButton style={{marginLeft: "1em"}} onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> {translations[language].folder} </LinkButton>
+{ match.params.folderID === "all" &&
+    <FloatingButton onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> {translations[language].folder} </FloatingButton>
+    }
 
       {
       ( findFolder && folders[0].users.find(user => user._id === userId).admin )&&
-      <LinkButton style={{marginLeft: "1em"}} onClick={(e) => {
+      <LinkButton onClick={(e) => {
           e.preventDefault();
           props.history.push(`/${folders[0]._id}/edit`);
         }}>

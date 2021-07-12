@@ -27,7 +27,7 @@ import {
 import TaskForm from './taskForm';
 
 import {
-  LinkButton
+  FloatingButton
 } from '../../other/styles/styledComponents';
 
 export default function AddTaskContainer( props ) {
@@ -63,10 +63,14 @@ export default function AddTaskContainer( props ) {
   return (
     <div>
       {!addTaskOpen &&
-      <LinkButton style={{marginLeft: "1em"}} onClick={toggleAddTask}> <Icon iconName="Add"/> {translations[language].task} </LinkButton>
+      <FloatingButton onClick={toggleAddTask}> <Icon iconName="Add"/></FloatingButton>
     }
           {addTaskOpen &&
+          <Modal isOpen={true}>
+            <ModalBody>
           <TaskForm {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
+        </ModalBody>
+      </Modal>
         }
     </div>
   );
