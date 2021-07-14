@@ -18,11 +18,12 @@ export default function LoginForm( props ) {
 
   return (
     <LoginContainer>
-      <div>
-      <h1>Task App</h1>
-      {showLogin && <Login {...props} openSignUp={() => setShowLogin(!showLogin)} />}
+      {showLogin &&
+        <div>
+        <Login {...props} openSignUp={() => setShowLogin(!showLogin)} />
+      </div>
+      }
       {!showLogin && <SignIn {...props} openLogIn={() => setShowLogin(!showLogin)}/>}
-    </div>
     </LoginContainer>
   );
 };

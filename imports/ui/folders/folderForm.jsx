@@ -22,9 +22,6 @@ import {
   Icon
 } from '@fluentui/react/lib/Icon';
 
-import {
-  UsersCollection
-} from '/imports/api/usersCollection';
 
 import {
   Form,

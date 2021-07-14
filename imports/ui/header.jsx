@@ -1,10 +1,11 @@
 import React, {
   useState,
-  useMemo
+  useEffect
 } from 'react';
 import {
   Link
 } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import {
   Icon
@@ -19,32 +20,34 @@ import {
   Input,
 } from '../other/styles/styledComponents';
 
-import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
-
 export default function Header( props ) {
 
   const {setBackground, match, location, setSearch, search} = props;
 
   const logout = () => Meteor.logout();
-  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
+
+  const folders = useSelector((state) => state.folders.value);
 
   const [ openSidebar, setOpenSidebar ] = useState(false);
   const [ openSearch, setOpenSearch ] = useState(false);
+  const [ title, setTitle ] = useState("TaskApp");
 
-  const title = useMemo(() => {
+  useEffect(() => {
     if (location.pathname === "/folders/archived") {
         return "Archived Folders";
     }
     if (!match.params.folderID || match.params.folderID === "all") {
       return "TaskApp";
     }
-    return folders.find(folder => folder._id === match.params.folderID)?.name;
-  }, [match.params.folderID, location.pathname]);
+    let folder = folders.find(folder => folder._id === match.params.folderID);
+    if (folder) {
+      setTitle(folder.name);
+      setBackground(folder.colour);
+    } else {
+      setTitle("TaskApp");
+      setBackground("#f6f6f6");
+    }
+  }, [match.params.folderID, location.pathname, folders]);
 
   return (
     <PageHeader>

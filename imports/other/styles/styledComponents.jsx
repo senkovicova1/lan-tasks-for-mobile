@@ -87,7 +87,7 @@ export const Sidebar = styled.section `
   position: absolute;
   left: ${contentOffset};
   top: 50px;
-  height: 100vh;
+  height: calc(100vh - 50px);
   z-index: 3;
   width: 300px;
   box-shadow: 5px 0px 13px 0px slategrey;
@@ -152,7 +152,7 @@ export const FloatingButton = styled.button `
 
 export const List = styled.section `
 width: 100%;
-padding: 1em 0em 0em 0em;
+padding: 0em 0em 0em 0em;
 display: inline-block;
 verticalAlign: top;
 
@@ -317,16 +317,14 @@ export const LoginContainer = styled.div`
 width: 500px;
 height: calc(100vh - 50px);
 margin: auto;
-position: relative;
 
 &>div{
-    height: fit-content;
+    height: -webkit-fill-available;
     width: inherit;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
+    background-color: ${backgroundColour};
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 h1 {

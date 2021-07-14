@@ -7,6 +7,7 @@ import React, {
 import moment from 'moment';
 
 import Select from 'react-select';
+import { useSelector } from 'react-redux';
 
 import {
   selectStyle
@@ -24,9 +25,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
@@ -50,7 +48,8 @@ export default function TaskList( props ) {
     search
   } = props;
 
-  const [ editTask, setEditTask ] = useState( null );
+
+  const [ editedTask, setEditedTask ] = useState( null );
   const [ showClosed, setShowClosed ] = useState(false);
 
   const userId = Meteor.userId();
@@ -59,14 +58,14 @@ export default function TaskList( props ) {
     return user.profile.language;
   }, [user]);
 
-  const findFolder = match.params.folderID === 'all' ? null : match.params.folderID;
-    const tasks = useTracker( () => TasksCollection.find( findFolder ? {
-        folder: findFolder
-      } : {} )
-      .fetch() );
-    const folders = useTracker( () => FoldersCollection.find( findFolder ? {
-        _id: findFolder
-      } : {} ).fetch() );
+    const folderID = match.params.folderID === 'all' ? null : match.params.folderID;
+    const folders = useSelector((state) => state.folders.value);
+    const folder = useMemo(() => {
+      const maybeFolder = folders.find(folder => folder._id === folderID);
+      return  maybeFolder ? maybeFolder : null;
+    }, [folders]);
+
+  const tasks = useSelector((state) => state.tasks.value);
 
   const closeTask = (task) => {
     let data = {
@@ -80,8 +79,8 @@ export default function TaskList( props ) {
   }
 
     const deletedTasksInFolder = useMemo(() => {
-      return tasks.filter(t => t.folder === findFolder && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
-    }, [tasks, findFolder]);
+      return tasks.filter(t => t.folder === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+    }, [tasks, folderID]);
 
   const removeTask = ( task ) => {
     if (deletedTasksInFolder.length >= 5){
@@ -116,15 +115,9 @@ export default function TaskList( props ) {
     } );
   }
 
-  const joinedTasks = useMemo( () =>
-    tasks.map( task => ( {
-      ...task,
-      folder: folders.find( folder => folder._id === task.folder ),
-    } ) ), [ tasks, folders ] );
-
     const filteredTasks = useMemo(() => {
-      return joinedTasks.filter(task => (showClosed || !task.closed) && !task.removedDate && task.folder.users.find(user => user._id === userId));
-    }, [joinedTasks]);
+      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID));
+    }, [tasks, showClosed]);
 
     const searchedTasks = useMemo(() => {
       return filteredTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
@@ -139,46 +132,49 @@ export default function TaskList( props ) {
     <List>
 
       {
+        searchedTasks.length === 0 &&
+        <span>You have no open tasks.</span>
+      }
+      {
         searchedTasks.map((task) => {
-          if (editTask === task._id){
+          if (editedTask === task._id){
             return (
               <div
                 key={task._id}
                 >
-              <EditTaskContainer {...props} task={task} close={() => setEditTask(null)}/>
-            </div>
+                <EditTaskContainer {...props} task={task} close={() => setEditedTask(null)}/>
+              </div>
             )
           } else {
             return (
-        <ItemContainer
-          key={task._id}
-          style={task.folder.colour && !findFolder  ? {backgroundColor: task.folder.colour} : {}}
-          >
-          <Input
-            type="checkbox"
-            style={{
-              marginRight: "0.2em",
-              width: "1.5em"
-            }}
-            checked={task.closed}
-            onChange={() => closeTask(task)}
-            />
-          <span onClick={() => setEditTask(task._id)}>
-          {task.name}
-        </span>
-            <LinkButton onClick={(e) => {e.preventDefault(); removeTask(task)}}><Icon iconName="Cancel"/></LinkButton>
-        </ItemContainer>
-      )
+              <ItemContainer
+                key={task._id}
+                style={{ backgroundColor: task.folder.colour}}
+                >
+                <Input
+                  type="checkbox"
+                  style={{
+                    marginRight: "0.2em",
+                    width: "1.5em"
+                  }}
+                  checked={task.closed}
+                  onChange={() => closeTask(task)}
+                  />
+                <span onClick={() => setEditedTask(task._id)}>
+                  {task.name}
+                </span>
+                <LinkButton onClick={(e) => {e.preventDefault(); removeTask(task)}}><Icon iconName="Cancel"/></LinkButton>
+              </ItemContainer>
+            )
+          }
+        })
       }
-      }
-      )
-    }
 
-    {
-      findFolder &&
-      <AddTaskContainer {...props} backgroundColor={folders[0].colour}/>
-    }
-<hr/>
+      {
+        folder &&
+        <AddTaskContainer {...props} backgroundColor={folder.colour}/>
+      }
+      <hr/>
       <section className="showClosed"  key="allStatuses" >
         <Input
           id="allStatuses"
@@ -192,25 +188,25 @@ export default function TaskList( props ) {
           />
         <label htmlFor="allStatuses" style={{color: "#0078d4"}}>{translations[language].showClosed}</label>
       </section>
-    {
-      findFolder &&
-      <LinkButton disabled={deletedTasksInFolder.length === 0} onClick={(e) => {e.preventDefault(); restoreLatestTask()}}><Icon iconName="Refresh"/>{translations[language].restoreTask}</LinkButton>
-    }
+      {
+        folder &&
+        <LinkButton disabled={deletedTasksInFolder.length === 0} onClick={(e) => {e.preventDefault(); restoreLatestTask()}}><Icon iconName="Refresh"/>{translations[language].restoreTask}</LinkButton>
+      }
 
-{ match.params.folderID === "all" &&
-    <FloatingButton onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> {translations[language].folder} </FloatingButton>
-    }
+      { match.params.folderID === "all" &&
+        <FloatingButton onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> {translations[language].folder} </FloatingButton>
+      }
 
       {
-      ( findFolder && folders[0].users.find(user => user._id === userId).admin )&&
-      <LinkButton onClick={(e) => {
-          e.preventDefault();
-          props.history.push(`/${folders[0]._id}/edit`);
-        }}>
-      <Icon iconName="Settings"/> Folder
-    </LinkButton>
-  }
+        ( folder && folder.users.find(user => user._id === userId).admin )&&
+        <LinkButton onClick={(e) => {
+            e.preventDefault();
+            props.history.push(`/${folders[0]._id}/edit`);
+          }}>
+          <Icon iconName="Settings"/> Folder
+          </LinkButton>
+        }
 
-  </List>
+      </List>
   );
 };

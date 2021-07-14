@@ -90,11 +90,6 @@ export default function ArchivedTaskList( props ) {
   return (
     <List>
 
-      <SearchSection>
-        <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Icon iconName="Zoom"/>
-      </SearchSection>
-
       {
         searchedTasks.map((task) => <ItemContainer
           key={task._id}

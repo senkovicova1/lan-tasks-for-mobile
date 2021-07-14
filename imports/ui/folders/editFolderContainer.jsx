@@ -1,15 +1,10 @@
 import React, {
   useState,
-  useEffect
+  useEffect,
+  useMemo
 } from 'react';
 
-import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
-
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
+import { useSelector } from 'react-redux';
 import {
   Modal,
   ModalBody
@@ -24,17 +19,17 @@ export default function EditFolderContainer( props ) {
     history
   } = props;
 
-  const { folderID } = match.params;
-
-  const folder = useTracker( () => FoldersCollection.find( {
-      _id: folderID
-    } ).fetch() );
-
+  const folderID = match.params.folderID;
+  const folders = useSelector((state) => state.folders.value);
+  const folder = useMemo(() => {
+    return  folders.find(folder => folder._id === folderID);
+  }, [folders]);
+console.log(folders);
+console.log(folder);
   const userId = Meteor.userId();
 
-
     useEffect( () => {
-        const userIsAdmin = folder[0].users.find(user => user._id === userId).admin;
+        const userIsAdmin = folder.users.find(user => user._id === userId).admin;
 
         if ( !userIsAdmin ) {
           history.push(`/${folderID}/list`);
@@ -69,6 +64,6 @@ export default function EditFolderContainer( props ) {
   }
 
   return (
-      <FolderForm {...folder[0]} onSubmit={editFolder} onCancel={cancel} onRemove={removeFolder}/>
+      <FolderForm {...folder} onSubmit={editFolder} onCancel={cancel} onRemove={removeFolder}/>
   );
 };

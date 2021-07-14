@@ -4,16 +4,10 @@ import React, {
   useEffect,
 } from 'react';
 
+import { useSelector } from 'react-redux';
 import {
   Icon
 } from '@fluentui/react/lib/Icon';
-
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
-import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
 
 import {
   List,
@@ -27,17 +21,18 @@ export default function FolderList( props ) {
 
   const {
     match,
-    history
+    history,
+    search
   } = props;
 
-  const folders = useTracker( () => FoldersCollection.find( {archived: true} ).fetch() );
+
+  const folders = useSelector((state) => state.folders.value);
   const userId = Meteor.userId();
 
-  const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
 
     const myFolders = useMemo(() => {
-      let newMyFolders = folders.filter(folder => folder.users.find(user => user._id === userId));
+      let newMyFolders = folders.filter(folder => folder.archived && folder.users.find(user => user._id === userId));
       newMyFolders = newMyFolders.map(folder => ({...folder, label: folder.name, value: folder._id}));
       return newMyFolders;
     }, [userId, folders]);
@@ -48,11 +43,6 @@ export default function FolderList( props ) {
 
   return (
     <List>
-
-      <SearchSection>
-        <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Icon iconName="Zoom"/>
-      </SearchSection>
 
       {mySearchedFolders.map(folder =>
         <ItemContainer key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>
