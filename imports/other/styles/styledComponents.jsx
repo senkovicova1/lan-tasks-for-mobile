@@ -43,6 +43,7 @@ export const PageHeader = styled.header `
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
   padding: 0px calc(${contentOffset} + ${inputOffset});
@@ -52,7 +53,7 @@ export const PageHeader = styled.header `
       font-size: 1.5em;
     }
 
-    button:last-child{
+    button:last-of-type{
       i{
         margin: 0px !important;
       }
@@ -79,6 +80,29 @@ button {
   margin-bottom: 0.5em;
 }
 }
+`;
+
+export const Sidebar = styled.section `
+  background-color: ${backgroundColour};
+  position: absolute;
+  left: ${contentOffset};
+  top: 50px;
+  height: 100vh;
+  z-index: 3;
+  width: 300px;
+  box-shadow: 5px 0px 13px 0px slategrey;
+  padding: ${inputOffset};
+
+  a {
+    display: block;
+    padding: 0.5em 0px;
+    text-decoration: none;
+  }
+
+  a.active {
+    text-decoration: underline;
+  }
+
 `;
 
 export const LinkButton = styled.button `
@@ -148,28 +172,10 @@ verticalAlign: top;
 `;
 
 export const SearchSection = styled.section `
-margin: 0em ${inputOffset} 1em ${inputOffset};
+width: -webkit-fill-available;
 input{
-  border-left: none;
-  width: calc(100% - 28px - ${inputOffset});
-  marginRight: ${inputOffset};
+  width: -webkit-fill-available;
 }
-  width: 100%;
-  display: flex;
-  input:focus + i {
-    border: 1px solid ${basicBlueColour} !important;
-    border-right: none !important;
-  }
-  input:focus {
-    border-left: none !important;
-  }
-  i {
-    order: -1;
-    background-color: white;
-    border: 1px solid #d6d6d6;
-    border-right: none !important;
-    padding-left:5px;
-  }
 `;
 
 
@@ -194,7 +200,7 @@ color: ${basicBlueColour};
 `;
 
 export const Form = styled.form `
-padding: 0px ${inputOffset};
+padding: 1em ${inputOffset};
 width: -webkit-fill-available;
 
 h1{
@@ -207,7 +213,7 @@ hr{
 }
 
 section {
-  margin:  1.5em 0em;
+  margin: 0em 0em 1.5em 0em;
 
   i {
     font-size: 1.5em;

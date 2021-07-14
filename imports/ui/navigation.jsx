@@ -11,7 +11,6 @@ import {
 
 import Header from './header';
 import Login from './login';
-import List from './listContainer';
 import TaskList from './tasks/taskList';
 import ArchviedTaskList from './tasks/archivedTaskList';
 import FolderList from './folders/folderList';
@@ -28,11 +27,13 @@ export default function MainPage( props ) {
 
   const [ background, setBackground ] = useState("#f6f6f6");
 
+  const [ search, setSearch ] = useState( "" );
+
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
-        <Route path={"/"} render={(props) => (
-          <Header {...props} setBackground={setBackground} />
+        <Route exact path={["/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]} render={(props) => (
+          <Header {...props} setSearch={setSearch} search={search} setBackground={setBackground} />
         )}/>
         {!user &&
           <Content>
@@ -42,10 +43,9 @@ export default function MainPage( props ) {
         {user &&
           <Content>
             <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
-              <Route exact path={["/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]} render={(props) => (
-                <List {...props} setBackground={setBackground} />
+              <Route exact path={"/:folderID/list"} render={(props) => (
+                <TaskList {...props} search={search} setBackground={setBackground} />
               )}/>
-              <Route exact path={"/:folderID/list"} component={TaskList} />
               <Route exact path={"/:folderID/edit"} component={FolderEdit} />
               <Route exact path={"/folders/add"} component={FolderAdd} />
               <Route exact path={"/folders/archived"} component={FolderList} />

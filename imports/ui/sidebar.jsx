@@ -4,6 +4,8 @@ import React, {
   useEffect
 } from 'react';
 
+import { NavLink } from 'react-router-dom';
+
 import moment from 'moment';
 
 import Select from 'react-select';
@@ -25,25 +27,22 @@ import {
 } from 'meteor/react-meteor-data';
 
 import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
-
-import {
-  List,
+  Sidebar,
   SearchSection,
   Input,
   LinkButton
 } from "../other/styles/styledComponents";
 
-export default function ListContainer( props ) {
+export default function Menu( props ) {
 
   const {
     match,
     location,
-    setBackground
+    setBackground,
+    folders,
+    closeSelf
   } = props;
 
-  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
   const language = useMemo(() => {
@@ -63,7 +62,7 @@ export default function ListContainer( props ) {
   }, [userId, folders]);
 
   const myActiveFolders = useMemo(() => {
-    return myFolders.filter(folder => !folder.archived);
+    return [{label: translations[language].allFolders, value: "all"}, ...myFolders.filter(folder => !folder.archived), {label: translations[language].archivedFolders, value: "archived"}];
   }, [myFolders]);
 
   useEffect(() => {
@@ -81,27 +80,38 @@ export default function ListContainer( props ) {
 }, [match.params.folderID, location.pathname, language]);
 
   return (
-    <List>
+    <Sidebar>
 
-      <div>
-      <Select
-        styles={invisibleSelectStyle}
-        value={selectedFolder}
-        onChange={(e) => {
-          setSelectedFolder(e);
-          setBackground(e.colour ? e.colour : "#f6f6f6");
-          if (e.value === "archived"){
-          props.history.push(`/folders/archived`);
-        } else {
-          props.history.push(`/${e.value}/list`);
+      { myActiveFolders.map(folder => {
+        if (folder.value === "archived"){
+        return (
+        <NavLink
+          key={folder.value}
+          to="/folders/archived"
+          onClick={() => {
+            setBackground("#f6f6f6");
+            closeSelf();
+          }}
+          >
+          {folder.label}
+        </NavLink>
+      );
         }
-        }}
-        options={[{label: translations[language].allFolders, value: "all"}, ...myActiveFolders, {label: translations[language].archivedFolders, value: "archived"}]}
-        />
+          return (
+            <NavLink
+              key={folder.value}
+              to={`/${folder.value}/list`}
+              onClick={() => {
+                setBackground(folder.colour ? folder.colour : "#f6f6f6");
+                closeSelf();
+              }}
+              >
+              {folder.label}
+            </NavLink>
+          );
+      }
+      )}
 
-</div>
-<hr />
-
-    </List>
+    </Sidebar>
   );
 };

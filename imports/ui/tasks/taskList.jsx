@@ -30,20 +30,15 @@ import {
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
-/*
-import {
-  UsersCollection
-} from '/imports/api/usersCollection';*/
 
 import AddTaskContainer from './addTaskContainer';
 import EditTaskContainer from './editTaskContainer';
 
 import {
   List,
-  SearchSection,
-  Input,
   ItemContainer,
   LinkButton,
+  Input,
   FloatingButton
 } from "../../other/styles/styledComponents";
 
@@ -51,10 +46,10 @@ export default function TaskList( props ) {
 
   const {
     match,
-    history
+    history,
+    search
   } = props;
 
-  const [ search, setSearch ] = useState( "" );
   const [ editTask, setEditTask ] = useState( null );
   const [ showClosed, setShowClosed ] = useState(false);
 
@@ -142,11 +137,6 @@ export default function TaskList( props ) {
 
   return (
     <List>
-
-      <SearchSection>
-        <Input placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Icon iconName="Zoom"/>
-      </SearchSection>
 
       {
         searchedTasks.map((task) => {
