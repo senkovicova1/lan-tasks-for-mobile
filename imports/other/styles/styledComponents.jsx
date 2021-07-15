@@ -153,6 +153,9 @@ export const FloatingButton = styled.button `
   position: absolute;
   bottom: 1em;
   right: 1em;
+  span{
+    vertical-align: text-bottom;
+  }
 `;
 
 export const List = styled.section `

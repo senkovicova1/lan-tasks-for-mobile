@@ -14,6 +14,9 @@ import {
 import Menu from './sidebar';
 
 import {
+  useTracker
+} from 'meteor/react-meteor-data';
+import {
   PageHeader,
   LinkButton,
   FullButton,
@@ -25,6 +28,7 @@ export default function Header( props ) {
 
   const {setBackground, match, location, setSearch, search} = props;
 
+  const currentUser = useTracker( () => Meteor.user() );
   const logout = () => Meteor.logout();
 
   const folders = useSelector((state) => state.folders.value);
@@ -55,7 +59,7 @@ export default function Header( props ) {
   return (
     <PageHeader>
       {
-        !props.location.pathname.includes("login") &&
+        currentUser &&
       <LinkButton
         font="white"
         onClick={(e) => {
@@ -73,7 +77,7 @@ export default function Header( props ) {
 
     {
       openSearch &&
-      !props.location.pathname.includes("login") &&
+      currentUser &&
       <LinkButton
         font="white"
         onClick={(e) => {
@@ -86,7 +90,7 @@ export default function Header( props ) {
     }
         {
           openSearch &&
-          !props.location.pathname.includes("login") &&
+          currentUser &&
           <SearchSection>
             <Input
               placeholder="Search"
@@ -97,7 +101,7 @@ export default function Header( props ) {
         }
         {
           openSearch &&
-          !props.location.pathname.includes("login") &&
+          currentUser &&
           <LinkButton
             font="#0078d4"
             searchButton
@@ -112,7 +116,7 @@ export default function Header( props ) {
 
         {
           !openSearch &&
-          !props.location.pathname.includes("login") &&
+          currentUser &&
           <LinkButton
             style={{marginLeft: "auto"}}
             font="white"
@@ -126,7 +130,7 @@ export default function Header( props ) {
         }
 
       {
-        !props.location.pathname.includes("login") &&
+        currentUser &&
         <LinkButton
           font="white"
           onClick={(e) => {
@@ -139,7 +143,7 @@ export default function Header( props ) {
         </LinkButton>
       }
       {
-        !props.location.pathname.includes("login") &&
+        currentUser &&
         <LinkButton
           font="white"
           onClick={(e) => {
@@ -155,7 +159,7 @@ export default function Header( props ) {
 
       {
         openSidebar &&
-        !props.location.pathname.includes("login") &&
+        currentUser &&
         <Menu {...props} setBackground={setBackground} closeSelf={() => setOpenSidebar(false)}/>
       }
 

@@ -49,12 +49,12 @@ export default function TaskList( props ) {
     return user.profile.language;
   }, [user]);
 
-    const folderID = match.params.folderID === 'all' ? null : match.params.folderID;
+    const folderID = !match.params.folderID || match.params.folderID === 'all' ? null : match.params.folderID;
     const folders = useSelector((state) => state.folders.value);
     const folder = useMemo(() => {
       const maybeFolder = folders.find(folder => folder._id === folderID);
       return  maybeFolder ? maybeFolder : null;
-    }, [folders]);
+    }, [folders, folderID]);
 
   const tasks = useSelector((state) => state.tasks.value);
 
@@ -107,7 +107,7 @@ export default function TaskList( props ) {
   }
 
     const filteredTasks = useMemo(() => {
-      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID));
+      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived);
     }, [tasks, showClosed]);
 
     const searchedTasks = useMemo(() => {
@@ -188,10 +188,12 @@ export default function TaskList( props ) {
       }
 
       {
-        match.params.folderID === "all" &&
+        (!match.params.folderID || match.params.folderID === "all") &&
         <FloatingButton onClick={() => history.push('/folders/add')}>
-          <Icon iconName="Add"/>
+          <Icon iconName="Add" style={{marginRight: "0.3em"}}/>
+          <span>
           {translations[language].folder}
+        </span>
         </FloatingButton>
       }
 

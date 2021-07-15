@@ -66,7 +66,6 @@ useEffect(() => {
     dispatch(setUsers(users));
 }, [users]);
 
-
   const [ background, setBackground ] = useState("#f6f6f6");
 
   const [ search, setSearch ] = useState( "" );
@@ -76,7 +75,7 @@ useEffect(() => {
       <BrowserRouter>
         <Route
           exact
-          path={["/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
+          path={["/", "/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
           render={(props) => (
           <Header
             {...props}
@@ -88,7 +87,7 @@ useEffect(() => {
         />
         {!currentUser &&
           <Content>
-            <Route path={"/login"} component={Login} />
+            <Route path={["/", "/login"]} component={Login} />
           </Content>
         }
         {currentUser &&
@@ -96,7 +95,7 @@ useEffect(() => {
             <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
               <Route
                 exact
-                path={"/:folderID/list"}
+                path={["/", "/:folderID/list"]}
                 render={(props) => (
                 <TaskList
                    {...props}
