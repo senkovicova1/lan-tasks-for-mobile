@@ -53,10 +53,15 @@ export const PageHeader = styled.header `
       font-size: 1.5em;
     }
 
-    button:last-of-type{
+    button{
       i{
         margin: 0px !important;
       }
+      margin-right: 1em;
+    }
+
+    button:last-of-type{
+        margin: 0px !important;
     }
 
   h1 {
@@ -108,15 +113,15 @@ export const Sidebar = styled.section `
 export const LinkButton = styled.button `
   color: ${(props) => props.font ? props.font : basicBlueColour};
   padding: 0px;
-  height: 2em;
-  background-color: transparent !important;
+  height: ${(props) => props.searchButton ? "26px" : "2em" };
+  background-color: ${(props) => props.searchButton ? "white" : "transparent" } !important;
   outline: none !important;
   border: none !important;
   line-height: 1em;
   display: flex;
   align-items: center;
   i {
-    margin-right: 0.3em;
+    margin-right: ${(props) => props.searchButton ? "0px" : "0.3em" };
   }
 `;
 
@@ -169,12 +174,22 @@ verticalAlign: top;
 &>section.showClosed, button{
   margin-left: ${inputOffset};
 }
+
+span.message{
+  margin: 0em ${inputOffset};
+  line-height: 2em;
+}
 `;
 
 export const SearchSection = styled.section `
 width: -webkit-fill-available;
 input{
   width: -webkit-fill-available;
+  border: none !important;
+  outline: none !important;
+}
+input:focus{
+  border: none !important;
 }
 `;
 

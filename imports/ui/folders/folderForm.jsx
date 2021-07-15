@@ -13,7 +13,11 @@ import Select from 'react-select';
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
+import {
+  uint8ArrayToImg
+} from '../../other/helperFunctions';
 
+import { useSelector } from 'react-redux';
 import {
   translations
 } from '../../other/translations.jsx';
@@ -47,8 +51,7 @@ export default function FolderForm( props ) {
     location
   } = props;
 
-const dbUsers = useTracker( () => Meteor.users.find( {} )
-  .fetch() );
+const dbUsers = useSelector((state) => state.users.value);
 
 const userId = Meteor.userId();
 
@@ -86,17 +89,14 @@ const userId = Meteor.userId();
    return users.map(user =>
         {
         let newUser = {...dbUsers.find(u => u._id === user._id).profile, ...user};
-        const blob = new Blob([newUser.avatar], {type:"image/jpeg"} );
-        const img = URL.createObjectURL(blob);
-        newUser.img = img;
+        newUser.img = uint8ArrayToImg(newUser.avatar);
         return newUser;
       });
   }, [users, dbUsers]);
 
   const usersToSelect = useMemo(() => {
     return dbUsers.filter(user => !users.find(u => u._id === user._id)).map(user => {
-      const blob = new Blob([user.profile.avatar], {type:"image/jpeg"} );
-      const img = URL.createObjectURL(blob);
+      const img = uint8ArrayToImg(user.profile.avatar);
       return {...user.profile, _id: user._id, admin: false, label: `${user.profile.name} ${user.profile.surname}`, value: user._id, img};
     }
   );

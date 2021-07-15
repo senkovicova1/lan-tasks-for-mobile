@@ -3,35 +3,26 @@ import React, {
   useMemo,
   useEffect
 } from 'react';
-
 import moment from 'moment';
-
 import Select from 'react-select';
 import { useSelector } from 'react-redux';
-
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
-
 import {
   translations
 } from '../../other/translations.jsx';
-
 import {
   Icon
 } from '@fluentui/react/lib/Icon';
-
 import {
   useTracker
 } from 'meteor/react-meteor-data';
-
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
-
 import AddTaskContainer from './addTaskContainer';
 import EditTaskContainer from './editTaskContainer';
-
 import {
   List,
   ItemContainer,
@@ -79,7 +70,7 @@ export default function TaskList( props ) {
   }
 
     const deletedTasksInFolder = useMemo(() => {
-      return tasks.filter(t => t.folder === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+      return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
     }, [tasks, folderID]);
 
   const removeTask = ( task ) => {
@@ -130,18 +121,15 @@ export default function TaskList( props ) {
 
   return (
     <List>
-
       {
         searchedTasks.length === 0 &&
-        <span>You have no open tasks.</span>
+        <span className="message">You have no open tasks.</span>
       }
       {
         searchedTasks.map((task) => {
           if (editedTask === task._id){
             return (
-              <div
-                key={task._id}
-                >
+              <div key={task._id}>
                 <EditTaskContainer {...props} task={task} close={() => setEditedTask(null)}/>
               </div>
             )
@@ -190,23 +178,35 @@ export default function TaskList( props ) {
       </section>
       {
         folder &&
-        <LinkButton disabled={deletedTasksInFolder.length === 0} onClick={(e) => {e.preventDefault(); restoreLatestTask()}}><Icon iconName="Refresh"/>{translations[language].restoreTask}</LinkButton>
-      }
-
-      { match.params.folderID === "all" &&
-        <FloatingButton onClick={() => history.push('/folders/add')}> <Icon iconName="Add"/> {translations[language].folder} </FloatingButton>
+        <LinkButton
+          disabled={deletedTasksInFolder.length === 0}
+          onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
+          >
+          <Icon iconName="Refresh"/>
+          {translations[language].restoreTask}
+        </LinkButton>
       }
 
       {
-        ( folder && folder.users.find(user => user._id === userId).admin )&&
+        match.params.folderID === "all" &&
+        <FloatingButton onClick={() => history.push('/folders/add')}>
+          <Icon iconName="Add"/>
+          {translations[language].folder}
+        </FloatingButton>
+      }
+
+      {
+        ( folder && folder.users.find(user => user._id === userId).admin ) &&
         <LinkButton onClick={(e) => {
             e.preventDefault();
-            props.history.push(`/${folders[0]._id}/edit`);
-          }}>
-          <Icon iconName="Settings"/> Folder
-          </LinkButton>
-        }
+            props.history.push(`/${folderID}/edit`);
+          }}
+          >
+          <Icon iconName="Settings"/>
+          Folder
+        </LinkButton>
+      }
 
-      </List>
+    </List>
   );
 };

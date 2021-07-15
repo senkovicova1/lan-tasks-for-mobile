@@ -10,6 +10,7 @@ import moment from 'moment';
 
 import Select from 'react-select';
 
+import { useSelector } from 'react-redux';
 import {
   invisibleSelectStyle
 } from '../other/styles/selectStyles';
@@ -39,7 +40,6 @@ export default function Menu( props ) {
     match,
     location,
     setBackground,
-    folders,
     closeSelf
   } = props;
 
@@ -48,6 +48,7 @@ export default function Menu( props ) {
   const language = useMemo(() => {
     return user.profile.language;
   }, [user]);
+    const folders = useSelector((state) => state.folders.value);
 
   const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
@@ -81,22 +82,22 @@ export default function Menu( props ) {
 
   return (
     <Sidebar>
-
-      { myActiveFolders.map(folder => {
-        if (folder.value === "archived"){
-        return (
-        <NavLink
-          key={folder.value}
-          to="/folders/archived"
-          onClick={() => {
-            setBackground("#f6f6f6");
-            closeSelf();
-          }}
-          >
-          {folder.label}
-        </NavLink>
-      );
-        }
+      {
+        myActiveFolders.map(folder => {
+          if (folder.value === "archived"){
+            return (
+              <NavLink
+                key={folder.value}
+                to="/folders/archived"
+                onClick={() => {
+                  setBackground("#f6f6f6");
+                  closeSelf();
+                }}
+                >
+                {folder.label}
+              </NavLink>
+            );
+          }
           return (
             <NavLink
               key={folder.value}
@@ -109,9 +110,8 @@ export default function Menu( props ) {
               {folder.label}
             </NavLink>
           );
+        })
       }
-      )}
-
     </Sidebar>
   );
 };

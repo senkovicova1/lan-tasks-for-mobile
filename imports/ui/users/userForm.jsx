@@ -10,7 +10,8 @@ import {
 } from '../../other/styles/selectStyles';
 
 import {
-  isEmail
+  isEmail,
+  uint8ArrayToImg
 } from '../../other/helperFunctions.js';
 
 import {
@@ -43,7 +44,7 @@ export default function UserForm( props ) {
   const [ name, setName ] = useState( "" );
   const [ surname, setSurname ] = useState( "" );
   const [ email, setEmail ] = useState( "" );
-  const [ avatar, setAvatar ] = useState( {} );
+  const [ avatar, setAvatar ] = useState( {name: "", buffer: null, img: null} );
   const [ language, setLanguage ] = useState( LANGUAGES[0] );
   const [ colour, setColour ] = useState( "#FFFFFF" );
   const [ password1, setPassword1 ] = useState( '' );
@@ -61,8 +62,7 @@ export default function UserForm( props ) {
       setSurname( "" );
     }
     if ( profile?.avatar ) {
-      const blob = new Blob([profile.avatar], {type:"image/jpeg"} );
-      const img = URL.createObjectURL(blob);
+      const img = uint8ArrayToImg(profile.avatar);
       setAvatar( {name: "", buffer: profile.avatar, img} );
     } else {
       setAvatar( {name: "", buffer: null, img: null} );
@@ -82,13 +82,13 @@ export default function UserForm( props ) {
   return (
     <Form>
 
-<section>
+      <section>
 
-      <h1>{translations[language.value].userProf}</h1>
-    </section>
+        <h1>{translations[language.value].userProf}</h1>
+      </section>
 
       <section>
-      <label htmlFor="name">{translations[language.value].name}</label>
+        <label htmlFor="name">{translations[language.value].name}</label>
         <Input
           id="name"
           name="name"
@@ -149,35 +149,29 @@ export default function UserForm( props ) {
       <section>
         <label htmlFor="avatar">{translations[language.value].avatar}</label>
         <div>
-        {
-          avatar.img &&
-          <img src={avatar.img} alt="avatar" width="50" height="50"/>
-        }
-        <Input
-          id="avatar"
-          name="avatar"
-          type="file"
-          value={avatar.name}
-          onChange={(e) =>  {
-            e.persist();
-            var file = e.target.files[0];
-            if (!file) return;
-
-            var reader = new FileReader();
-
-            reader.onload = function(event){
-              var buffer = new Uint8Array(reader.result)
-
-              const blob = new Blob([buffer], {type:"image/jpeg"} );
-               const img = URL.createObjectURL(blob);
-
-              setAvatar({name: e.target.value, buffer, img});
-            }
-
-            reader.readAsArrayBuffer(file);
-          }}
-          />
-      </div>
+          {
+            avatar.img &&
+            <img src={avatar.img} alt="avatar" width="50" height="50"/>
+          }
+          <Input
+            id="avatar"
+            name="avatar"
+            type="file"
+            value={avatar.name}
+            onChange={(e) =>  {
+              e.persist();
+              var file = e.target.files[0];
+              if (!file) return;
+              var reader = new FileReader();
+              reader.onload = function(event){
+                var buffer = new Uint8Array(reader.result);
+                const img = uint8ArrayToImg(buffer);
+                setAvatar({name: e.target.value, buffer, img});
+              }
+              reader.readAsArrayBuffer(file);
+            }}
+            />
+        </div>
       </section>
 
 
@@ -189,6 +183,7 @@ export default function UserForm( props ) {
             placeholder="Password"
             name="password1"
             type="password"
+            value={password1}
             required
             onChange={e => setPassword1(e.target.value)}
             />
@@ -202,6 +197,7 @@ export default function UserForm( props ) {
             placeholder="Repeat password"
             name="password2"
             type="password"
+            value={password2}
             required
             onChange={e => setPassword2(e.target.value)}
             />
@@ -220,7 +216,7 @@ export default function UserForm( props ) {
         }
         <FullButton
           colour=""
-          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer}
+          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer || password1.length < 7}
           onClick={(e) => {
             e.preventDefault();
             onSubmit(

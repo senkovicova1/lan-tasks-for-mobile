@@ -16,6 +16,7 @@ import Menu from './sidebar';
 import {
   PageHeader,
   LinkButton,
+  FullButton,
   SearchSection,
   Input,
 } from '../other/styles/styledComponents';
@@ -34,10 +35,12 @@ export default function Header( props ) {
 
   useEffect(() => {
     if (location.pathname === "/folders/archived") {
-        return "Archived Folders";
+        setTitle("Archived Folders");
+        setBackground("#f6f6f6");
     }
     if (!match.params.folderID || match.params.folderID === "all") {
-      return "TaskApp";
+      setTitle("TaskApp");
+      setBackground("#f6f6f6");
     }
     let folder = folders.find(folder => folder._id === match.params.folderID);
     if (folder) {
@@ -92,6 +95,20 @@ export default function Header( props ) {
               />
           </SearchSection>
         }
+        {
+          openSearch &&
+          !props.location.pathname.includes("login") &&
+          <LinkButton
+            font="#0078d4"
+            searchButton
+            onClick={(e) => {
+              e.preventDefault();
+              setSearch("");
+            }}
+            >
+            <Icon iconName="Cancel"/>
+          </LinkButton>
+        }
 
         {
           !openSearch &&
@@ -105,19 +122,6 @@ export default function Header( props ) {
             }}
             >
             <Icon iconName="Zoom"/>
-          </LinkButton>
-        }
-        {
-          openSearch &&
-          !props.location.pathname.includes("login") &&
-          <LinkButton
-            font="white"
-            onClick={(e) => {
-              e.preventDefault();
-              setSearch("");
-            }}
-            >
-            <Icon iconName="Cancel"/>
           </LinkButton>
         }
 
@@ -152,7 +156,7 @@ export default function Header( props ) {
       {
         openSidebar &&
         !props.location.pathname.includes("login") &&
-        <Menu {...props} folders={folders} setBackground={setBackground} closeSelf={() => setOpenSidebar(false)}/>
+        <Menu {...props} setBackground={setBackground} closeSelf={() => setOpenSidebar(false)}/>
       }
 
     </PageHeader>

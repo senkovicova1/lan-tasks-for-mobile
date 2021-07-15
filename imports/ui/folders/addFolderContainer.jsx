@@ -4,7 +4,6 @@ import {
   FoldersCollection
 } from '/imports/api/foldersCollection';
 
-
 import FolderForm from './folderForm';
 
 export default function AddFolderContainer( props ) {

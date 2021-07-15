@@ -74,9 +74,18 @@ useEffect(() => {
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
-        <Route exact path={["/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]} render={(props) => (
-          <Header {...props} setSearch={setSearch} search={search} setBackground={setBackground} />
-        )}/>
+        <Route
+          exact
+          path={["/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
+          render={(props) => (
+          <Header
+            {...props}
+            setSearch={setSearch}
+            search={search}
+            setBackground={setBackground}
+            />
+        )}
+        />
         {!currentUser &&
           <Content>
             <Route path={"/login"} component={Login} />
@@ -85,14 +94,26 @@ useEffect(() => {
         {currentUser &&
           <Content>
             <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
-              <Route exact path={"/:folderID/list"} render={(props) => (
-                <TaskList {...props} search={search} setBackground={setBackground} />
-              )}/>
+              <Route
+                exact
+                path={"/:folderID/list"}
+                render={(props) => (
+                <TaskList
+                   {...props}
+                   search={search}
+                   setBackground={setBackground}
+                   />
+              )}
+              />
               <Route exact path={"/:folderID/edit"} component={FolderEdit} />
               <Route exact path={"/folders/add"} component={FolderAdd} />
-              <Route exact path={"/folders/archived"} render={(props) => (
+              <Route
+                exact
+                path={"/folders/archived"}
+                render={(props) => (
                 <FolderList {...props} search={search} />
-              )}/>
+              )}
+              />
               <Route exact path={"/folders/archived/:folderID"} component={ArchviedTaskList} />
               <Route
                 exact

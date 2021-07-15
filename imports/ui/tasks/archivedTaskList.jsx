@@ -3,37 +3,23 @@ import React, {
   useMemo,
   useEffect
 } from 'react';
-
 import moment from 'moment';
-
 import Select from 'react-select';
-
+import { useSelector } from 'react-redux';
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
-
 import {
   translations
 } from '../../other/translations.jsx';
-
 import {
   Icon
 } from '@fluentui/react/lib/Icon';
-
 import {
   useTracker
 } from 'meteor/react-meteor-data';
-
-import {
-  FoldersCollection
-} from '/imports/api/foldersCollection';
-import {
-  TasksCollection
-} from '/imports/api/tasksCollection';
-
 import AddTaskContainer from './addTaskContainer';
 import EditTaskContainer from './editTaskContainer';
-
 import {
   List,
   SearchSection,
@@ -58,25 +44,18 @@ export default function ArchivedTaskList( props ) {
     return user.profile.language;
   }, [user]);
 
-  const findFolder = match.params.folderID;
-    const tasks = useTracker( () => TasksCollection.find( findFolder ? {
-        folder: findFolder
-      } : {} )
-      .fetch() );
+  const folderID = match.params.folderID;
+    const tasks = useSelector((state) => state.tasks.value);
 
-    const folders = useTracker( () => FoldersCollection.find( {
-        _id: findFolder
-      } ).fetch() );
-
-  const joinedTasks = useMemo( () =>
-    tasks.map( task => ( {
-      ...task,
-      folder: folders.find( folder => folder._id === task.folder ),
-    } ) ), [ tasks, folders ] );
+      const folders = useSelector((state) => state.folders.value);
+      const folder = useMemo(() => {
+        const maybeFolder = folders.find(folder => folder._id === folderID);
+        return  maybeFolder ? maybeFolder : null;
+      }, [folders]);
 
     const filteredTasks = useMemo(() => {
-      return joinedTasks.filter(task => (showClosed || !task.closed) && !task.removedDate && task.folder.users.find(user => user._id === userId));
-    }, [joinedTasks]);
+      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && task.folder.archived);
+    }, [tasks, showClosed]);
 
     const searchedTasks = useMemo(() => {
       return filteredTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
@@ -89,52 +68,61 @@ export default function ArchivedTaskList( props ) {
 
   return (
     <List>
+      {
+        searchedTasks.map(
+          (task) =>
+          <ItemContainer
+            key={task._id}
+            style={{backgroundColor: task.folder.colour}}
+            >
+            <Input
+              type="checkbox"
+              style={{
+                marginRight: "0.2em",
+                width: "1.5em"
+              }}
+              checked={task.closed}
+              disabled={true}
+              />
+            <span>
+              {task.name}
+            </span>
+          </ItemContainer>
+        )
+      }
+      <hr/>
+      <section className="showClosed"  key="allStatuses" >
+        <Input
+          id="allStatuses"
+          type="checkbox"
+          name="allStatuses"
+          style={{
+            marginRight: "0.2em"
+          }}
+          checked={showClosed}
+          onChange={() => setShowClosed(!showClosed)}
+          />
+        <label
+          htmlFor="allStatuses"
+          style={{color: "#0078d4"}}
+          >
+          {translations[language].showClosed}
+        </label>
+      </section>
 
       {
-        searchedTasks.map((task) => <ItemContainer
-          key={task._id}
-          style={{backgroundColor: task.folder.colour}}
+        (  folders[0].users.find(user => user._id === userId).admin ) &&
+        <LinkButton
+          onClick={(e) => {
+            e.preventDefault();
+            props.history.push(`/${folders[0]._id}/edit`);
+          }}
           >
-          <Input
-            type="checkbox"
-            style={{
-              marginRight: "0.2em",
-              width: "1.5em"
-            }}
-            checked={task.closed}
-            disabled={true}
-            />
-          <span>
-          {task.name}
-        </span>
-        </ItemContainer>
-      )
-    }
-    <hr/>
-          <section className="showClosed"  key="allStatuses" >
-            <Input
-              id="allStatuses"
-              type="checkbox"
-              name="allStatuses"
-              style={{
-                marginRight: "0.2em"
-              }}
-              checked={showClosed}
-              onChange={() => setShowClosed(!showClosed)}
-              />
-            <label htmlFor="allStatuses" style={{color: "#0078d4"}}>{translations[language].showClosed}</label>
-          </section>
-
-          {
-          (  folders[0].users.find(user => user._id === userId).admin )&&
-          <LinkButton onClick={(e) => {
-              e.preventDefault();
-              props.history.push(`/${folders[0]._id}/edit`);
-            }}>
-          <Icon iconName="Settings"/> Folder
+          <Icon iconName="Settings"/>
+          Folder
         </LinkButton>
       }
 
-  </List>
+    </List>
   );
 };

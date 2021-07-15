@@ -43,17 +43,22 @@ export default function FolderList( props ) {
 
   return (
     <List>
-
-      {mySearchedFolders.map(folder =>
-        <ItemContainer key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>
-          <span
-            style={{paddingLeft: "0px"}}
-            onClick={() => history.push(`/folders/archived/${folder._id}`)}
-            >
-            {folder.name}
-          </span>
-        </ItemContainer>
-      )}
+      {
+        mySearchedFolders.length === 0 &&
+        <span className="message">You have no archived folders</span>
+      }
+      {
+        mySearchedFolders.map(folder =>
+          <ItemContainer key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>
+            <span
+              style={{paddingLeft: "0px"}}
+              onClick={() => history.push(`/folders/archived/${folder._id}`)}
+              >
+              {folder.name}
+            </span>
+          </ItemContainer>
+        )
+      }
     </List>
   );
 };

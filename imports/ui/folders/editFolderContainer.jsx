@@ -11,6 +11,9 @@ import {
 } from 'reactstrap';
 
 import FolderForm from './folderForm';
+import {
+  FoldersCollection
+} from '/imports/api/foldersCollection';
 
 export default function EditFolderContainer( props ) {
 
@@ -23,17 +26,19 @@ export default function EditFolderContainer( props ) {
   const folders = useSelector((state) => state.folders.value);
   const folder = useMemo(() => {
     return  folders.find(folder => folder._id === folderID);
-  }, [folders]);
-console.log(folders);
-console.log(folder);
+  }, [folders, folderID]);
+
   const userId = Meteor.userId();
 
     useEffect( () => {
+      if (folder){
+
         const userIsAdmin = folder.users.find(user => user._id === userId).admin;
 
         if ( !userIsAdmin ) {
           history.push(`/${folderID}/list`);
         }
+      }
 
     }, [ folderID, userId, folder ] );
 
