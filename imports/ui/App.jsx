@@ -5,10 +5,10 @@ import Navigation from './navigation';
 import {
   MainPage
 } from '../other/styles/styledComponents';
-
 import {
   initializeIcons
 } from '@fluentui/font-icons-mdl2';
+
 initializeIcons();
 
 export const App = () => (

@@ -46,7 +46,12 @@ export const PageHeader = styled.header `
     position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
-  padding: 0px calc(${contentOffset} + ${inputOffset});
+  @media handheld and (max-width: 799px) {
+    padding: 0px;
+  }
+  @media all and (min-width: 800px){
+    padding: 0px calc(${contentOffset} + ${inputOffset});
+  }
 
 
     i {
@@ -74,7 +79,13 @@ export const PageHeader = styled.header `
 
 export const Content = styled.main `
   display: block;
-  padding: 0px ${contentOffset};
+  @media all and (max-width: 799px) {
+    padding: 0px;
+
+  }
+  @media all and (min-width: 800px){
+    padding: 0px calc(${contentOffset} + ${inputOffset});
+  }
   height: calc(100vh - 50px);
 `;
 
@@ -90,7 +101,12 @@ button {
 export const Sidebar = styled.section `
   background-color: ${backgroundColour};
   position: absolute;
-  left: ${contentOffset};
+  @media all and (max-width: 799px) {
+    left: 0;
+  }
+  @media all and (min-width: 800px){
+    left: ${contentOffset};
+  }
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
