@@ -18,9 +18,10 @@ export default function LoginForm( props ) {
 
   return (
     <LoginContainer>
+
       {showLogin &&
         <div>
-        <Login {...props} openSignUp={() => setShowLogin(!showLogin)} />
+        <Login {...props} openSignUp={() => setShowLogin(!showLogin)}/>
       </div>
       }
       {!showLogin && <SignIn {...props} openLogIn={() => setShowLogin(!showLogin)}/>}

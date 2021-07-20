@@ -81,9 +81,7 @@ export default function UserForm( props ) {
 
   return (
     <Form>
-
       <section>
-
         <h1>{translations[language.value].userProf}</h1>
       </section>
 
@@ -116,6 +114,7 @@ export default function UserForm( props ) {
           <label  htmlFor="email">Email</label>
           <Input
             name="email"
+            id="email"
             placeholder="Enter email"
             type="text"
             value={email}
@@ -137,8 +136,10 @@ export default function UserForm( props ) {
       </section>
 
       <section>
-        <label htmlFor="lang">{translations[language.value].language}</label>
+        <label htmlFor="language">{translations[language.value].language}</label>
         <Select
+          id="language"
+          name="language"
           styles={selectStyle}
           value={language}
           onChange={(e) => setLanguage(e)}
@@ -181,6 +182,7 @@ export default function UserForm( props ) {
           <Input
             type="password"
             placeholder="Password"
+            id="password1"
             name="password1"
             type="password"
             value={password1}
@@ -195,6 +197,7 @@ export default function UserForm( props ) {
           <Input
             type="password"
             placeholder="Repeat password"
+            id="password2"
             name="password2"
             type="password"
             value={password2}
@@ -216,7 +219,7 @@ export default function UserForm( props ) {
         }
         <FullButton
           colour=""
-          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer || password1.length < 7}
+          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer || (!profile && password1.length < 7)}
           onClick={(e) => {
             e.preventDefault();
             onSubmit(

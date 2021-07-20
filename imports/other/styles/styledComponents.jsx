@@ -40,14 +40,14 @@ export const MainPage = styled.div `
 `;
 
 export const PageHeader = styled.header `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
-  @media handheld and (max-width: 799px) {
-    padding: 0px;
+  @media all and (max-width: 799px) {
+    padding: 0px ${inputOffset};
   }
   @media all and (min-width: 800px){
     padding: 0px calc(${contentOffset} + ${inputOffset});
@@ -81,7 +81,6 @@ export const Content = styled.main `
   display: block;
   @media all and (max-width: 799px) {
     padding: 0px;
-
   }
   @media all and (min-width: 800px){
     padding: 0px calc(${contentOffset} + ${inputOffset});
@@ -103,15 +102,16 @@ export const Sidebar = styled.section `
   position: absolute;
   @media all and (max-width: 799px) {
     left: 0;
+    box-shadow: 5px 0px 13px 0px slategrey;
   }
   @media all and (min-width: 800px){
-    left: ${contentOffset};
+    left: calc(${contentOffset} - 300px + ${inputOffset});
+    box-shadow: 0px 0px 3px 0px slategrey;
   }
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
   width: 300px;
-  box-shadow: 5px 0px 13px 0px slategrey;
   padding: ${inputOffset};
 
   a {
@@ -348,7 +348,13 @@ export const GroupButton = styled.button `
 `;
 
 export const LoginContainer = styled.div`
-width: 500px;
+@media all and (max-width: 799px) {
+  width: auto;
+}
+@media all and (min-width: 800px){
+  width: 500px;
+}
+
 height: calc(100vh - 50px);
 margin: auto;
 
