@@ -8,7 +8,8 @@ const lightBlueColour = "#deeaf3";
 
 //numeric values
 const contentOffset = "calc((100vw - 800px)/2)";
-const sidebarWidth = "20%";
+const sidebarWidthWeb = "250px";
+const sidebarWidthMobile = "300px";
 const inputOffset = "7px";
 
 export const MainPage = styled.div `
@@ -46,6 +47,7 @@ export const PageHeader = styled.header `
   position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
+
   @media all and (max-width: 799px) {
     padding: 0px ${inputOffset};
   }
@@ -70,29 +72,45 @@ export const PageHeader = styled.header `
     }
 
   h1 {
+    height: 32px;
     padding-left: 0em;
     display: inline;
     font-size: 1.5em;
     color: white;
+    margin-bottom: 0em;
   }
 `;
 
 export const Content = styled.main `
   display: block;
   @media all and (max-width: 799px) {
-    padding: 0px;
+    width: 100%;
   }
   @media all and (min-width: 800px){
-    padding: 0px calc(${contentOffset} + ${inputOffset});
+    margin-left: calc(${contentOffset} + ${sidebarWidthWeb} + ${inputOffset});
+    margin-right: ${contentOffset};
   }
   height: calc(100vh - 50px);
 `;
 
 
 export const ButtonRow = styled.section `
+display: flex;
 margin-top: 0em !important;
-button {
-  margin-bottom: 0.5em;
+margin-bottom: 0em;
+button:first-of-type{
+  margin-right: 0.5em;
+}
+button:last-of-type{
+  margin-left: 0.5em;
+}
+}
+`;
+
+export const ButtonCol = styled.section `
+margin-top: 0em !important;
+button:not(last-of-type) {
+  margin-bottom: 1.5em;
 }
 }
 `;
@@ -103,15 +121,17 @@ export const Sidebar = styled.section `
   @media all and (max-width: 799px) {
     left: 0;
     box-shadow: 5px 0px 13px 0px slategrey;
+    width: ${sidebarWidthMobile};
   }
   @media all and (min-width: 800px){
-    left: calc(${contentOffset} - 300px + ${inputOffset});
-    box-shadow: 0px 0px 3px 0px slategrey;
+    left: calc(100vw - 800px -${sidebarWidthWeb} + ${inputOffset});
+    box-shadow: none;
+    border-right: 1px solid #d6d6d6;
+    width: ${sidebarWidthWeb};
   }
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
-  width: 300px;
   padding: ${inputOffset};
 
   a {
@@ -185,10 +205,23 @@ verticalAlign: top;
 }
 
 &>section.showClosed{
-  margin-top: 1em;
   display: block;
-  height: 32px;
+  height: 3em;
+  input{
+    width: 1.5em !important;
+  }
+  label{
+    padding: 10px;
+  }
 }
+
+  button.item{
+    i {
+      width: 1.5em;
+      margin-right: 10px;
+    }
+    height: 3em;
+  }
 
 &>section.showClosed, button{
   margin-left: ${inputOffset};
@@ -214,7 +247,6 @@ input:focus{
 
 
 export const ItemContainer = styled.section `
-
 &:hover{
   cursor: pointer;
 }
@@ -286,7 +318,9 @@ section {
 input[type=checkbox]{
     margin-right: 5px;
   }
-
+  section:last-of-type {
+    margin: 0em !important;
+  }
 }
 `;
 
@@ -296,6 +330,7 @@ outline: none !important;
 border: 1px solid #d6d6d6;
 width: ${(props) => props.width ? props.width : "auto"};
 padding-left: 0.4em;
+height: 2.5em !important;
 
 &:focus{
   border: 1px solid ${basicBlueColour} !important;

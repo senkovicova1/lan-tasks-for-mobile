@@ -49,7 +49,7 @@ export default function Header( props ) {
     let folder = folders.find(folder => folder._id === match.params.folderID);
     if (folder) {
       setTitle(folder.name);
-      setBackground(folder.colour);
+      setBackground(folder.colour + "55");
     } else {
       setTitle("TaskApp");
       setBackground("#f6f6f6");

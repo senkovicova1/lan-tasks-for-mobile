@@ -30,7 +30,7 @@ import {
 import {
   Form,
   Input,
-  ButtonRow,
+  ButtonCol,
   LinkButton,
   FullButton,
   UserEntry
@@ -178,7 +178,7 @@ const userId = Meteor.userId();
           />
       </section>
 
-      <ButtonRow>
+      <ButtonCol>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>{translations[language].cancel}</FullButton>
         {onRemove &&
           <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); onCancel();}}>{translations[language].delete}</FullButton>
@@ -198,7 +198,7 @@ const userId = Meteor.userId();
           >
           {translations[language].save}
         </FullButton>
-      </ButtonRow>
+      </ButtonCol>
 
     </Form>
   );

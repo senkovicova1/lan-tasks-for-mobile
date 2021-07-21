@@ -75,7 +75,7 @@ export default function Menu( props ) {
       setBackground("#f6f6f6");
     } else {
       const newFolder = myFolders.find(folder => folder._id === match.params.folderID);
-      setBackground(newFolder.colour);
+      setBackground(newFolder.colour + "55");
       setSelectedFolder(newFolder);
   }
 }, [match.params.folderID, location.pathname, language]);
@@ -103,7 +103,7 @@ export default function Menu( props ) {
               key={folder.value}
               to={`/${folder.value}/list`}
               onClick={() => {
-                setBackground(folder.colour ? folder.colour : "#f6f6f6");
+                setBackground(folder.colour ? folder.colour + "55" : "#f6f6f6");
                 closeSelf();
               }}
               >

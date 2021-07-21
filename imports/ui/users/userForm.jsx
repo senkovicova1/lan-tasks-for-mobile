@@ -25,7 +25,7 @@ import {
 import {
   Form,
   Input,
-  ButtonRow,
+  ButtonCol,
   FullButton,
 } from "../../other/styles/styledComponents";
 
@@ -207,7 +207,7 @@ export default function UserForm( props ) {
         </section>
       }
 
-      <ButtonRow>
+      <ButtonCol>
         {onCancel &&
           <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language.value].back}</FullButton>
         }
@@ -235,7 +235,7 @@ export default function UserForm( props ) {
           >
           { isSignIn ? translations[language.value].sign : translations[language.value].save}
         </FullButton>
-      </ButtonRow>
+      </ButtonCol>
 
     </Form>
   );

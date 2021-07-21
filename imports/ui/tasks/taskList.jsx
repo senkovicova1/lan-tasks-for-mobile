@@ -137,7 +137,7 @@ export default function TaskList( props ) {
             return (
               <ItemContainer
                 key={task._id}
-                style={{ backgroundColor: task.folder.colour}}
+                style={!folderID ? { backgroundColor: task.folder.colour + "55"} : {}}
                 >
                 <Input
                   type="checkbox"
@@ -179,6 +179,7 @@ export default function TaskList( props ) {
       {
         folder &&
         <LinkButton
+          className="item"
           disabled={deletedTasksInFolder.length === 0}
           onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
           >
@@ -189,7 +190,9 @@ export default function TaskList( props ) {
 
       {
         (!match.params.folderID || match.params.folderID === "all") &&
-        <FloatingButton onClick={() => history.push('/folders/add')}>
+        <FloatingButton
+          onClick={() => history.push('/folders/add')}
+          >
           <Icon iconName="Add" style={{marginRight: "0.3em"}}/>
           <span>
           {translations[language].folder}
@@ -199,7 +202,9 @@ export default function TaskList( props ) {
 
       {
         ( folder && folder.users.find(user => user._id === userId).admin ) &&
-        <LinkButton onClick={(e) => {
+        <LinkButton
+          className="item"
+          onClick={(e) => {
             e.preventDefault();
             props.history.push(`/${folderID}/edit`);
           }}

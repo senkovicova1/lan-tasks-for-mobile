@@ -2,6 +2,7 @@ export const selectStyle = {
   control: ( base, state ) => ( {
     ...base,
     minHeight: 30,
+    height: "2.5em",
     backgroundColor: 'white',
     border: state.isFocused ? "1px solid #0078d4" : "1px solid #d6d6d6",
     borderRadius: 0,
