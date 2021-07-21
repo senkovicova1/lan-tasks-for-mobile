@@ -73,12 +73,15 @@ export default function Menu( props ) {
     } else if (location.pathname == "/folders/archived"){
       setSelectedFolder({label: translations[language].archivedFolders, value: "archived"});
       setBackground("#f6f6f6");
-    } else {
+    } else if (myFolders && myFolders.length > 0){
       const newFolder = myFolders.find(folder => folder._id === match.params.folderID);
       setBackground(newFolder.colour + "55");
       setSelectedFolder(newFolder);
+  } else {
+    setSelectedFolder({label: translations[language].allFolders, value: "all"});
+    setBackground("#f6f6f6");
   }
-}, [match.params.folderID, location.pathname, language]);
+}, [match.params.folderID, location.pathname, language, myFolders]);
 
   return (
     <Sidebar>

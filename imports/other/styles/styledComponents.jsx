@@ -48,7 +48,7 @@ export const PageHeader = styled.header `
   height: 50px;
   background-color: ${basicBlueColour};
 
-  @media all and (max-width: 799px) {
+  @media all and (max-width: 799px), @media handheld  {
     padding: 0px ${inputOffset};
   }
   @media all and (min-width: 800px){
@@ -83,11 +83,18 @@ export const PageHeader = styled.header `
 
 export const Content = styled.main `
   display: block;
-  @media all and (max-width: 799px) {
+  @media all and (max-width: 799px), @media handheld {
     width: 100%;
   }
   @media all and (min-width: 800px){
-    margin-left: calc(${contentOffset} + ${sidebarWidthWeb} + ${inputOffset});
+    ${(props) =>
+      props.widthWidthSidebar &&
+      `margin-left: calc(${contentOffset} + ${sidebarWidthWeb} + ${inputOffset})`
+    };
+    ${(props) =>
+      !props.widthWidthSidebar &&
+      `margin-left: calc(${contentOffset} + ${inputOffset})`
+    };
     margin-right: ${contentOffset};
   }
   height: calc(100vh - 50px);
@@ -118,7 +125,7 @@ button:not(last-of-type) {
 export const Sidebar = styled.section `
   background-color: ${backgroundColour};
   position: absolute;
-  @media all and (max-width: 799px) {
+  @media all and (max-width: 799px), @media handheld  {
     left: 0;
     box-shadow: 5px 0px 13px 0px slategrey;
     width: ${sidebarWidthMobile};
@@ -383,7 +390,7 @@ export const GroupButton = styled.button `
 `;
 
 export const LoginContainer = styled.div`
-@media all and (max-width: 799px) {
+@media all and (max-width: 799px), @media handheld  {
   width: auto;
 }
 @media all and (min-width: 800px){

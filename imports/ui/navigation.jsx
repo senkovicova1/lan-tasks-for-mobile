@@ -69,6 +69,7 @@ useEffect(() => {
   const [ background, setBackground ] = useState("#f6f6f6");
 
   const [ search, setSearch ] = useState( "" );
+    const [ openSidebar, setOpenSidebar ] = useState( false );
 
   return (
     <div style={{height: "100vh"}}>
@@ -82,6 +83,7 @@ useEffect(() => {
             setSearch={setSearch}
             search={search}
             setBackground={setBackground}
+            setParentOpenSidebar={setOpenSidebar}
             />
         )}
         />
@@ -91,7 +93,7 @@ useEffect(() => {
           </Content>
         }
         {currentUser &&
-          <Content>
+          <Content widthWidthSidebar={openSidebar}>
             <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
               <Route
                 exact

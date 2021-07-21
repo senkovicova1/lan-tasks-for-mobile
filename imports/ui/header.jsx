@@ -26,7 +26,7 @@ import {
 
 export default function Header( props ) {
 
-  const {setBackground, match, location, setSearch, search} = props;
+  const {setBackground, match, location, setSearch, search, setParentOpenSidebar} = props;
 
   const currentUser = useTracker( () => Meteor.user() );
   const logout = () => Meteor.logout();
@@ -56,6 +56,13 @@ export default function Header( props ) {
     }
   }, [match.params.folderID, location.pathname, folders]);
 
+  useEffect(() => {
+    if (window.innerWidth >= 800) {
+      setOpenSidebar(true);
+      setParentOpenSidebar(true);
+    }
+  }, [window.innerWidth]);
+
   return (
     <PageHeader>
       {
@@ -65,6 +72,7 @@ export default function Header( props ) {
         onClick={(e) => {
           e.preventDefault();
           setOpenSidebar(!openSidebar);
+          setParentOpenSidebar(!openSidebar);
         }}
         >
         <Icon  iconName="GlobalNavButton" />
