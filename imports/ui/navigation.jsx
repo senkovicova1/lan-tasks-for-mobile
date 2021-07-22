@@ -38,6 +38,13 @@ import {
 export default function MainPage( props ) {
   const dispatch = useDispatch();
 
+  console.log("All icons <div>Icons made by <a href=https://smashicons.com/ title=Smashicons>Smashicons</a> from <a href=https://www.flaticon.com/ title=Flaticon>www.flaticon.com</a></div>");
+
+  //<div>Icons made by <a href="" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+  //<div>Icons made by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">Pixel perfect</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+  //<div>Icons made by <a href="https://www.flaticon.com/authors/bqlqn" title="bqlqn">bqlqn</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+  //<div>Icons made by <a href="https://www.flaticon.com/authors/kiranshastry" title="Kiranshastry">Kiranshastry</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
   const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
   const tasks = useTracker( () => TasksCollection.find( {} ).fetch() );
   const users = useTracker( () => Meteor.users.find( {} )
@@ -66,10 +73,10 @@ useEffect(() => {
     dispatch(setUsers(users));
 }, [users]);
 
-  const [ background, setBackground ] = useState("#f6f6f6");
-
   const [ search, setSearch ] = useState( "" );
-    const [ openSidebar, setOpenSidebar ] = useState( false );
+  const [ openSidebar, setOpenSidebar ] = useState( false );
+
+  console.log(openSidebar);
 
   return (
     <div style={{height: "100vh"}}>
@@ -82,7 +89,6 @@ useEffect(() => {
             {...props}
             setSearch={setSearch}
             search={search}
-            setBackground={setBackground}
             setParentOpenSidebar={setOpenSidebar}
             />
         )}
@@ -93,8 +99,8 @@ useEffect(() => {
           </Content>
         }
         {currentUser &&
-          <Content widthWidthSidebar={openSidebar}>
-            <div style={{backgroundColor: background, height: "100%", position: "relative"}}>
+          <Content widthWithSidebar={openSidebar}>
+            <div style={{height: "100%", position: "relative"}}>
               <Route
                 exact
                 path={["/", "/:folderID/list"]}
@@ -102,7 +108,6 @@ useEffect(() => {
                 <TaskList
                    {...props}
                    search={search}
-                   setBackground={setBackground}
                    />
               )}
               />

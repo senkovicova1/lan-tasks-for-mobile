@@ -4,10 +4,6 @@ import React, {
 } from 'react';
 
 import {
-  Icon
-} from '@fluentui/react/lib/Icon';
-
-import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 
@@ -15,6 +11,7 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import PlusIcon from "../../other/styles/icons/plus.svg";
 import {
   translations
 } from '../../other/translations.jsx';
@@ -63,7 +60,13 @@ export default function AddTaskContainer( props ) {
   return (
     <div>
       {!addTaskOpen &&
-      <FloatingButton onClick={toggleAddTask}> <Icon iconName="Add"/></FloatingButton>
+      <FloatingButton onClick={toggleAddTask}>
+      <img
+        className="icon"
+        src={PlusIcon}
+        alt="Plus icon not found"
+        />
+      </FloatingButton>
     }
           {addTaskOpen &&
           <Modal isOpen={true}>

@@ -9,12 +9,10 @@ import { useSelector } from 'react-redux';
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
+import SettingsIcon from "../../other/styles/icons/settings.svg";
 import {
   translations
 } from '../../other/translations.jsx';
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -73,7 +71,6 @@ export default function ArchivedTaskList( props ) {
           (task) =>
           <ItemContainer
             key={task._id}
-            style={{backgroundColor: task.folder.colour}}
             >
             <Input
               type="checkbox"
@@ -90,7 +87,6 @@ export default function ArchivedTaskList( props ) {
           </ItemContainer>
         )
       }
-      <hr/>
       <section className="showClosed"  key="allStatuses" >
         <Input
           id="allStatuses"
@@ -118,7 +114,11 @@ export default function ArchivedTaskList( props ) {
             props.history.push(`/${folders[0]._id}/edit`);
           }}
           >
-          <Icon iconName="Settings"/>
+          <img
+            className="icon"
+            src={SettingsIcon}
+            alt="Settings icon not found"
+            />
           Folder
         </LinkButton>
       }

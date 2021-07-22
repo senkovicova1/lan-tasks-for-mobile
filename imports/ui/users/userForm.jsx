@@ -38,7 +38,8 @@ export default function UserForm( props ) {
     onRemove,
     onCancel,
     isSignIn,
-    openLogIn
+    openLogIn,
+    errorMessage
   } = props;
 
   const [ name, setName ] = useState( "" );
@@ -81,6 +82,7 @@ export default function UserForm( props ) {
 
   return (
     <Form>
+
       <section>
         <h1>{translations[language.value].userProf}</h1>
       </section>
@@ -207,6 +209,10 @@ export default function UserForm( props ) {
         </section>
       }
 
+        {
+          errorMessage &&
+          <p>{errorMessage}</p>
+        }
       <ButtonCol>
         {onCancel &&
           <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language.value].back}</FullButton>

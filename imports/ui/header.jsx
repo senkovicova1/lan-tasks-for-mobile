@@ -7,9 +7,12 @@ import {
 } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
+import MenuIcon from "../other/styles/icons/menu.svg";
+import LogOutIcon from "../other/styles/icons/logout.svg";
+import SettingsIcon from "../other/styles/icons/settings.svg";
+import CloseIcon from "../other/styles/icons/close.svg";
+import SearchIcon from "../other/styles/icons/search.svg";
+import LeftArrowIcon from "../other/styles/icons/left-arrow.svg";
 
 import Menu from './sidebar';
 
@@ -26,7 +29,7 @@ import {
 
 export default function Header( props ) {
 
-  const {setBackground, match, location, setSearch, search, setParentOpenSidebar} = props;
+  const {match, location, setSearch, search, setParentOpenSidebar} = props;
 
   const currentUser = useTracker( () => Meteor.user() );
   const logout = () => Meteor.logout();
@@ -36,23 +39,24 @@ export default function Header( props ) {
   const [ openSidebar, setOpenSidebar ] = useState(false);
   const [ openSearch, setOpenSearch ] = useState(false);
   const [ title, setTitle ] = useState("TaskApp");
+  const [ background, setBackground ] = useState("#0078d4");
 
   useEffect(() => {
     if (location.pathname === "/folders/archived") {
         setTitle("Archived Folders");
-        setBackground("#f6f6f6");
+        setBackground("#0078d4");
     }
     if (!match.params.folderID || match.params.folderID === "all") {
       setTitle("TaskApp");
-      setBackground("#f6f6f6");
+      setBackground("#0078d4");
     }
     let folder = folders.find(folder => folder._id === match.params.folderID);
     if (folder) {
       setTitle(folder.name);
-      setBackground(folder.colour + "55");
+      setBackground(folder.colour);
     } else {
       setTitle("TaskApp");
-      setBackground("#f6f6f6");
+      setBackground("#0078d4");
     }
   }, [match.params.folderID, location.pathname, folders]);
 
@@ -64,7 +68,7 @@ export default function Header( props ) {
   }, [window.innerWidth]);
 
   return (
-    <PageHeader>
+    <PageHeader style={{backgroundColor: background}} widthWithSidebar={openSidebar}>
       {
         currentUser &&
       <LinkButton
@@ -75,7 +79,11 @@ export default function Header( props ) {
           setParentOpenSidebar(!openSidebar);
         }}
         >
-        <Icon  iconName="GlobalNavButton" />
+        <img
+          className="icon"
+          src={MenuIcon}
+          alt="Menu icon not found"
+          />
       </LinkButton>
     }
       {
@@ -93,7 +101,11 @@ export default function Header( props ) {
           setOpenSearch(false);
         }}
         >
-        <Icon iconName="Reply"/>
+        <img
+          className="icon"
+          src={LeftArrowIcon}
+          alt="Left arrow icon not found"
+          />
       </LinkButton>
     }
         {
@@ -118,7 +130,11 @@ export default function Header( props ) {
               setSearch("");
             }}
             >
-            <Icon iconName="Cancel"/>
+            <img
+              className="search-icon"
+              src={CloseIcon}
+              alt="Close icon not found"
+              />
           </LinkButton>
         }
 
@@ -133,7 +149,11 @@ export default function Header( props ) {
               setOpenSearch(true);
             }}
             >
-            <Icon iconName="Zoom"/>
+            <img
+              className="icon"
+              src={SearchIcon}
+              alt="Search icon not found"
+              />
           </LinkButton>
         }
 
@@ -143,11 +163,15 @@ export default function Header( props ) {
           font="white"
           onClick={(e) => {
             e.preventDefault();
-            setBackground("#f6f6f6");
+            setBackground("#0078d4");
             props.history.push("/settings");
           }}
           >
-          <Icon  iconName="Settings" />
+          <img
+            className="icon"
+            src={SettingsIcon}
+            alt="Settings icon not found"
+            />
         </LinkButton>
       }
       {
@@ -156,19 +180,23 @@ export default function Header( props ) {
           font="white"
           onClick={(e) => {
             e.preventDefault();
-            setBackground("#f6f6f6");
+            setBackground("#0078d4");
             props.history.push("/login");
             logout();
           }}
           >
-          <Icon  iconName="SignOut" />
+          <img
+            className="icon"
+            src={LogOutIcon}
+            alt="Logout icon not found"
+            />
         </LinkButton>
       }
 
       {
         openSidebar &&
         currentUser &&
-        <Menu {...props} setBackground={setBackground} closeSelf={() => setOpenSidebar(false)}/>
+        <Menu {...props} setBackground={setBackground} widthWithSidebar={openSidebar} closeSelf={() => setOpenSidebar(false)}/>
       }
 
     </PageHeader>

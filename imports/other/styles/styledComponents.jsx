@@ -38,6 +38,12 @@ export const MainPage = styled.div `
     margin: 0px;
     opacity: 1;
   }
+
+
+  img.icon {
+    height: 1.3em;
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+  }
 `;
 
 export const PageHeader = styled.header `
@@ -52,12 +58,33 @@ export const PageHeader = styled.header `
     padding: 0px ${inputOffset};
   }
   @media all and (min-width: 800px){
-    padding: 0px calc(${contentOffset} + ${inputOffset});
+    ${(props) =>
+      props.widthWithSidebar &&
+      `
+      padding: 0px calc(${contentOffset} - ${sidebarWidthWeb} / 2 + ${inputOffset});
+      `
+    };
+    ${(props) =>
+      !props.widthWithSidebar &&
+      `
+      padding: 0px calc(${contentOffset} + ${inputOffset});
+      `
+    };
   }
-
 
     i {
       font-size: 1.5em;
+    }
+
+    img.icon {
+      filter: invert(1);
+        height: 1.5em;
+        width: 1.5em;
+    }
+
+    img.search-icon{
+      height: 1.3em;
+      width: 1.3em;
     }
 
     button{
@@ -88,14 +115,19 @@ export const Content = styled.main `
   }
   @media all and (min-width: 800px){
     ${(props) =>
-      props.widthWidthSidebar &&
-      `margin-left: calc(${contentOffset} + ${sidebarWidthWeb} + ${inputOffset})`
+      props.widthWithSidebar &&
+      `
+      margin-left: calc(${contentOffset} + ${sidebarWidthWeb} / 2);
+      margin-right: calc(${contentOffset} - ${sidebarWidthWeb} / 2);
+      `
     };
     ${(props) =>
-      !props.widthWidthSidebar &&
-      `margin-left: calc(${contentOffset} + ${inputOffset})`
+      !props.widthWithSidebar &&
+      `
+      margin-left: ${contentOffset};
+      margin-right: ${contentOffset};
+      `
     };
-    margin-right: ${contentOffset};
   }
   height: calc(100vh - 50px);
 `;
@@ -131,40 +163,51 @@ export const Sidebar = styled.section `
     width: ${sidebarWidthMobile};
   }
   @media all and (min-width: 800px){
-    left: calc(100vw - 800px -${sidebarWidthWeb} + ${inputOffset});
+    left: calc(${contentOffset} - ${sidebarWidthWeb} / 2 - ${inputOffset});
     box-shadow: none;
-    border-right: 1px solid #d6d6d6;
+    border-right: 0px solid #d6d6d6;
     width: ${sidebarWidthWeb};
   }
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
-  padding: ${inputOffset};
+  padding: 0px;
 
   a {
-    display: block;
-    padding: 0.5em 0px;
-    text-decoration: none;
+    color: ${basicBlueColour} !important;
+    display: flex;
+    padding: ${inputOffset};
+    text-decoration: none !important;
+    i, img.icon{
+      margin-right: 10px;
+    }
+    img.icon{
+      filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(80%) contrast(101%);
+    }
   }
 
   a.active {
-    text-decoration: underline;
+    background-color: ${basicBlueColour}22;
   }
-
 `;
 
 export const LinkButton = styled.button `
   color: ${(props) => props.font ? props.font : basicBlueColour};
   padding: 0px;
-  height: ${(props) => props.searchButton ? "26px" : "2em" };
+  height: 2.5em;
   background-color: ${(props) => props.searchButton ? "white" : "transparent" } !important;
   outline: none !important;
   border: none !important;
   line-height: 1em;
   display: flex;
   align-items: center;
-  i {
-    margin-right: ${(props) => props.searchButton ? "0px" : "0.3em" };
+  i, img {
+    margin-right: ${(props) => props.searchButton ? "0.6em" : "0.3em" }
+  }
+  img {
+    ${(props) => props.searchButton && `
+      filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(191deg) brightness(97%) contrast(101%) !important;
+      `};
   }
 `;
 
@@ -179,8 +222,11 @@ export const FullButton = styled.button `
   height: 2em;
   align-items: center;
   padding: 0px 0.5em;
-  i {
+  i, img.icon {
     margin-right: 0.3em;
+  }
+  img.icon{
+    filter: invert(1) !important;
   }
 `;
 
@@ -195,9 +241,15 @@ export const FloatingButton = styled.button `
   align-items: center;
   position: absolute;
   bottom: 1em;
-  right: 1em;
+  right: ${inputOffset};
+  display: flex;
+
   span{
     vertical-align: text-bottom;
+    margin-left: 0.3em;
+  }
+  img.icon{
+    filter: invert(1) !important;
   }
 `;
 
@@ -269,6 +321,10 @@ color: ${basicBlueColour};
 }
 &> button{
   margin-left: auto;
+}
+img.icon{
+  height: 1.3em;
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
 }
 `;
 
@@ -441,4 +497,22 @@ font-size: 0.9em;
 button{
   margin-left: auto;
 }
+`;
+
+export const LoadingScreen = styled.div`
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: ${backgroundColour}AA;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  div{
+    margin-left: auto;
+    margin-right: auto;
+    span.sr-only{
+      display: none;
+    }
+  }
 `;

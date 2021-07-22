@@ -5,9 +5,6 @@ import React, {
 } from 'react';
 
 import { useSelector } from 'react-redux';
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
 
 import {
   List,

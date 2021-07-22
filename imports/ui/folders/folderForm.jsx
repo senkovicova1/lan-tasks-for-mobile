@@ -13,6 +13,7 @@ import Select from 'react-select';
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
+import DeleteIcon from "../../other/styles/icons/delete.svg";
 import {
   uint8ArrayToImg
 } from '../../other/helperFunctions';
@@ -21,10 +22,6 @@ import { useSelector } from 'react-redux';
 import {
   translations
 } from '../../other/translations.jsx';
-
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
 
 
 import {
@@ -162,7 +159,15 @@ const userId = Meteor.userId();
           </div>
               {
                 !user.admin &&
-              <LinkButton onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}><Icon iconName="Delete"/></LinkButton>
+              <LinkButton
+                onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}
+                >
+              <img
+                className="icon"
+                src={DeleteIcon}
+                alt="Delete icon not found"
+                />
+              </LinkButton>
             }
             </UserEntry>)
           }

@@ -7,10 +7,6 @@ import Select from 'react-select';
 import moment from 'moment';
 
 import {
-  Icon
-} from '@fluentui/react/lib/Icon';
-
-import {
   selectStyle
 } from '../../other/styles/selectStyles';
 

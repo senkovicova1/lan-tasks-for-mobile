@@ -1,13 +1,4 @@
-import React, {
-  useState,
-  useEffect
-} from 'react';
-
-
-import {
-  Modal,
-  ModalBody
-} from 'reactstrap';
+import React from 'react';
 
 import UserForm from './userForm';
 
@@ -37,7 +28,6 @@ export default function EditUserContainer( props ) {
       } );
     }
   }
-
 
   return (
         <UserForm {...user} onSubmit={editUser} onCancel={() => props.history.push("/all/list")}/>

@@ -55,6 +55,7 @@ mongo@1.11.1
 mongo-decimal@0.1.2
 mongo-dev-server@1.1.0
 mongo-id@1.0.8
+nathantreid:static-assets@0.1.0
 npm-bcrypt@0.9.4
 npm-mongo@3.9.0
 ordered-dict@1.1.0

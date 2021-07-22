@@ -10,13 +10,18 @@ import {
   Accounts
 } from 'meteor/accounts-base';
 
+import Loader from "../other/loadingScreen";
 import AddUser from '../users/userForm';
 
 export default function SignInForm( props ) {
 
   const { history, openLogIn } = props;
+  const [ errorMessage, setErrorMessage ] = useState( '' );
+  const [ showLoading, setShowLoading ] = useState( false );
 
   const onSubmit = ( name, surname, avatar, colour, language, email, password ) => {
+    setShowLoading(true);
+    setErrorMessage("");
     createUser( name, surname, avatar, colour, language, email, password );
     history.push("/all/list");
   };
@@ -32,10 +37,26 @@ export default function SignInForm( props ) {
         colour,
         language
       }
+    }, (error) => {
+      console.log(error);
+      setShowLoading(false);
+      if (error) {
+        if (error.reason === "Incorrect password." || error.reason === "User not found."){
+          setErrorMessage("Incorrect login details.");
+        } else {
+          setErrorMessage(error.reason);
+        }
+      }
     } );
   };
 
   return (
-    <AddUser onSubmit={onSubmit} isSignIn openLogIn={openLogIn}/>
+    <div>
+      {
+        showLoading &&
+        <Loader />
+      }
+      <AddUser onSubmit={onSubmit} isSignIn openLogIn={openLogIn} errorMessage={errorMessage}/>
+    </div>
   );
 };

@@ -11,6 +11,9 @@ import moment from 'moment';
 import Select from 'react-select';
 
 import { useSelector } from 'react-redux';
+
+import FolderIcon from "../other/styles/icons/folder.svg";
+import ListIcon from "../other/styles/icons/list.svg";
 import {
   invisibleSelectStyle
 } from '../other/styles/selectStyles';
@@ -18,10 +21,6 @@ import {
 import {
   translations
 } from '../other/translations.jsx';
-
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
 
 import {
   useTracker
@@ -69,17 +68,17 @@ export default function Menu( props ) {
   useEffect(() => {
     if (!match.params.folderID || match.params.folderID === "all"){
       setSelectedFolder({label: translations[language].allFolders, value: "all"});
-      setBackground("#f6f6f6");
+      setBackground("#0078d4");
     } else if (location.pathname == "/folders/archived"){
       setSelectedFolder({label: translations[language].archivedFolders, value: "archived"});
-      setBackground("#f6f6f6");
+      setBackground("#0078d4");
     } else if (myFolders && myFolders.length > 0){
       const newFolder = myFolders.find(folder => folder._id === match.params.folderID);
-      setBackground(newFolder.colour + "55");
+      setBackground(newFolder.colour);
       setSelectedFolder(newFolder);
   } else {
     setSelectedFolder({label: translations[language].allFolders, value: "all"});
-    setBackground("#f6f6f6");
+    setBackground("#0078d4");
   }
 }, [match.params.folderID, location.pathname, language, myFolders]);
 
@@ -93,10 +92,17 @@ export default function Menu( props ) {
                 key={folder.value}
                 to="/folders/archived"
                 onClick={() => {
-                  setBackground("#f6f6f6");
-                  closeSelf();
+                  setBackground("#0078d4");
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    closeSelf();
+                  }
                 }}
                 >
+                <img
+                  className="icon"
+                  src={FolderIcon}
+                  alt="Folder icon not found"
+                  />
                 {folder.label}
               </NavLink>
             );
@@ -106,11 +112,29 @@ export default function Menu( props ) {
               key={folder.value}
               to={`/${folder.value}/list`}
               onClick={() => {
-                setBackground(folder.colour ? folder.colour + "55" : "#f6f6f6");
-                closeSelf();
+                setBackground(folder.colour ? folder.colour : "#0078d4");
+                if (/Mobi|Android/i.test(navigator.userAgent)) {
+                  closeSelf();
+                }
               }}
               >
-              {folder.label}
+              {
+                folder.value === "all" &&
+                <img
+                  className="icon"
+                  src={ListIcon}
+                  alt="List icon not found"
+                  />
+              }
+              {
+                folder.value !== "all" &&
+                <img
+                  className="icon"
+                  src={FolderIcon}
+                  alt="Folder icon not found"
+                  />
+              }
+              <span>{folder.label}</span>
             </NavLink>
           );
         })

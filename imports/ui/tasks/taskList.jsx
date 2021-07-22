@@ -12,9 +12,10 @@ import {
 import {
   translations
 } from '../../other/translations.jsx';
-import {
-  Icon
-} from '@fluentui/react/lib/Icon';
+import BackIcon from "../../other/styles/icons/back.svg";
+import CloseIcon from "../../other/styles/icons/close.svg";
+import PlusIcon from "../../other/styles/icons/plus.svg";
+import SettingsIcon from "../../other/styles/icons/settings.svg";
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -69,14 +70,17 @@ export default function TaskList( props ) {
     } );
   }
 
-    const deletedTasksInFolder = useMemo(() => {
-      return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+    const removedTasks = useMemo(() => {
+      if (folderID) {
+        return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+      }
+      return tasks.filter(t => t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
     }, [tasks, folderID]);
 
   const removeTask = ( task ) => {
-    if (deletedTasksInFolder.length >= 5){
-      let difference = deletedTasksInFolder.length - 4;
-      const idsToDelete = deletedTasksInFolder.slice(4).map(t => t._id);
+    if (removedTasks.length >= 5){
+      let difference = removedTasks.length - 4;
+      const idsToDelete = removedTasks.slice(4).map(t => t._id);
       while (difference > 0) {
         TasksCollection.remove( {
           _id: idsToDelete[difference - 1]
@@ -99,7 +103,7 @@ export default function TaskList( props ) {
     let data = {
       removedDate: null,
     };
-    TasksCollection.update( deletedTasksInFolder[0]._id, {
+    TasksCollection.update( removedTasks[0]._id, {
       $set: {
         ...data
       }
@@ -108,7 +112,7 @@ export default function TaskList( props ) {
 
     const filteredTasks = useMemo(() => {
       return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived);
-    }, [tasks, showClosed]);
+    }, [tasks, showClosed, folderID]);
 
     const searchedTasks = useMemo(() => {
       return filteredTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
@@ -126,18 +130,14 @@ export default function TaskList( props ) {
         <span className="message">You have no open tasks.</span>
       }
       {
-        searchedTasks.map((task) => {
-          if (editedTask === task._id){
-            return (
-              <div key={task._id}>
-                <EditTaskContainer {...props} task={task} close={() => setEditedTask(null)}/>
-              </div>
-            )
-          } else {
-            return (
+        editedTask &&
+      <EditTaskContainer {...props} task={searchedTasks.find(task => task._id === editedTask)} close={() => setEditedTask(null)}/>
+    }
+
+      {
+        sortedTasks.map((task) => (
               <ItemContainer
                 key={task._id}
-                style={!folderID ? { backgroundColor: task.folder.colour + "55"} : {}}
                 >
                 <Input
                   type="checkbox"
@@ -151,18 +151,23 @@ export default function TaskList( props ) {
                 <span onClick={() => setEditedTask(task._id)}>
                   {task.name}
                 </span>
-                <LinkButton onClick={(e) => {e.preventDefault(); removeTask(task)}}><Icon iconName="Cancel"/></LinkButton>
+                <LinkButton
+                  onClick={(e) => {e.preventDefault(); removeTask(task)}}
+                  >
+                  <img
+                    className="icon"
+                    src={CloseIcon}
+                    alt="Close icon not found"
+                    />
+                </LinkButton>
               </ItemContainer>
-            )
-          }
-        })
+            ))
       }
 
       {
         folder &&
         <AddTaskContainer {...props} backgroundColor={folder.colour}/>
       }
-      <hr/>
       <section className="showClosed"  key="allStatuses" >
         <Input
           id="allStatuses"
@@ -176,24 +181,30 @@ export default function TaskList( props ) {
           />
         <label htmlFor="allStatuses" style={{color: "#0078d4"}}>{translations[language].showClosed}</label>
       </section>
-      {
-        folder &&
+
         <LinkButton
           className="item"
-          disabled={deletedTasksInFolder.length === 0}
+          disabled={removedTasks.length === 0}
           onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
           >
-          <Icon iconName="Refresh"/>
+          <img
+            className="icon"
+            src={BackIcon}
+            alt="Back icon not found"
+            />
           {translations[language].restoreTask}
         </LinkButton>
-      }
 
       {
         (!match.params.folderID || match.params.folderID === "all") &&
         <FloatingButton
           onClick={() => history.push('/folders/add')}
           >
-          <Icon iconName="Add" style={{marginRight: "0.3em"}}/>
+          <img
+            className="icon"
+            src={PlusIcon}
+            alt="Plus icon not found"
+            />
           <span>
           {translations[language].folder}
         </span>
@@ -209,7 +220,11 @@ export default function TaskList( props ) {
             props.history.push(`/${folderID}/edit`);
           }}
           >
-          <Icon iconName="Settings"/>
+          <img
+            className="icon"
+            src={SettingsIcon}
+            alt="Settings icon not found"
+            />
           Folder
         </LinkButton>
       }
