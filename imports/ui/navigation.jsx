@@ -38,12 +38,7 @@ import {
 export default function MainPage( props ) {
   const dispatch = useDispatch();
 
-  console.log("All icons <div>Icons made by <a href=https://smashicons.com/ title=Smashicons>Smashicons</a> from <a href=https://www.flaticon.com/ title=Flaticon>www.flaticon.com</a></div>");
-
-  //<div>Icons made by <a href="" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-  //<div>Icons made by <a href="https://www.flaticon.com/authors/pixel-perfect" title="Pixel perfect">Pixel perfect</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-  //<div>Icons made by <a href="https://www.flaticon.com/authors/bqlqn" title="bqlqn">bqlqn</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
-  //<div>Icons made by <a href="https://www.flaticon.com/authors/kiranshastry" title="Kiranshastry">Kiranshastry</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+  console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: SmashIcons (https://smashicons.com/), Gregor Cresnar, PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Bqlqn (https://www.flaticon.com/authors/bqlqn), Kiranshastry (https://www.flaticon.com/authors/kiranshastry)");
 
   const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
   const tasks = useTracker( () => TasksCollection.find( {} ).fetch() );
