@@ -4,16 +4,14 @@ import React, {
   useEffect,
 } from 'react';
 
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
-
 import Select from 'react-select';
 
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
+
 import DeleteIcon from "../../other/styles/icons/delete.svg";
+
 import {
   uint8ArrayToImg
 } from '../../other/helperFunctions';
@@ -22,7 +20,6 @@ import { useSelector } from 'react-redux';
 import {
   translations
 } from '../../other/translations.jsx';
-
 
 import {
   Form,

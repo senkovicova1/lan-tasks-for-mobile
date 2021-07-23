@@ -46,6 +46,7 @@ export default function TaskList( props ) {
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
+  const dbUsers = useSelector((state) => state.users.value);
   const language = useMemo(() => {
     return user.profile.language;
   }, [user]);
@@ -114,14 +115,19 @@ export default function TaskList( props ) {
       return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived);
     }, [tasks, showClosed, folderID]);
 
+    const assignedTasks = useMemo(() => {
+      return filteredTasks.map(task => ({...task, assigned: dbUsers.find(u => u._id === task.assigned)}));
+    }, [search, filteredTasks, dbUsers]);
+
     const searchedTasks = useMemo(() => {
-      return filteredTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
-    }, [search, filteredTasks]);
+      return assignedTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
+    }, [search, assignedTasks]);
 
     const sortedTasks = useMemo(() => {
       return searchedTasks.sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1));
     }, [searchedTasks]);
 
+    console.log(searchedTasks);
 
   return (
     <List>
@@ -151,6 +157,10 @@ export default function TaskList( props ) {
                 <span onClick={() => setEditedTask(task._id)}>
                   {task.name}
                 </span>
+                {
+                  task.assigned &&
+                  <img className="avatar" src={task.assigned.img} alt="assignedAvatar" />
+                }
                 <LinkButton
                   onClick={(e) => {e.preventDefault(); removeTask(task)}}
                   >

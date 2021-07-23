@@ -61,7 +61,7 @@ export const PageHeader = styled.header `
     ${(props) =>
       props.widthWithSidebar &&
       `
-      padding: 0px calc(${contentOffset} - ${sidebarWidthWeb} / 2 + ${inputOffset});
+      padding: 0px calc(${contentOffset} - ${sidebarWidthWeb} / 2 );
       `
     };
     ${(props) =>
@@ -176,7 +176,8 @@ export const Sidebar = styled.section `
   a {
     color: ${basicBlueColour} !important;
     display: flex;
-    padding: ${inputOffset};
+    height: 3em;
+    padding: 10px ${inputOffset};
     text-decoration: none !important;
     i, img.icon{
       margin-right: 10px;
@@ -312,19 +313,24 @@ export const ItemContainer = styled.section `
 padding: 0em ${inputOffset};
 height: 3em;
 display: flex;
+align-items: center;
 color: ${basicBlueColour};
 &> input, &> span, &> button{
   height: 3em !important;
 }
 &> span {
+  margin-right: auto;
   padding: 10px;
-}
-&> button{
-  margin-left: auto;
 }
 img.icon{
   height: 1.3em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+}
+img.avatar {
+  width:32px;
+  height: 32px;
+  border-radius: 50px;
+  margin-right: 0.6em;
 }
 `;
 

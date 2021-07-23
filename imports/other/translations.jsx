@@ -24,6 +24,7 @@ export const translations = {
     'restoreTask': 'Restore task',
     'editTask': 'Edit task',
     'task': 'Task',
+    'assigned': 'Assigned',
 
     'archived': 'Archived',
     'users': 'Users',
@@ -56,6 +57,7 @@ export const translations = {
     'restoreTask': 'Obnoviť poslednú zmazanú úlohu',
     'editTask': 'Upraviť úlohu',
     'task': 'Úloha',
+    'assigned': 'Rieši',
 
     'archived': 'Archivovaný',
     'users': 'Používatelia',

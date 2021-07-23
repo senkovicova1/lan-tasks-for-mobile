@@ -5,6 +5,7 @@ import React, {
 } from 'react';
 import Select from 'react-select';
 import moment from 'moment';
+import { useSelector } from 'react-redux';
 
 import {
   selectStyle
@@ -32,12 +33,21 @@ export default function TaskForm( props ) {
     match,
     _id: taskId,
     name: taskName,
+    assigned: taskAssigned,
+    folder: taskFolder,
     language,
     onSubmit,
     onCancel,
   } = props;
 
+  const folderID = taskFolder._id;
+
+  const userId = Meteor.userId();
+  const dbUsers = useSelector((state) => state.users.value);
+  const folder = useSelector((state) => state.folders.value).find(f => f._id === folderID);
+
   const [ name, setName ] = useState( "" );
+  const [ assigned, setAssigned ] = useState( "" );
 
   useEffect( () => {
     if ( taskName ) {
@@ -45,7 +55,24 @@ export default function TaskForm( props ) {
     } else {
       setName( "" );
     }
-  }, [ taskName ] )
+    if ( taskAssigned ) {
+      setAssigned( taskAssigned );
+    } else {
+      setAssigned( dbUsers.find(user => user._id === userId ) );
+    }
+  }, [ taskName, taskAssigned, dbUsers, userId ] );
+
+  const usersWithRights = useMemo(() => {
+    if (folder){
+       return folder.users.map(user =>
+            {
+            let newUser = {...dbUsers.find(u => u._id === user._id), ...user};
+            return newUser;
+          });
+    }
+    return [];
+  }, [folder, dbUsers]);
+
 
   return (
     <Form>
@@ -60,6 +87,20 @@ export default function TaskForm( props ) {
           />
       </section>
 
+      <section>
+        <label htmlFor="assigned">{translations[language].assigned}</label>
+        <Select
+          id="assigned"
+          name="assigned"
+          styles={selectStyle}
+          value={assigned}
+          onChange={(e) => {
+            setAssigned(e);
+          }}
+          options={usersWithRights}
+          />
+      </section>
+
       <ButtonRow>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
         <FullButton
@@ -67,7 +108,8 @@ export default function TaskForm( props ) {
           disabled={name.length === 0}
           onClick={(e) => {e.preventDefault(); onSubmit(
             name,
-            match.params.folderID,
+            assigned._id,
+            folderID,
             moment().unix()
           );}}
           >

@@ -4,6 +4,9 @@ body {
 
 .modal-dialog{
   max-width: 800px !important;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .modal-content{
@@ -14,4 +17,13 @@ body {
 
 .modal-body{
   padding: 20px !important;
+}
+@media all and (max-width: 800px) {
+  .modal-dialog{
+    margin: 0px;
+    position: absolute;
+    bottom: 0;
+    width: inherit;
+    left: 0;
+  }
 }

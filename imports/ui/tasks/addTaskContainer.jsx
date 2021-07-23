@@ -43,9 +43,10 @@ export default function AddTaskContainer( props ) {
 
   const toggleAddTask = () => showAddTask( !addTaskOpen );
 
-  const addNewTask = ( name, folder, dateCreated ) => {
+  const addNewTask = ( name, assigned, folder, dateCreated ) => {
     TasksCollection.insert( {
       name,
+      assigned,
       folder,
       dateCreated,
       closed: false

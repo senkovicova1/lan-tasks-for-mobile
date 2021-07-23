@@ -32,6 +32,9 @@ import FolderAdd from './folders/addFolderContainer';
 import EditUserContainer from './users/editUserContainer';
 
 import {
+  uint8ArrayToImg
+} from '../other/helperFunctions';
+import {
   Content
 } from '../other/styles/styledComponents';
 
@@ -65,13 +68,20 @@ useEffect(() => {
 }, [folders, tasks, currentUser]);
 
 useEffect(() => {
-    dispatch(setUsers(users));
+    dispatch(
+      setUsers(
+        users.map(user => ({
+          ...user,
+          label:  `${user.profile.name} ${user.profile.surname}`,
+          value: user._id,
+          img: uint8ArrayToImg(user.profile.avatar)
+        }) )
+      )
+      );
 }, [users]);
 
   const [ search, setSearch ] = useState( "" );
   const [ openSidebar, setOpenSidebar ] = useState( false );
-
-  console.log(openSidebar);
 
   return (
     <div style={{height: "100vh"}}>
