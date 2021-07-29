@@ -10,7 +10,7 @@ import {
   selectStyle
 } from '../../other/styles/selectStyles';
 
-import DeleteIcon from "../../other/styles/icons/delete.svg";
+import { DeleteIcon } from  "/imports/other/styles/icons";
 
 import {
   uint8ArrayToImg

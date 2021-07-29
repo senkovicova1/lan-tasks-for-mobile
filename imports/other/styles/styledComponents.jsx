@@ -310,22 +310,30 @@ export const ItemContainer = styled.section `
 &:hover{
   cursor: pointer;
 }
+
 padding: 0em ${inputOffset};
 height: 3em;
 display: flex;
 align-items: center;
 color: ${basicBlueColour};
-&> input, &> span, &> button{
-  height: 3em !important;
+
+input[type=checkbox]{
+  width: 1.5em !important;
+  height: 1.5em !important;
 }
+
 &> span {
   margin-right: auto;
   padding: 10px;
+  width: calc(100% - 6em);
+  overflow-wrap: anywhere;
 }
+
 img.icon{
   height: 1.3em;
-    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+  filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
 }
+
 img.avatar {
   width:32px;
   height: 32px;
@@ -406,8 +414,6 @@ height: 2.5em !important;
 }
 
 &[type=checkbox]{
-    height: 1.3em;
-    width: 1.3em;
     vertical-align: middle;
 }
 `;

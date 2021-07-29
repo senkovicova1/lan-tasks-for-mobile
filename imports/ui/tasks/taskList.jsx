@@ -12,10 +12,9 @@ import {
 import {
   translations
 } from '../../other/translations.jsx';
-import BackIcon from "../../other/styles/icons/back.svg";
-import CloseIcon from "../../other/styles/icons/close.svg";
-import PlusIcon from "../../other/styles/icons/plus.svg";
-import SettingsIcon from "../../other/styles/icons/settings.svg";
+
+import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon } from  "/imports/other/styles/icons";
+
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -127,8 +126,6 @@ export default function TaskList( props ) {
       return searchedTasks.sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1));
     }, [searchedTasks]);
 
-    console.log(searchedTasks);
-
   return (
     <List>
       {
@@ -149,7 +146,6 @@ export default function TaskList( props ) {
                   type="checkbox"
                   style={{
                     marginRight: "0.2em",
-                    width: "1.5em"
                   }}
                   checked={task.closed}
                   onChange={() => closeTask(task)}
@@ -199,7 +195,7 @@ export default function TaskList( props ) {
           >
           <img
             className="icon"
-            src={BackIcon}
+            src={RestoreIcon}
             alt="Back icon not found"
             />
           {translations[language].restoreTask}

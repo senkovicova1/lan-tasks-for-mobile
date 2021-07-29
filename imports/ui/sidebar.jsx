@@ -12,8 +12,8 @@ import Select from 'react-select';
 
 import { useSelector } from 'react-redux';
 
-import FolderIcon from "../other/styles/icons/folder.svg";
-import ListIcon from "../other/styles/icons/list.svg";
+import { ListIcon, FolderIcon } from  "/imports/other/styles/icons";
+
 import {
   invisibleSelectStyle
 } from '../other/styles/selectStyles';

@@ -41,7 +41,7 @@ import {
 export default function MainPage( props ) {
   const dispatch = useDispatch();
 
-  console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: SmashIcons (https://smashicons.com/), Gregor Cresnar, PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Bqlqn (https://www.flaticon.com/authors/bqlqn), Kiranshastry (https://www.flaticon.com/authors/kiranshastry)");
+  console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Dmitri13 (https://www.flaticon.com/authors/dmitri13), Phatplus (https://www.flaticon.com/authors/phatplus)");
 
   const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
   const tasks = useTracker( () => TasksCollection.find( {} ).fetch() );

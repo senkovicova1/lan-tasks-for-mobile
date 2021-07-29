@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
-import SettingsIcon from "../../other/styles/icons/settings.svg";
+import { SettingsIcon } from  "/imports/other/styles/icons";
 import {
   translations
 } from '../../other/translations.jsx';

@@ -7,12 +7,7 @@ import {
 } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import MenuIcon from "../other/styles/icons/menu.svg";
-import SettingsIcon from "../other/styles/icons/settings.svg";
-import LogOutIcon from "../other/styles/icons/logout.svg";
-import CloseIcon from "../other/styles/icons/close.svg";
-import SearchIcon from "../other/styles/icons/search.svg";
-import LeftArrowIcon from "../other/styles/icons/left-arrow.svg";
+import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon } from  "/imports/other/styles/icons";
 
 import Menu from './sidebar';
 
@@ -187,7 +182,7 @@ export default function Header( props ) {
           >
           <img
             className="icon"
-            src={LogOutIcon}
+            src={LogoutIcon}
             alt="Logout icon not found"
             />
         </LinkButton>

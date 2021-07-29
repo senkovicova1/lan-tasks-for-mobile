@@ -11,7 +11,7 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import PlusIcon from "../../other/styles/icons/plus.svg";
+import { PlusIcon} from  "/imports/other/styles/icons";
 import {
   translations
 } from '../../other/translations.jsx';
