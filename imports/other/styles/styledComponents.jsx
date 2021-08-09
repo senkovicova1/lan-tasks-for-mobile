@@ -8,9 +8,10 @@ const lightBlueColour = "#deeaf3";
 
 //numeric values
 const contentOffset = "calc((100vw - 800px)/2)";
+const verticalContentOffset = "15px";
 const sidebarWidthWeb = "250px";
 const sidebarWidthMobile = "300px";
-const inputOffset = "7px";
+const inputOffset = "15px";
 
 export const MainPage = styled.div `
   font-size: 1em;
@@ -39,12 +40,72 @@ export const MainPage = styled.div `
     opacity: 1;
   }
 
-
   img.icon {
     height: 1.3em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
+
+  img.avatar {
+    width:32px;
+    height: 32px;
+    border-radius: 50px;
+    margin-right: 0.6em;
+  }
 `;
+
+export const MobilePageHeader = styled.header `
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  height: 50px;
+  background-color: ${basicBlueColour};
+    padding: 0px ${inputOffset};
+    i {
+      font-size: 1.5em;
+    }
+    img.icon {
+      filter: invert(1);
+      height: 1.5em;
+      width: 1.5em;
+      margin-right: 0px;
+    }
+    img.search-icon{
+      height: 1.3em;
+      width: 1.3em;
+    }
+    button{
+      i{
+        margin: 0px !important;
+      }
+      margin-right: 1em;
+    }
+    button:last-of-type{
+        margin: 0px !important;
+    }
+
+    h1 {
+      height: 32px;
+      padding-left: 0em;
+      display: inline;
+      font-size: 1.5em;
+      color: white;
+      margin-bottom: 0em;
+    }
+
+    div.search-section{
+      width: -webkit-fill-available;
+      input{
+        width: -webkit-fill-available;
+        border: none !important;
+        outline: none !important;
+      }
+      input:focus{
+        border: none !important;
+      }
+    }
+`;
+
 
 export const PageHeader = styled.header `
   display: flex;
@@ -53,125 +114,151 @@ export const PageHeader = styled.header `
   position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
+  padding: 0px ${inputOffset};
 
-  @media all and (max-width: 799px), @media handheld  {
-    padding: 0px ${inputOffset};
-  }
-  @media all and (min-width: 800px){
-    ${(props) =>
-      props.widthWithSidebar &&
-      `
-      padding: 0px calc(${contentOffset} - ${sidebarWidthWeb} / 2 );
-      `
-    };
-    ${(props) =>
-      !props.widthWithSidebar &&
-      `
-      padding: 0px calc(${contentOffset} + ${inputOffset});
-      `
-    };
-  }
+  section.header-section{
+    width: 250px;
+    align-items: center;
+    display: flex;
+    button{
+      margin-right: 1em;
+    }
+    button:last-of-type{
+      margin: 0px !important;
+    }
 
-    i {
+    h1 {
+      height: 32px;
+      padding-left: 0em;
+      display: inline;
       font-size: 1.5em;
+      color: white;
+      margin-bottom: 0em;
+      margin-left: 1em;
     }
 
     img.icon {
       filter: invert(1);
-        height: 1.5em;
-        width: 1.5em;
+      height: 1.5em;
+      width: 1.5em;
+      margin-right: 0px;
     }
+  }
+
+  div.search-section{
+    width: -webkit-fill-available;
+    input{
+      width: -webkit-fill-available;
+      border: none !important;
+      outline: none !important;
+    }
+    input:focus{
+      border: none !important;
+    }
+
+`;
+
+export const SearchSection = styled.section `
+  display: flex;
+  width: 800px !important;
+  input{
+    width: -webkit-fill-available;
+    border: none !important;
+    outline: none !important;
+  }
+  input:focus{
+    border: none !important;
+  }
 
     img.search-icon{
       height: 1.3em;
       width: 1.3em;
     }
 
-    button{
-      i{
-        margin: 0px !important;
-      }
-      margin-right: 1em;
-    }
-
-    button:last-of-type{
-        margin: 0px !important;
-    }
-
-  h1 {
-    height: 32px;
-    padding-left: 0em;
-    display: inline;
-    font-size: 1.5em;
-    color: white;
-    margin-bottom: 0em;
+  button:last-of-type {
+    margin-left: 0em !important;
+    margin-right: 1em;
+    padding-left: ${inputOffset};
   }
+
+  button:first-of-type {
+    margin-right: 0em;
+    padding-left: ${inputOffset};
+    margin-left: ${inputOffset};
+  }
+
 `;
 
 export const Content = styled.main `
   display: block;
+  padding-top: ${verticalContentOffset};
+  height: calc(100vh - 50px);
   @media all and (max-width: 799px), @media handheld {
     width: 100%;
   }
-  @media all and (min-width: 800px){
+  @media all and (min-width: 800px) and (max-width: 1299px){
     ${(props) =>
-      props.widthWithSidebar &&
+      props.withSidebar &&
       `
-      margin-left: calc(${contentOffset} + ${sidebarWidthWeb} / 2);
-      margin-right: calc(${contentOffset} - ${sidebarWidthWeb} / 2);
+        max-width: 800px;
+        margin-left: ${sidebarWidthWeb};
+        margin-right: auto;
       `
-    };
+    }
     ${(props) =>
-      !props.widthWithSidebar &&
+      !props.withSidebar &&
       `
-      margin-left: ${contentOffset};
-      margin-right: ${contentOffset};
+        width: 800px;
+        margin-left: auto;
+        margin-right: auto;
       `
-    };
+    }
   }
-  height: calc(100vh - 50px);
+  @media all and (min-width: 1300px) {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 `;
 
-
 export const ButtonRow = styled.section `
-display: flex;
-margin-top: 0em !important;
-margin-bottom: 0em;
-button:first-of-type{
-  margin-right: 0.5em;
-}
-button:last-of-type{
-  margin-left: 0.5em;
-}
-}
+  display: flex;
+  margin-top: 0em !important;
+  margin-bottom: 0em;
+  button:first-of-type{
+    margin-right: 0.5em;
+  }
+  button:last-of-type{
+    margin-left: 0.5em;
+  }
 `;
 
 export const ButtonCol = styled.section `
-margin-top: 0em !important;
-button:not(last-of-type) {
-  margin-bottom: 1.5em;
-}
-}
+  margin-top: 0em !important;
+    button:not(last-of-type) {
+      margin-bottom: 1.5em;
+    }
+  }
 `;
 
 export const Sidebar = styled.section `
   background-color: ${backgroundColour};
   position: absolute;
+  left: 0;
   @media all and (max-width: 799px), @media handheld  {
-    left: 0;
     box-shadow: 5px 0px 13px 0px slategrey;
     width: ${sidebarWidthMobile};
   }
   @media all and (min-width: 800px){
-    left: calc(${contentOffset} - ${sidebarWidthWeb} / 2 - ${inputOffset});
     box-shadow: none;
     border-right: 0px solid #d6d6d6;
     width: ${sidebarWidthWeb};
+    background-color: white;
   }
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
-  padding: 0px;
+  padding: ${verticalContentOffset} 0 0 0;
 
   a {
     color: ${basicBlueColour} !important;
@@ -241,7 +328,7 @@ export const FloatingButton = styled.button `
   border-radius: 1.5em;
   align-items: center;
   position: absolute;
-  bottom: 1em;
+  bottom: 40px;
   right: ${inputOffset};
   display: flex;
 
@@ -255,25 +342,25 @@ export const FloatingButton = styled.button `
 `;
 
 export const List = styled.section `
-width: 100%;
-padding: 0em 0em 0em 0em;
-display: inline-block;
-verticalAlign: top;
+  width: 100%;
+  padding: 0em 0em 0em 0em;
+  display: inline-block;
+  verticalAlign: top;
 
-&>div{
-    display: flex;
-}
+  &>div{
+      display: flex;
+  }
 
-&>section.showClosed{
-  display: block;
-  height: 3em;
-  input{
-    width: 1.5em !important;
+  &>section.showClosed{
+    display: block;
+    height: 3em;
+    input{
+      width: 1.5em !important;
+    }
+    label{
+      padding: 10px;
+    }
   }
-  label{
-    padding: 10px;
-  }
-}
 
   button.item{
     i {
@@ -283,163 +370,175 @@ verticalAlign: top;
     height: 3em;
   }
 
-&>section.showClosed, button{
-  margin-left: ${inputOffset};
-}
+  &>section.showClosed, button{
+    margin-left: ${inputOffset};
+  }
 
-span.message{
-  margin: 0em ${inputOffset};
-  line-height: 2em;
-}
+  span.message{
+    margin: 0em ${inputOffset};
+    line-height: 3em;
+    display: block;
+  }
 `;
-
-export const SearchSection = styled.section `
-width: -webkit-fill-available;
-input{
-  width: -webkit-fill-available;
-  border: none !important;
-  outline: none !important;
-}
-input:focus{
-  border: none !important;
-}
-`;
-
 
 export const ItemContainer = styled.section `
-&:hover{
-  cursor: pointer;
-}
+  &:hover{
+    cursor: pointer;
+  }
 
-padding: 0em ${inputOffset};
-height: 3em;
-display: flex;
-align-items: center;
-color: ${basicBlueColour};
+  padding: 0em ${inputOffset};
+  min-height: 3em;
+  display: flex;
+  align-items: center;
+  color: ${basicBlueColour};
 
-input[type=checkbox]{
-  width: 1.5em !important;
-  height: 1.5em !important;
-}
+  input[type=checkbox]{
+    width: 1.5em !important;
+    height: 1.5em !important;
+  }
 
-&> span {
-  margin-right: auto;
-  padding: 10px;
-  width: calc(100% - 6em);
-  overflow-wrap: anywhere;
-}
+  &> span {
+    margin-right: auto;
+    padding: 10px;
+    width: calc(100% - 6em);
+    overflow-wrap: anywhere;
+  }
 
-img.icon{
-  height: 1.3em;
-  filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
-}
+  img.icon{
+    height: 1.3em;
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+  }
 
-img.avatar {
-  width:32px;
-  height: 32px;
-  border-radius: 50px;
-  margin-right: 0.6em;
-}
+  img.usericon{
+    width: 32px;
+    height: 32px;
+    border-radius: 50px;
+    margin-right: 0.6em;
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+  }
 `;
 
 export const Form = styled.form `
-padding: 1em ${inputOffset};
-width: -webkit-fill-available;
+  padding: 1em ${inputOffset};
+  width: -webkit-fill-available;
 
-h1{
-  font-size: 1.5em;
-  font-weight: 400;
-}
-
-hr{
-  margin: 0em 0em 1em 0em;
-}
-
-section {
-  margin: 0em 0em 1.5em 0em;
-
-  i {
+  h1{
     font-size: 1.5em;
+    font-weight: 400;
   }
 
-  img {
-    width:32px;
-    height: 32px;
-    border-radius: 50px;
-    margin-right: 1em;
+  hr{
+    margin: 0em 0em 1em 0em;
   }
 
-  label{
-    margin: 0px 1em 0em 0em;
-    font-weight: 500;
-  }
-  input[type=text], input[type=color], input[type=password],  &>div {
-    width: 100%;
-  }
-  input[type=color]{
+  section {
+    margin: 0em 0em 1.5em 0em;
+
+    i {
+      font-size: 1.5em;
+    }
+
+    img {
+      width:32px;
+      height: 32px;
+      border-radius: 50px;
+      margin-right: 1em;
+    }
+
+    label{
+      margin: 0px 1em 0em 0em;
+      font-weight: 500;
+    }
+    input[type=text], input[type=color], input[type=password],  &>div {
+      width: 100%;
+    }
+    input[type=color]{
+        border: none;
+        background-color: transparent !important;
+        padding: 0px;
+      }
+
+    input[type=file]{
+      width: calc(100% - 5em);
       border: none;
       background-color: transparent !important;
-      padding: 0px;
     }
 
-  input[type=file]{
-    width: calc(100% - 5em);
-    border: none;
-    background-color: transparent !important;
-  }
+    input[type=checkbox] + label{
+        vertical-align: middle;
+      }
 
-  input[type=checkbox] + label{
-      vertical-align: middle;
+  input[type=checkbox]{
+      margin-right: 5px;
     }
+    section:last-of-type {
+      margin: 0em !important;
+    }
+  }
 
-input[type=checkbox]{
-    margin-right: 5px;
-  }
-  section:last-of-type {
-    margin: 0em !important;
-  }
-}
+    section.color-picker{
+      label{
+        display: block;
+      }
+
+      div.colours{
+        display: flex;
+        margin-bottom: 0.6em;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
 `;
 
+export const Color = styled.div`
+  height:  ${(props) => props.active ? "1.3em" : "1em"};
+  width: ${(props) => props.active ? "calc(18% + 0.3em)" : "18%"};
+  margin: ${(props) => props.active ? "0px" : "0.3em"};
+
+  &:last-of-type {
+   margin-left: 0.3em;
+   margin-right: 0em;
+  }
+
+  &:first-of-type {
+  margin-right: 0.3em;
+  margin-left: 0em;
+  }
+
+  &:hover{
+   margin: 0px;
+   height: 1.3em;
+   width: calc(18% + 0.3em);
+  }
+`
+
 export const Input = styled.input `
-background-color: white !important;
-outline: none !important;
-border: 1px solid #d6d6d6;
-width: ${(props) => props.width ? props.width : "auto"};
-padding-left: 0.4em;
-height: 2.5em !important;
+  background-color: white !important;
+  outline: none !important;
+  border: ${(props) => props.error ? "1px solid red" : "1px solid #d6d6d6"};
+  width: ${(props) => props.width ? props.width : "auto"};
+  padding-left: 0.4em;
+  height: 2.5em !important;
 
-&:focus{
-  border: 1px solid ${basicBlueColour} !important;
-}
+  &:focus{
+    border: 1px solid ${basicBlueColour} !important;
+  }
 
-&[type=checkbox]{
-    vertical-align: middle;
-}
+  &[type=checkbox]{
+      vertical-align: middle;
+  }
 `;
 
 export const Textarea = styled.textarea `
-background-color: white !important;
-outline: none !important;
-border: 1px solid transparent;
-width: ${(props) => props.width ? props.width : "auto"};
-padding-left: 0.4em;
+  background-color: white !important;
+  outline: none !important;
+  border: 1px solid transparent;
+  width: ${(props) => props.width ? props.width : "auto"};
+  padding-left: 0.4em;
 
-&:focus{
-  border: 1px solid ${basicBlueColour} !important;
-}
-`;
-
-export const TitleInput = styled( Input )
-`
-background-color: transparent !important;
-outline: none !important;
-border: none !important;
-width: ${(props) => props.width ? props.width : "-webkit-fill-available"};
-height: 2em;
-font-size: 2em;
-font-weight: lighter;
-padding-left: 0em;
+  &:focus{
+    border: 1px solid ${basicBlueColour} !important;
+  }
 `;
 
 export const GroupButton = styled.button `
@@ -458,57 +557,58 @@ export const GroupButton = styled.button `
 `;
 
 export const LoginContainer = styled.div`
-@media all and (max-width: 799px), @media handheld  {
-  width: auto;
-}
-@media all and (min-width: 800px){
-  width: 500px;
-}
+  @media all and (max-width: 799px), @media handheld  {
+    width: auto;
+  }
+  @media all and (min-width: 800px){
+    width: 500px;
+  }
 
-height: calc(100vh - 50px);
-margin: auto;
+  height: calc(100vh - 50px);
+  margin: auto;
 
-&>div{
-    height: -webkit-fill-available;
-    width: inherit;
-    background-color: ${backgroundColour};
-    position: relative;
-    display: flex;
-    align-items: center;
-}
+  &>div{
+      height: -webkit-fill-available;
+      width: inherit;
+      background-color: ${backgroundColour};
+      position: relative;
+      display: flex;
+      align-items: center;
+  }
 
-h1 {
-  margin: 0px;
-  background-color: ${basicBlueColour};
-  color: white;
-  font-size: 1.5em;
-  font-weight: 400;
-  padding-left: 5px;
-  height: 1.5em;
-}
+  h1 {
+    margin: 0px;
+    background-color: ${basicBlueColour};
+    color: white;
+    font-size: 1.5em;
+    font-weight: 400;
+    padding-left: 5px;
+    height: 1.5em;
+  }
 `;
 
 export const UserEntry = styled.div`
-display: flex;
-margin-bottom: 0.5em;
-div {
-  display: inline-block;
-}
-label.name {
-display: block;
-font-weight: 400;
-}
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5em;
+  div {
+    display: inline-block;
+  }
+  label.name {
+  display: block;
+  font-weight: 400;
+  }
 
-label.role {
-display: block;
-font-weight: 400;
-color: ${basicBlueColour};
-font-size: 0.9em;
-}
+  label.role {
+  display: block;
+  font-weight: 400;
+  color: ${basicBlueColour};
+  font-size: 0.9em;
+  }
 
-button{
-  margin-left: auto;
-}
+  button{
+    margin-left: auto;
+  }
 `;
 
 export const LoadingScreen = styled.div`

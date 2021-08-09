@@ -10,7 +10,7 @@ import {
   selectStyle
 } from '../../other/styles/selectStyles';
 
-import { DeleteIcon } from  "/imports/other/styles/icons";
+import { DeleteIcon, UserIcon } from  "/imports/other/styles/icons";
 
 import {
   uint8ArrayToImg
@@ -27,8 +27,30 @@ import {
   ButtonCol,
   LinkButton,
   FullButton,
-  UserEntry
+  UserEntry,
+  Color
 } from "../../other/styles/styledComponents";
+
+const colours = [
+  "#A62B2B",
+  "#C92685",
+  "#A063A1",
+  "#5807BB",
+
+  "#201DED",
+  "#0078D4",
+  "#2189AB",
+  "#45BFB1",
+
+  "#28D27A",
+  "#1ADB27",
+  "#92CA2B",
+  "#D3D70F",
+
+  "#FFD12B",
+  "#E07F10",
+  "#E01010",
+]
 
 export default function FolderForm( props ) {
 
@@ -51,7 +73,7 @@ const userId = Meteor.userId();
 
   const [ name, setName ] = useState( "" );
   const [ archived, setArchived ] = useState( false );
-  const [ colour, setColor ] = useState( "#FFFFFF" );
+  const [ colour, setColor ] = useState( "#0078D4" );
   const [ users, setUsers ] = useState( [] );
 
   useEffect( () => {
@@ -68,7 +90,7 @@ const userId = Meteor.userId();
     if ( folderColor ) {
       setColor( folderColor );
     } else {
-      setColor( "#FFFFFF" );
+      setColor(  "#0078D4"  );
     }
 
     if ( folderUsers ) {
@@ -100,6 +122,22 @@ const userId = Meteor.userId();
     return dbUsers.find(user => user._id === userId).profile.language;
   }, [userId, dbUsers]);
 
+  document.onkeydown = function (e) {
+    e = e || window.event;
+    switch (e.which || e.keyCode) {
+      case 13 :
+      if (name.length > 0){
+        onSubmit(
+           name,
+           colour,
+           archived,
+           users.map(user => ({_id: user._id, admin: user.admin}))
+        );
+      }
+      break;
+    }
+  }
+
   return (
     <Form>
 
@@ -115,16 +153,32 @@ const userId = Meteor.userId();
           />
       </section>
 
-      <section>
-        <label  htmlFor="colour">{translations[language].colour}</label>
-        <Input
-          type="color"
-          name="colour"
-          id="colour"
-          placeholder="Choose colour"
-          value={colour}
-          onChange={(e) => setColor(e.target.value)}
-          />
+      <section className="color-picker">
+        <label  htmlFor="colours">{translations[language].colour}</label>
+        <div className="colours">
+          {
+            colours.slice(0,5).map(colourToChoose => (
+              <Color key={colourToChoose} active={colourToChoose === colour && true} className="colour" style={{backgroundColor: colourToChoose}} onClick={() => setColor(colourToChoose)}>
+              </Color>
+            ))
+          }
+        </div>
+        <div className="colours">
+          {
+            colours.slice(5,10).map(colourToChoose => (
+              <Color key={colourToChoose} active={colourToChoose === colour && true} className="colour" style={{backgroundColor: colourToChoose}} onClick={() => setColor(colourToChoose)}>
+              </Color>
+            ))
+          }
+        </div>
+        <div className="colours">
+          {
+            colours.slice(10,15).map(colourToChoose => (
+              <Color key={colourToChoose} active={colourToChoose === colour && true} className="colour" style={{backgroundColor: colourToChoose}} onClick={() => setColor(colourToChoose)}>
+              </Color>
+            ))
+          }
+        </div>
       </section>
 
       <section>
@@ -145,6 +199,9 @@ const userId = Meteor.userId();
               <UserEntry key={user._id}>
                 {user.avatar &&
               <img src={user.img} alt="" />
+            }
+            {!user.avatar &&
+              <img className="" src={UserIcon} alt="" />
             }
               <div>
               <label className="name">

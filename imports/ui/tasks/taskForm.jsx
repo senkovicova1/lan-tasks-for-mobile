@@ -20,7 +20,6 @@ import {
   FormTable,
   Input,
   Textarea,
-  TitleInput,
   ButtonRow,
   FullButton,
   GroupButton,
@@ -40,7 +39,7 @@ export default function TaskForm( props ) {
     onCancel,
   } = props;
 
-  const folderID = taskFolder._id;
+  const folderID = match.params.folderID;
 
   const userId = Meteor.userId();
   const dbUsers = useSelector((state) => state.users.value);
@@ -73,6 +72,21 @@ export default function TaskForm( props ) {
     return [];
   }, [folder, dbUsers]);
 
+  document.onkeydown = function (e) {
+    e = e || window.event;
+    switch (e.which || e.keyCode) {
+      case 13 :
+      if (name.length > 0){
+        onSubmit(
+          name,
+          assigned._id,
+          folderID,
+          moment().unix()
+        );
+      }
+      break;
+    }
+  }
 
   return (
     <Form>

@@ -51,6 +51,8 @@ export default function UserForm( props ) {
   const [ password1, setPassword1 ] = useState( '' );
   const [ password2, setPassword2 ] = useState( '' );
 
+  const [ errors, setErrors ] = useState( [] );
+
   useEffect( () => {
     if ( profile?.name ) {
       setName( profile.name );
@@ -88,39 +90,57 @@ export default function UserForm( props ) {
       </section>
 
       <section>
-        <label htmlFor="name">{translations[language.value].name}</label>
+        <label htmlFor="name">{translations[language.value].name}<span style={{color: "red"}}>*</span></label>
         <Input
+          error={errors.includes("name") && true}
           id="name"
           name="name"
           placeholder="Enter name"
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (e.target.value.length > 0){
+              setErrors(errors.filter(e => e !== "name"));
+            }
+          }}
           />
       </section>
 
       <section>
-        <label htmlFor="surname">{translations[language.value].surname}</label>
+        <label htmlFor="surname">{translations[language.value].surname}<span style={{color: "red"}}>*</span></label>
         <Input
+          error={errors.includes("surname") && true}
           id="surname"
           name="surname"
           placeholder="Enter surname"
           type="text"
           value={surname}
-          onChange={(e) =>  setSurname(e.target.value)}
+          onChange={(e) =>  {
+            setSurname(e.target.value);
+            if (e.target.value.length > 0){
+              setErrors(errors.filter(e => e !== "surname"));
+            }
+          }}
           />
       </section>
 
       { !profile &&
         <section>
-          <label  htmlFor="email">Email</label>
+          <label  htmlFor="email">Email<span style={{color: "red"}}>*</span></label>
           <Input
+            error={errors.includes("email") && true}
             name="email"
             id="email"
             placeholder="Enter email"
             type="text"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) =>{
+              setEmail(e.target.value);
+              if (isEmail(e.target.value)){
+                setErrors(errors.filter(e => e !== "email"));
+              }
+            }}
             />
         </section>
       }
@@ -180,8 +200,9 @@ export default function UserForm( props ) {
 
       { !profile &&
         <section>
-          <label htmlFor="password1">{translations[language.value].pass}</label>
+          <label htmlFor="password1">{translations[language.value].pass}<span style={{color: "red"}}>*</span></label>
           <Input
+            error={errors.includes("password") && true}
             type="password"
             placeholder="Password"
             id="password1"
@@ -189,14 +210,20 @@ export default function UserForm( props ) {
             type="password"
             value={password1}
             required
-            onChange={e => setPassword1(e.target.value)}
+            onChange={e => {
+              setPassword1(e.target.value);
+              if (e.target.value === password2 && password2.length >= 7){
+                setErrors(errors.filter(e => e !== "password"));
+              }
+            }}
             />
         </section>
       }
       { !profile &&
         <section>
-          <label htmlFor="password2">{translations[language.value].repPass}</label>
+          <label htmlFor="password2">{translations[language.value].repPass}<span style={{color: "red"}}>*</span></label>
           <Input
+            error={errors.includes("password") && true}
             type="password"
             placeholder="Repeat password"
             id="password2"
@@ -204,7 +231,12 @@ export default function UserForm( props ) {
             type="password"
             value={password2}
             required
-            onChange={e => setPassword2(e.target.value)}
+            onChange={e => {
+              setPassword2(e.target.value);
+              if (e.target.value === password1 && password1.length >= 7){
+                setErrors(errors.filter(e => e !== "password"));
+              }
+            }}
             />
         </section>
       }
@@ -225,18 +257,33 @@ export default function UserForm( props ) {
         }
         <FullButton
           colour=""
-          disabled={name.length + surname.length + email.length === 0 || (!profile && !isEmail(email)) || (!profile && password1 !== password2) || !avatar.buffer || (!profile && password1.length < 7)}
           onClick={(e) => {
             e.preventDefault();
-            onSubmit(
-              name,
-              surname,
-              avatar.buffer,
-              colour,
-              language.value,
-              email,
-              password1
-            );
+            let errors = [];
+            if (name.length === 0){
+              errors.push("name");
+            }
+            if (surname.length === 0){
+              errors.push("surname");
+            }
+            if (!profile && !isEmail(email)){
+              errors.push("email");
+            }
+            if  ((!profile && password1 !== password2) || (!profile && password1.length < 7)){
+              errors.push("password");
+            }
+            if (name.length > 0 &&surname.length > 0 && (profile || isEmail(email)) && (profile || (password1 === password2 && password1.length >= 7)) ) {
+              onSubmit(
+                name,
+                surname,
+                avatar.buffer,
+                colour,
+                language.value,
+                email,
+                password1
+              );
+            }
+          setErrors(errors);
           }}
           >
           { isSignIn ? translations[language.value].sign : translations[language.value].save}

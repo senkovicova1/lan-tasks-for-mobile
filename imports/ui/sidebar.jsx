@@ -12,7 +12,7 @@ import Select from 'react-select';
 
 import { useSelector } from 'react-redux';
 
-import { ListIcon, FolderIcon } from  "/imports/other/styles/icons";
+import { ListIcon, FolderIcon, ArchiveIcon } from  "/imports/other/styles/icons";
 
 import {
   invisibleSelectStyle
@@ -100,7 +100,7 @@ export default function Menu( props ) {
                 >
                 <img
                   className="icon"
-                  src={FolderIcon}
+                  src={ArchiveIcon}
                   alt="Folder icon not found"
                   />
                 {folder.label}

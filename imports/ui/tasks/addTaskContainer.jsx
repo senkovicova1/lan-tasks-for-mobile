@@ -62,15 +62,18 @@ export default function AddTaskContainer( props ) {
     <div>
       {!addTaskOpen &&
       <FloatingButton onClick={toggleAddTask}>
-      <img
-        className="icon"
-        src={PlusIcon}
-        alt="Plus icon not found"
-        />
+        <img
+          className="icon"
+          src={PlusIcon}
+          alt="Plus icon not found"
+          />
+        <span>
+        {translations[language].task}
+      </span>
       </FloatingButton>
     }
           {addTaskOpen &&
-          <Modal isOpen={true}>
+          <Modal className="add-task-modal" isOpen={true}>
             <ModalBody>
           <TaskForm {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
         </ModalBody>

@@ -17,8 +17,8 @@ export const translations = {
     'forgotPass': 'Forgot password',
     'accountReg': 'Account registration',
 
-    'allFolders': 'All tasks',
-    'archivedFolders': 'Archived folders',
+    'allFolders': 'All my tasks',
+    'archivedFolders': 'Archived',
     'folder': 'Folder',
     'showClosed': 'Show closed',
     'restoreTask': 'Restore task',
@@ -50,8 +50,8 @@ export const translations = {
     'forgotPass': 'Zabudnuté heslo',
     'accountReg': 'Registrácia',
 
-    'allFolders': 'Všetky úlohy',
-    'archivedFolders': 'Archivované priečinky',
+    'allFolders': 'Všetky moje úlohy',
+    'archivedFolders': 'Archivované',
     'folder': 'Priečinok',
     'showClosed': 'Zobraziť uzavreté',
     'restoreTask': 'Obnoviť poslednú zmazanú úlohu',

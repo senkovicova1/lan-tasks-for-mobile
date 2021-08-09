@@ -13,7 +13,7 @@ import {
   translations
 } from '../../other/translations.jsx';
 
-import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon } from  "/imports/other/styles/icons";
+import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon } from  "/imports/other/styles/icons";
 
 import {
   useTracker
@@ -50,12 +50,12 @@ export default function TaskList( props ) {
     return user.profile.language;
   }, [user]);
 
-    const folderID = !match.params.folderID || match.params.folderID === 'all' ? null : match.params.folderID;
-    const folders = useSelector((state) => state.folders.value);
-    const folder = useMemo(() => {
-      const maybeFolder = folders.find(folder => folder._id === folderID);
-      return  maybeFolder ? maybeFolder : null;
-    }, [folders, folderID]);
+  const folderID = !match.params.folderID || match.params.folderID === 'all' ? null : match.params.folderID;
+  const folders = useSelector((state) => state.folders.value);
+  const folder = useMemo(() => {
+    const maybeFolder = folders.find(folder => folder._id === folderID);
+    return  maybeFolder ? maybeFolder : null;
+  }, [folders, folderID]);
 
   const tasks = useSelector((state) => state.tasks.value);
 
@@ -70,12 +70,12 @@ export default function TaskList( props ) {
     } );
   }
 
-    const removedTasks = useMemo(() => {
-      if (folderID) {
-        return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
-      }
-      return tasks.filter(t => t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
-    }, [tasks, folderID]);
+  const removedTasks = useMemo(() => {
+    if (folderID) {
+      return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+    }
+    return tasks.filter(t => t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+  }, [tasks, folderID]);
 
   const removeTask = ( task ) => {
     if (removedTasks.length >= 5){
@@ -110,21 +110,21 @@ export default function TaskList( props ) {
     } );
   }
 
-    const filteredTasks = useMemo(() => {
-      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived);
-    }, [tasks, showClosed, folderID]);
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived && (folderID || task.assigned === userId));
+  }, [tasks, showClosed, folderID, userId]);
 
-    const assignedTasks = useMemo(() => {
-      return filteredTasks.map(task => ({...task, assigned: dbUsers.find(u => u._id === task.assigned)}));
-    }, [search, filteredTasks, dbUsers]);
+  const assignedTasks = useMemo(() => {
+    return filteredTasks.map(task => ({...task, assigned: dbUsers.find(u => u._id === task.assigned)}));
+  }, [search, filteredTasks, dbUsers]);
 
-    const searchedTasks = useMemo(() => {
-      return assignedTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
-    }, [search, assignedTasks]);
+  const searchedTasks = useMemo(() => {
+    return assignedTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
+  }, [search, assignedTasks]);
 
-    const sortedTasks = useMemo(() => {
-      return searchedTasks.sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1));
-    }, [searchedTasks]);
+  const sortedTasks = useMemo(() => {
+    return searchedTasks.sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1));
+  }, [searchedTasks]);
 
   return (
     <List>
@@ -134,40 +134,46 @@ export default function TaskList( props ) {
       }
       {
         editedTask &&
-      <EditTaskContainer {...props} task={searchedTasks.find(task => task._id === editedTask)} close={() => setEditedTask(null)}/>
-    }
+        <EditTaskContainer {...props} task={searchedTasks.find(task => task._id === editedTask)} close={() => setEditedTask(null)}/>
+      }
 
       {
         sortedTasks.map((task) => (
-              <ItemContainer
-                key={task._id}
-                >
-                <Input
-                  type="checkbox"
-                  style={{
-                    marginRight: "0.2em",
-                  }}
-                  checked={task.closed}
-                  onChange={() => closeTask(task)}
-                  />
-                <span onClick={() => setEditedTask(task._id)}>
-                  {task.name}
-                </span>
-                {
-                  task.assigned &&
-                  <img className="avatar" src={task.assigned.img} alt="assignedAvatar" />
-                }
-                <LinkButton
-                  onClick={(e) => {e.preventDefault(); removeTask(task)}}
-                  >
-                  <img
-                    className="icon"
-                    src={CloseIcon}
-                    alt="Close icon not found"
-                    />
-                </LinkButton>
-              </ItemContainer>
-            ))
+          <ItemContainer
+            key={task._id}
+            >
+            <Input
+              type="checkbox"
+              style={{
+                marginRight: "0.2em",
+              }}
+              checked={task.closed}
+              onChange={() => closeTask(task)}
+              />
+            <span id={`task_name ${task._id}`} onClick={() => setEditedTask(task._id)}>
+              {task.name}
+            </span>
+            {
+              task.assigned &&
+              task.assigned.img &&
+              <img className="avatar" src={task.assigned.img} alt="" title={task.assigned.label}/>
+            }
+            {
+              task.assigned &&
+              !task.assigned.img &&
+              <img className="usericon" src={UserIcon} alt="" title={task.assigned.label}/>
+            }
+            <LinkButton
+              onClick={(e) => {e.preventDefault(); removeTask(task)}}
+              >
+              <img
+                className="icon"
+                src={CloseIcon}
+                alt="Close icon not found"
+                />
+            </LinkButton>
+          </ItemContainer>
+        ))
       }
 
       {
@@ -188,18 +194,18 @@ export default function TaskList( props ) {
         <label htmlFor="allStatuses" style={{color: "#0078d4"}}>{translations[language].showClosed}</label>
       </section>
 
-        <LinkButton
-          className="item"
-          disabled={removedTasks.length === 0}
-          onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
-          >
-          <img
-            className="icon"
-            src={RestoreIcon}
-            alt="Back icon not found"
-            />
-          {translations[language].restoreTask}
-        </LinkButton>
+      <LinkButton
+        className="item"
+        disabled={removedTasks.length === 0}
+        onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
+        >
+        <img
+          className="icon"
+          src={RestoreIcon}
+          alt="Back icon not found"
+          />
+        {translations[language].restoreTask}
+      </LinkButton>
 
       {
         (!match.params.folderID || match.params.folderID === "all") &&
@@ -212,27 +218,9 @@ export default function TaskList( props ) {
             alt="Plus icon not found"
             />
           <span>
-          {translations[language].folder}
-        </span>
+            {translations[language].folder}
+          </span>
         </FloatingButton>
-      }
-
-      {
-        ( folder && folder.users.find(user => user._id === userId).admin ) &&
-        <LinkButton
-          className="item"
-          onClick={(e) => {
-            e.preventDefault();
-            props.history.push(`/${folderID}/edit`);
-          }}
-          >
-          <img
-            className="icon"
-            src={SettingsIcon}
-            alt="Settings icon not found"
-            />
-          Folder
-        </LinkButton>
       }
 
     </List>

@@ -41,7 +41,7 @@ import {
 export default function MainPage( props ) {
   const dispatch = useDispatch();
 
-  console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Dmitri13 (https://www.flaticon.com/authors/dmitri13), Phatplus (https://www.flaticon.com/authors/phatplus)");
+  console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Dmitri13 (https://www.flaticon.com/authors/dmitri13), Phatplus (https://www.flaticon.com/authors/phatplus), Freepik (https://www.flaticon.com/authors/freepik)");
 
   const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
   const tasks = useTracker( () => TasksCollection.find( {} ).fetch() );
@@ -74,7 +74,7 @@ useEffect(() => {
           ...user,
           label:  `${user.profile.name} ${user.profile.surname}`,
           value: user._id,
-          img: uint8ArrayToImg(user.profile.avatar)
+          img: user.profile.avatar ? uint8ArrayToImg(user.profile.avatar) : null
         }) )
       )
       );
@@ -104,7 +104,7 @@ useEffect(() => {
           </Content>
         }
         {currentUser &&
-          <Content widthWithSidebar={openSidebar}>
+          <Content withSidebar={openSidebar}>
             <div style={{height: "100%", position: "relative"}}>
               <Route
                 exact
