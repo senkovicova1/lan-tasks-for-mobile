@@ -10,7 +10,6 @@ export default function Header( props ) {
   } = props;
 
   if (window.innerWidth >= 800) {
-    setParentOpenSidebar(true);
     return (
       <WebHeader {...props}/>
     );
