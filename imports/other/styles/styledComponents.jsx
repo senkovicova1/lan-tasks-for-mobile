@@ -8,7 +8,6 @@ const lightBlueColour = "#deeaf3";
 
 //numeric values
 const contentOffset = "calc((100vw - 800px)/2)";
-const verticalContentOffset = "15px";
 const sidebarWidthWeb = "250px";
 const sidebarWidthMobile = "300px";
 const inputOffset = "15px";
@@ -117,9 +116,14 @@ export const PageHeader = styled.header `
   padding: 0px ${inputOffset};
 
   section.header-section{
-    width: 250px;
+    width: 300px;
     align-items: center;
     display: flex;
+
+       overflow: hidden;
+       text-overflow: ellipsis;
+       white-space: nowrap;
+
     button{
       margin-right: 1em;
     }
@@ -128,6 +132,9 @@ export const PageHeader = styled.header `
     }
 
     h1 {
+           overflow: hidden;
+           text-overflow: ellipsis;
+           white-space: nowrap;
       height: 32px;
       padding-left: 0em;
       display: inline;
@@ -191,7 +198,7 @@ export const SearchSection = styled.section `
 
 export const Content = styled.main `
   display: block;
-  padding-top: ${verticalContentOffset};
+  padding-top: 7px;
   height: calc(100vh - 50px);
   @media all and (max-width: 799px), @media handheld {
     width: 100%;
@@ -258,7 +265,7 @@ export const Sidebar = styled.section `
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
-  padding: ${verticalContentOffset} 0 0 0;
+  padding: 0px;
 
   a {
     color: ${basicBlueColour} !important;
@@ -329,7 +336,16 @@ export const FloatingButton = styled.button `
   align-items: center;
   position: absolute;
   bottom: 40px;
-  right: ${inputOffset};
+  ${(props) => props.left &&
+`
+left: ${inputOffset};
+`
+  }
+  ${(props) => !props.left &&
+`
+right: ${inputOffset};
+`
+  }
   display: flex;
 
   span{
@@ -351,27 +367,12 @@ export const List = styled.section `
       display: flex;
   }
 
-  &>section.showClosed{
-    display: block;
-    height: 3em;
-    input{
-      width: 1.5em !important;
-    }
-    label{
-      padding: 10px;
-    }
-  }
-
   button.item{
     i {
       width: 1.5em;
       margin-right: 10px;
     }
     height: 3em;
-  }
-
-  &>section.showClosed, button{
-    margin-left: ${inputOffset};
   }
 
   span.message{
@@ -397,11 +398,14 @@ export const ItemContainer = styled.section `
     height: 1.5em !important;
   }
 
-  &> span {
+  &> span:not(.colour) {
     margin-right: auto;
     padding: 10px;
-    width: calc(100% - 6em);
     overflow-wrap: anywhere;
+  }
+
+  &> span:not(.colour) {
+    width: calc(100% - 6em);
   }
 
   img.icon{
@@ -416,6 +420,13 @@ export const ItemContainer = styled.section `
     margin-right: 0.6em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
+
+  &>span.colour{
+    margin-left: auto;
+    width: 2em;
+    height: 2em;
+  }
+
 `;
 
 export const Form = styled.form `
@@ -491,24 +502,24 @@ export const Form = styled.form `
 `;
 
 export const Color = styled.div`
-  height:  ${(props) => props.active ? "1.3em" : "1em"};
-  width: ${(props) => props.active ? "calc(18% + 0.3em)" : "18%"};
-  margin: ${(props) => props.active ? "0px" : "0.3em"};
+  height:  calc(2.5em + 10px);
+  width: 18%;
+  margin: 0.05em;
+
+  border: 5px solid ${(props) => props.active ? basicBlueColour : "white"};
 
   &:last-of-type {
-   margin-left: 0.3em;
+   margin-left: 0.05em;
    margin-right: 0em;
   }
 
   &:first-of-type {
-  margin-right: 0.3em;
+  margin-right: 0.05em;
   margin-left: 0em;
   }
 
   &:hover{
-   margin: 0px;
-   height: 1.3em;
-   width: calc(18% + 0.3em);
+    border: ${(props) => props.active ? "5px" : "0px"} solid ${basicBlueColour};
   }
 `
 

@@ -6,6 +6,8 @@ import React, {
 
 import { useSelector } from 'react-redux';
 
+import { FolderIcon } from  "/imports/other/styles/icons";
+
 import {
   List,
   SearchSection,
@@ -46,13 +48,18 @@ export default function FolderList( props ) {
       }
       {
         mySearchedFolders.map(folder =>
-          <ItemContainer key={folder._id} style={folder.colour ? {backgroundColor: folder.colour} : {}}>
+          <ItemContainer key={folder._id}>
+            <img
+              className="icon"
+              src={FolderIcon}
+              alt=""
+              />
             <span
-              style={{paddingLeft: "0px"}}
               onClick={() => history.push(`/folders/archived/${folder._id}`)}
               >
               {folder.name}
             </span>
+            <span className="colour"  style={folder.colour ? {backgroundColor: folder.colour} : {}}></span>
           </ItemContainer>
         )
       }
