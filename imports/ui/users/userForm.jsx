@@ -80,6 +80,7 @@ export default function UserForm( props ) {
     } else {
       setLanguage( LANGUAGES[0] );
     }
+    setErrors([]);
   }, [ profile ] );
 
   return (
@@ -135,7 +136,7 @@ export default function UserForm( props ) {
             placeholder="Enter email"
             type="text"
             value={email}
-            onChange={(e) =>{
+            onChange={(e) => {
               setEmail(e.target.value);
               if (isEmail(e.target.value)){
                 setErrors(errors.filter(e => e !== "email"));

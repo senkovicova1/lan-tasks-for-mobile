@@ -202,13 +202,8 @@ export default function TaskList( props ) {
         <AddTaskContainer {...props} backgroundColor={folder.colour}/>
       }
 
-      {
-        activeTasks.length > 0 &&
         <hr style={{marginTop: "7px", marginBottom: "7px"}}/>
-      }
 
-      {
-        activeTasks.length > 0 &&
         <ItemContainer key="commands" >
           <Switch
             id="show-closed"
@@ -227,7 +222,12 @@ export default function TaskList( props ) {
             {translations[language].showClosed}
           </span>
         </ItemContainer>
-      }
+
+        {
+          showClosed &&
+          closedTasks.length === 0 &&
+          <span className="message">You have no closed tasks.</span>
+        }
 
       {
         closedTasks.map((task) => (
