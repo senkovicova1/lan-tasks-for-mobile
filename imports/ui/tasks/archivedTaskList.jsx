@@ -6,6 +6,7 @@ import React, {
 import moment from 'moment';
 import Select from 'react-select';
 import { useSelector } from 'react-redux';
+import Switch from "react-switch";
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
@@ -35,6 +36,8 @@ export default function ArchivedTaskList( props ) {
 
   const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
+  const [ sortBy, setSortBy ] = useState("");
+  const [ sortDirection, setSortDirection ] = useState("");
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
@@ -60,12 +63,37 @@ export default function ArchivedTaskList( props ) {
     }, [search, filteredTasks]);
 
     const sortedTasks = useMemo(() => {
-      return searchedTasks.sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1));
-    }, [searchedTasks]);
+        const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
+        return searchedTasks
+        .sort((t1, t2) => {
+          if (sortBy === "assigned"){
+            return t1.assigned.label.toLowerCase() < t2.assigned.label.toLowerCase() ? 1*multiplier : (-1)*multiplier;
+          }
+          if (sortBy === "date"){
+            return t1.dateCreated < t2.dateCreated ? 1*multiplier : (-1)*multiplier;
+          }
+            return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1*multiplier : (-1)*multiplier;
+
+        });
+    }, [searchedTasks, sortBy, sortDirection]);
 
 
   return (
     <List>
+
+        <div className="sort">
+          <label htmlFor="sort">Sort by</label>
+          <select  className="sort-by" id="sort" name="sort" value={sortBy} onChange={(e) => {setSortBy(e.target.value)}}>
+            <option value="name">name</option>
+            <option value="assigned">assigned user</option>
+            <option value="date">date created</option>
+          </select>
+          <select className="sort-direction" id="sort2" name="sort2" value={sortDirection} onChange={(e) => {setSortDirection(e.target.value)}}>
+            <option value="asc">ascending</option>
+            <option value="desc">descending</option>
+          </select>
+        </div>
+
       {
         searchedTasks.map(
           (task) =>
@@ -87,27 +115,29 @@ export default function ArchivedTaskList( props ) {
           </ItemContainer>
         )
       }
-      <section className="showClosed"  key="allStatuses" >
-        <Input
-          id="allStatuses"
-          type="checkbox"
-          name="allStatuses"
-          style={{
-            marginRight: "0.2em"
-          }}
-          checked={showClosed}
+
+      <ItemContainer key="commands" >
+        <Switch
+          id="show-closed"
+          name="show-closed"
           onChange={() => setShowClosed(!showClosed)}
+          checked={showClosed}
+          onColor="#0078d4"
+          uncheckedIcon={false}
+          checkedIcon={false}
+          style={{
+            marginRight: "0.2em",
+            display: "none"
+          }}
           />
-        <label
-          htmlFor="allStatuses"
-          style={{color: "#0078d4"}}
-          >
+        <span htmlFor="show-closed">
           {translations[language].showClosed}
-        </label>
-      </section>
+        </span>
+      </ItemContainer>
 
       {
         (  folders[0].users.find(user => user._id === userId).admin ) &&
+              <ItemContainer key="button" >
         <LinkButton
           onClick={(e) => {
             e.preventDefault();
@@ -121,6 +151,7 @@ export default function ArchivedTaskList( props ) {
             />
           Folder
         </LinkButton>
+      </ItemContainer>
       }
 
     </List>

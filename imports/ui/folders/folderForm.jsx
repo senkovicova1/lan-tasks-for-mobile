@@ -240,7 +240,7 @@ const userId = Meteor.userId();
       <ButtonCol>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>{translations[language].cancel}</FullButton>
         {onRemove &&
-          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); onCancel();}}>{translations[language].delete}</FullButton>
+          <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); }}>{translations[language].delete}</FullButton>
         }
         <FullButton
           colour=""

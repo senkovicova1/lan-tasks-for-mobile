@@ -359,6 +359,7 @@ right: ${inputOffset};
 
 export const List = styled.section `
   width: 100%;
+  height: calc(100vh - 60px);
   padding: 0em 0em 0em 0em;
   display: inline-block;
   verticalAlign: top;
@@ -375,11 +376,21 @@ export const List = styled.section `
     height: 3em;
   }
 
-  span.message{
+  span.message, div.sort{
     margin: 0em ${inputOffset};
     line-height: 3em;
     display: block;
   }
+
+  div.sort>label, div.sort>.sort-by{
+    margin-right: 0.6em;
+  }
+  div.sort>select{
+    border: 1px solid ${basicBlueColour} !important;
+    outline: none !important;
+  }
+
+
 `;
 
 export const ItemContainer = styled.section `

@@ -28,8 +28,13 @@ export default function EditUserContainer( props ) {
       } );
     }
   }
+/*
+    const changeEmail = (email) => {
+        const newEmail = [{address: email, verified: false}];
+        Meteor.users.update({_id: user._id}, {$set: {emails: newEmail }});
+    }*/
 
   return (
-        <UserForm {...user} onSubmit={editUser} onCancel={() => props.history.push("/all/list")}/>
+        <UserForm {...user} onSubmit={editUser} onCancel={() => props.history.push("/all/list")} />
   );
 };

@@ -57,9 +57,9 @@ export default function AddTaskContainer( props ) {
   const close = () => {
     showAddTask( false );
   }
-
+//position: "sticky", bottom: "2px", left: "100%"
   return (
-    <div>
+    <div style={{}}>
       {!addTaskOpen &&
       <FloatingButton onClick={toggleAddTask}>
         <img

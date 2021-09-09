@@ -43,6 +43,8 @@ export default function TaskList( props ) {
 
   const [ editedTask, setEditedTask ] = useState( null );
   const [ showClosed, setShowClosed ] = useState(false);
+  const [ sortBy, setSortBy ] = useState("");
+  const [ sortDirection, setSortDirection ] = useState("");
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
@@ -124,29 +126,47 @@ export default function TaskList( props ) {
   }, [search, assignedTasks]);
 
   const sortedTasks = useMemo(() => {
-    return searchedTasks
-    .sort((t1, t2) => (t1.dateCreated < t2.dateCreated ? 1 : -1))
-    .sort((t1, t2) => {
-      if (t1.closed){
-        return 1;
-      }
-      return -1;
-    });
-  }, [searchedTasks]);
+      const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
+      return searchedTasks
+      .sort((t1, t2) => {
+        if (sortBy === "assigned"){
+          return t1.assigned.label.toLowerCase() < t2.assigned.label.toLowerCase() ? 1*multiplier : (-1)*multiplier;
+        }
+        if (sortBy === "date"){
+          return t1.dateCreated < t2.dateCreated ? 1*multiplier : (-1)*multiplier;
+        }
+          return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1*multiplier : (-1)*multiplier;
+
+      });
+  }, [searchedTasks, sortBy, sortDirection]);
 
   const activeTasks = useMemo(() => {
     return sortedTasks.filter(task => !task.closed);
-  }, [sortedTasks]);
+  }, [sortedTasks, sortBy, sortDirection]);
 
   const closedTasks = useMemo(() => {
     if (showClosed){
       return sortedTasks.filter(task => task.closed);
     }
     return [];
-  }, [sortedTasks, showClosed]);
+  }, [sortedTasks, showClosed, sortBy, sortDirection]);
 
   return (
     <List>
+
+      <div className="sort">
+        <label htmlFor="sort">Sort by</label>
+        <select  className="sort-by" id="sort" name="sort" value={sortBy} onChange={(e) => {setSortBy(e.target.value)}}>
+          <option value="name">name</option>
+          <option value="assigned">assigned user</option>
+          <option value="date">date created</option>
+        </select>
+        <select className="sort-direction" id="sort2" name="sort2" value={sortDirection} onChange={(e) => {setSortDirection(e.target.value)}}>
+          <option value="asc">ascending</option>
+          <option value="desc">descending</option>
+        </select>
+      </div>
+
       {
         activeTasks.length === 0 &&
         <span className="message">You have no open tasks.</span>
@@ -195,11 +215,6 @@ export default function TaskList( props ) {
             </LinkButton>
           </ItemContainer>
         ))
-      }
-
-      {
-        folder &&
-        <AddTaskContainer {...props} backgroundColor={folder.colour}/>
       }
 
         <hr style={{marginTop: "7px", marginBottom: "7px"}}/>
@@ -271,6 +286,7 @@ export default function TaskList( props ) {
 
       {
         removedTasks.length > 0 &&
+        <div  style={{}}>
         <FloatingButton
           left
           onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
@@ -284,10 +300,12 @@ export default function TaskList( props ) {
           {translations[language].restoreTask}
         </span>
         </FloatingButton>
+      </div>
       }
 
       {
         (!match.params.folderID || match.params.folderID === "all") &&
+        <div  style={{}}>
         <FloatingButton
           onClick={() => history.push('/folders/add')}
           >
@@ -300,6 +318,12 @@ export default function TaskList( props ) {
             {translations[language].folder}
           </span>
         </FloatingButton>
+      </div>
+      }
+
+      {
+        folder &&
+        <AddTaskContainer {...props} backgroundColor={folder.colour}/>
       }
 
     </List>
