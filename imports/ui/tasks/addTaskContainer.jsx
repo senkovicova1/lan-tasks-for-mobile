@@ -67,9 +67,11 @@ export default function AddTaskContainer( props ) {
           src={PlusIcon}
           alt="Plus icon not found"
           />
+        {!/Mobi|Android/i.test(navigator.userAgent) &&
         <span>
         {translations[language].task}
       </span>
+    }
       </FloatingButton>
     }
           {addTaskOpen &&

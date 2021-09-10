@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon, UserIcon } from  "/imports/other/styles/icons";
+import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon, UserIcon, MenuIcon2 } from  "/imports/other/styles/icons";
 
 import Menu from './sidebar';
 
@@ -34,7 +34,11 @@ export default function MobileHeader( props ) {
     location,
     setSearch,
     search,
-    setParentOpenSidebar
+    setParentOpenSidebar,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection
   } = props;
 
   const folderID = match.params.folderID;
@@ -45,6 +49,7 @@ export default function MobileHeader( props ) {
   const folders = useSelector((state) => state.folders.value);
 
   const [ openSidebar, setOpenSidebar ] = useState(false);
+  const [ openSort, setOpenSort ] = useState(false);
   const [ openSearch, setOpenSearch ] = useState(false);
   const [ title, setTitle ] = useState("TaskApp");
   const [ background, setBackground ] = useState("#0078d4");
@@ -169,6 +174,23 @@ export default function MobileHeader( props ) {
 
       {
         currentUser &&
+        <LinkButton
+          font="white"
+          onClick={(e) => {
+            e.preventDefault();
+            setOpenSort(!openSort);
+          }}
+          >
+          <img
+            className="icon"
+            src={MenuIcon2}
+            alt="MenuIcon2 icon not found"
+            />
+        </LinkButton>
+      }
+
+      {
+        currentUser &&
         (!folderID || folderID === "all") &&
         <LinkButton
           font="white"
@@ -226,7 +248,95 @@ export default function MobileHeader( props ) {
             />
         </LinkButton>
       }
+      {
+        openSort &&
+        <Sort>
+          <h3>Sort by</h3>
+          <span>
+            <input
+              id="sort-by-name-asc"
+              name="sort-by-name-asc"
+              type="checkbox"
+              checked={sortBy === "name" && sortDirection === "asc"}
+              onChange={() => {
+                setSortBy("name");
+                setSortDirection("asc");
+              }}
+              />
+            <label htmlFor="sort-by-name-asc">Name (ascending)</label>
+          </span>
 
+            <span>
+              <input
+                id="sort-by-name-desc"
+                name="sort-by-name-desc"
+                type="checkbox"
+                checked={sortBy === "name" && sortDirection === "desc"}
+                onChange={() => {
+                  setSortBy("name");
+                  setSortDirection("desc");
+                }}
+                />
+              <label htmlFor="sort-by-name-desc">Name (descending)</label>
+            </span>
+
+              <span>
+                <input
+                  id="sort-by-assigned-asc"
+                  name="sort-by-assigned-asc"
+                  type="checkbox"
+                  checked={sortBy === "assigned" && sortDirection === "asc"}
+                  onChange={() => {
+                    setSortBy("assigned");
+                    setSortDirection("asc");
+                  }}
+                  />
+                <label htmlFor="sort-by-name-asc">Assigned user (ascending)</label>
+              </span>
+
+                <span>
+                  <input
+                    id="sort-by-assigned-desc"
+                    name="sort-by-assigned-desc"
+                    type="checkbox"
+                    checked={sortBy === "assigned" && sortDirection === "desc"}
+                    onChange={() => {
+                      setSortBy("assigned");
+                      setSortDirection("desc");
+                    }}
+                    />
+                  <label htmlFor="sort-by-name-asc">Assigned user (descending)</label>
+                </span>
+
+                  <span>
+                    <input
+                      id="sort-by-date-asc"
+                      name="sort-by-date-asc"
+                      type="checkbox"
+                      checked={sortBy === "date" && sortDirection === "asc"}
+                      onChange={() => {
+                        setSortBy("date");
+                        setSortDirection("asc");
+                      }}
+                      />
+                    <label htmlFor="sort-by-name-asc">Date created (ascending)</label>
+                  </span>
+
+                    <span>
+                      <input
+                        id="sort-by-date-desc"
+                        name="sort-by-date-desc"
+                        type="checkbox"
+                        checked={sortBy === "date" && sortDirection === "desc"}
+                        onChange={() => {
+                          setSortBy("date");
+                          setSortDirection("desc");
+                        }}
+                        />
+                      <label htmlFor="sort-by-name-asc">Date created (descending)</label>
+                    </span>
+        </Sort>
+      }
       {
         openSidebar &&
         currentUser &&

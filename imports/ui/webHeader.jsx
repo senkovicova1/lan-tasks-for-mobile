@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon, UserIcon } from  "/imports/other/styles/icons";
+import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon, UserIcon, MenuIcon2 } from  "/imports/other/styles/icons";
 
 import Menu from './sidebar';
 
@@ -25,6 +25,7 @@ import {
   FullButton,
   SearchSection,
   Input,
+  Sort
 } from '../other/styles/styledComponents';
 
 export default function WebHeader( props ) {
@@ -34,7 +35,11 @@ export default function WebHeader( props ) {
     location,
     setSearch,
     search,
-    setParentOpenSidebar
+    setParentOpenSidebar,
+    sortBy,
+    setSortBy,
+    sortDirection,
+    setSortDirection
   } = props;
 
   const folderID = match.params.folderID;
@@ -45,6 +50,7 @@ export default function WebHeader( props ) {
   const folders = useSelector((state) => state.folders.value);
 
   const [ openSidebar, setOpenSidebar ] = useState(true);
+  const [ openSort, setOpenSort ] = useState(false);
   const [ openSearch, setOpenSearch ] = useState(true);
   const [ title, setTitle ] = useState("TaskApp");
   const [ background, setBackground ] = useState("#0078d4");
@@ -136,6 +142,23 @@ export default function WebHeader( props ) {
   }
 
 <section className="header-section" style={{justifyContent: "flex-end"}}>
+  {
+    currentUser &&
+    <LinkButton
+      font="white"
+      onClick={(e) => {
+        e.preventDefault();
+        setOpenSort(!openSort);
+      }}
+      >
+      <img
+        className="icon"
+        src={MenuIcon2}
+        alt="MenuIcon2 icon not found"
+        />
+    </LinkButton>
+  }
+
       {
         currentUser &&
         (!folderID || folderID === "all") &&
@@ -157,6 +180,9 @@ export default function WebHeader( props ) {
           }
         </LinkButton>
       }
+
+
+
 
       {
         currentUser &&
@@ -202,6 +228,96 @@ export default function WebHeader( props ) {
         currentUser &&
         <Menu {...props} setBackground={setBackground} widthWithSidebar={openSidebar} closeSelf={() => setOpenSidebar(false)}/>
       }
+
+        {
+          openSort &&
+          <Sort>
+            <h3>Sort by</h3>
+            <span>
+              <input
+                id="sort-by-name-asc"
+                name="sort-by-name-asc"
+                type="checkbox"
+                checked={sortBy === "name" && sortDirection === "asc"}
+                onChange={() => {
+                  setSortBy("name");
+                  setSortDirection("asc");
+                }}
+                />
+              <label htmlFor="sort-by-name-asc">Name (ascending)</label>
+            </span>
+
+              <span>
+                <input
+                  id="sort-by-name-desc"
+                  name="sort-by-name-desc"
+                  type="checkbox"
+                  checked={sortBy === "name" && sortDirection === "desc"}
+                  onChange={() => {
+                    setSortBy("name");
+                    setSortDirection("desc");
+                  }}
+                  />
+                <label htmlFor="sort-by-name-desc">Name (descending)</label>
+              </span>
+
+                <span>
+                  <input
+                    id="sort-by-assigned-asc"
+                    name="sort-by-assigned-asc"
+                    type="checkbox"
+                    checked={sortBy === "assigned" && sortDirection === "asc"}
+                    onChange={() => {
+                      setSortBy("assigned");
+                      setSortDirection("asc");
+                    }}
+                    />
+                  <label htmlFor="sort-by-name-asc">Assigned user (ascending)</label>
+                </span>
+
+                  <span>
+                    <input
+                      id="sort-by-assigned-desc"
+                      name="sort-by-assigned-desc"
+                      type="checkbox"
+                      checked={sortBy === "assigned" && sortDirection === "desc"}
+                      onChange={() => {
+                        setSortBy("assigned");
+                        setSortDirection("desc");
+                      }}
+                      />
+                    <label htmlFor="sort-by-name-asc">Assigned user (descending)</label>
+                  </span>
+
+                    <span>
+                      <input
+                        id="sort-by-date-asc"
+                        name="sort-by-date-asc"
+                        type="checkbox"
+                        checked={sortBy === "date" && sortDirection === "asc"}
+                        onChange={() => {
+                          setSortBy("date");
+                          setSortDirection("asc");
+                        }}
+                        />
+                      <label htmlFor="sort-by-name-asc">Date created (ascending)</label>
+                    </span>
+
+                      <span>
+                        <input
+                          id="sort-by-date-desc"
+                          name="sort-by-date-desc"
+                          type="checkbox"
+                          checked={sortBy === "date" && sortDirection === "desc"}
+                          onChange={() => {
+                            setSortBy("date");
+                            setSortDirection("desc");
+                          }}
+                          />
+                        <label htmlFor="sort-by-name-asc">Date created (descending)</label>
+                      </span>
+          </Sort>
+        }
 
     </PageHeader>
   );

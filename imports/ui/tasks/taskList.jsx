@@ -29,6 +29,7 @@ import {
   ItemContainer,
   LinkButton,
   Input,
+  InlineInput,
   FloatingButton
 } from "../../other/styles/styledComponents";
 
@@ -37,14 +38,16 @@ export default function TaskList( props ) {
   const {
     match,
     history,
-    search
+    search,
+    sortBy,
+    sortDirection,
   } = props;
 
 
   const [ editedTask, setEditedTask ] = useState( null );
   const [ showClosed, setShowClosed ] = useState(false);
-  const [ sortBy, setSortBy ] = useState("");
-  const [ sortDirection, setSortDirection ] = useState("");
+  const [ newTaskName, setNewTaskName ] = useState("");
+  const [ openNewTask, setOpenNewTask ] = useState(false);
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
@@ -113,6 +116,23 @@ export default function TaskList( props ) {
     } );
   }
 
+  const addQuickTask = () => {
+    TasksCollection.insert( {
+      name: newTaskName,
+      assigned: userId,
+      folder: folderID,
+      dateCreated: moment().unix(),
+      closed: false
+    }, (error, _id) => {
+      if (error){
+        console.log(error);
+      } else {
+        setNewTaskName("");
+        setOpenNewTask(false);
+      }
+    } );
+  }
+
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived && (folderID || task.assigned === userId));
   }, [tasks, folderID, userId]);
@@ -153,20 +173,6 @@ export default function TaskList( props ) {
 
   return (
     <List>
-
-      <div className="sort">
-        <label htmlFor="sort">Sort by</label>
-        <select  className="sort-by" id="sort" name="sort" value={sortBy} onChange={(e) => {setSortBy(e.target.value)}}>
-          <option value="name">name</option>
-          <option value="assigned">assigned user</option>
-          <option value="date">date created</option>
-        </select>
-        <select className="sort-direction" id="sort2" name="sort2" value={sortDirection} onChange={(e) => {setSortDirection(e.target.value)}}>
-          <option value="asc">ascending</option>
-          <option value="desc">descending</option>
-        </select>
-      </div>
-
       {
         activeTasks.length === 0 &&
         <span className="message">You have no open tasks.</span>
@@ -176,6 +182,48 @@ export default function TaskList( props ) {
         editedTask &&
         <EditTaskContainer {...props} task={activeTasks.find(task => task._id === editedTask)} close={() => setEditedTask(null)}/>
       }
+
+      {
+        folderID &&
+        !openNewTask &&
+        <InlineInput>
+        <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewTask(true)}}>
+          <img
+            className="icon"
+            style={{marginLeft: "2px", marginRight: "0.8em"}}
+            src={PlusIcon}
+            alt="Plus icon not found"
+            />
+          Task
+        </LinkButton>
+      </InlineInput>
+      }
+
+      {
+        folderID &&
+        openNewTask &&
+        <InlineInput>
+          <input
+            id={`add-task`}
+            type="text"
+            placeholder="New task"
+            value={newTaskName}
+            onChange={(e) => setNewTaskName(e.target.value)}
+            />
+          {
+            newTaskName.length > 0 &&
+            <LinkButton
+              onClick={(e) => {e.preventDefault(); addQuickTask();}}
+              >
+              <img
+                className="icon"
+                src={PlusIcon}
+                alt="Plus icon not found"
+                />
+            </LinkButton>
+          }
+          </InlineInput>
+        }
 
       {
         activeTasks.map((task) => (
@@ -236,6 +284,19 @@ export default function TaskList( props ) {
           <span htmlFor="show-closed">
             {translations[language].showClosed}
           </span>
+          <LinkButton
+            style={{marginLeft: "auto"}}
+            onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
+            >
+            <img
+              className="icon"
+              src={RestoreIcon}
+              alt="Back icon not found"
+              />
+            <span>
+            {translations[language].restoreTask}
+          </span>
+          </LinkButton>
         </ItemContainer>
 
         {
@@ -282,48 +343,6 @@ export default function TaskList( props ) {
             </LinkButton>
           </ItemContainer>
         ))
-      }
-
-      {
-        removedTasks.length > 0 &&
-        <div  style={{}}>
-        <FloatingButton
-          left
-          onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
-          >
-          <img
-            className="icon"
-            src={RestoreIcon}
-            alt="Back icon not found"
-            />
-          <span>
-          {translations[language].restoreTask}
-        </span>
-        </FloatingButton>
-      </div>
-      }
-
-      {
-        (!match.params.folderID || match.params.folderID === "all") &&
-        <div  style={{}}>
-        <FloatingButton
-          onClick={() => history.push('/folders/add')}
-          >
-          <img
-            className="icon"
-            src={PlusIcon}
-            alt="Plus icon not found"
-            />
-          <span>
-            {translations[language].folder}
-          </span>
-        </FloatingButton>
-      </div>
-      }
-
-      {
-        folder &&
-        <AddTaskContainer {...props} backgroundColor={folder.colour}/>
       }
 
     </List>

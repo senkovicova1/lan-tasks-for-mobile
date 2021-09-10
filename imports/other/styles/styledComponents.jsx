@@ -110,13 +110,12 @@ export const PageHeader = styled.header `
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
   padding: 0px ${inputOffset};
 
   section.header-section{
-    width: 300px;
+    width: 350px;
     align-items: center;
     display: flex;
 
@@ -126,6 +125,9 @@ export const PageHeader = styled.header `
 
     button{
       margin-right: 1em;
+      @media all and (max-width: 799px), @media handheld {
+        margin-right: 0.3em;
+      }
     }
     button:last-of-type{
       margin: 0px !important;
@@ -184,20 +186,19 @@ export const SearchSection = styled.section `
 
   button:last-of-type {
     margin-left: 0em !important;
-    margin-right: 1em;
     padding-left: ${inputOffset};
   }
 
   button:first-of-type {
     margin-right: 0em;
     padding-left: ${inputOffset};
-    margin-left: ${inputOffset};
   }
 
 `;
 
 export const Content = styled.main `
   display: block;
+  overflow-y: auto;
   padding-top: 7px;
   height: calc(100vh - 50px);
   @media all and (max-width: 799px), @media handheld {
@@ -207,24 +208,30 @@ export const Content = styled.main `
     ${(props) =>
       props.withSidebar &&
       `
-        max-width: 800px;
-        margin-left: ${sidebarWidthWeb};
-        margin-right: auto;
+        &>div{
+          max-width: 800px;
+          padding-left: ${sidebarWidthWeb};
+          margin-right: auto;
+        }
       `
     }
     ${(props) =>
       !props.withSidebar &&
       `
-        width: 800px;
-        margin-left: auto;
-        margin-right: auto;
+      &>div{
+            width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+          }
       `
     }
   }
   @media all and (min-width: 1300px) {
-    width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    &>div{
+      width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 `;
 
@@ -303,6 +310,9 @@ export const LinkButton = styled.button `
     ${(props) => props.searchButton && `
       filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(191deg) brightness(97%) contrast(101%) !important;
       `};
+  }
+  span{
+    width: max-content;
   }
 `;
 
@@ -551,6 +561,25 @@ export const Input = styled.input `
   }
 `;
 
+export const InlineInput = styled.div `
+  padding: 0em ${inputOffset};
+
+  input{
+    padding: 7px;
+    background-color: white !important;
+    outline: none !important;
+    border: none;
+    width: fill-available;
+    height: 2.5em !important;
+  }
+
+  img{
+    margin-left: 0.6em;
+    height: 1.6em;
+  }
+
+`;
+
 export const Textarea = styled.textarea `
   background-color: white !important;
   outline: none !important;
@@ -562,6 +591,28 @@ export const Textarea = styled.textarea `
     border: 1px solid ${basicBlueColour} !important;
   }
 `;
+
+export const Sort = styled.div`
+  position: absolute;
+  z-index: 999;
+  background-color: white;
+  box-shadow: 0px 0px 7px 0px slategrey;
+  width: 350px;
+  top: 50px;
+  right: 20px;
+  padding: ${inputOffset};
+  span{
+    display: flex;
+    align-items: center;
+    line-height: 2em;
+  }
+  input{
+    height: 1.3em;
+    width: 1.3em;
+    margin-right: 0.6em;
+  }
+`;
+
 
 export const GroupButton = styled.button `
   width: -webkit-fill-available;

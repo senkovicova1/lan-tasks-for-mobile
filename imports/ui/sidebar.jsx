@@ -12,7 +12,7 @@ import Select from 'react-select';
 
 import { useSelector } from 'react-redux';
 
-import { ListIcon, FolderIcon, ArchiveIcon } from  "/imports/other/styles/icons";
+import { ListIcon, FolderIcon, ArchiveIcon, PlusIcon } from  "/imports/other/styles/icons";
 
 import {
   invisibleSelectStyle
@@ -84,29 +84,10 @@ export default function Menu( props ) {
 
   return (
     <Sidebar>
+
       {
         myActiveFolders.map(folder => {
-          if (folder.value === "archived"){
-            return (
-              <NavLink
-                key={folder.value}
-                to="/folders/archived"
-                onClick={() => {
-                  setBackground("#0078d4");
-                  if (/Mobi|Android/i.test(navigator.userAgent)) {
-                    closeSelf();
-                  }
-                }}
-                >
-                <img
-                  className="icon"
-                  src={ArchiveIcon}
-                  alt="Folder icon not found"
-                  />
-                {folder.label}
-              </NavLink>
-            );
-          }
+          if (folder.value !== "archived"){
           return (
             <NavLink
               key={folder.value}
@@ -137,8 +118,44 @@ export default function Menu( props ) {
               <span>{folder.label}</span>
             </NavLink>
           );
+        }
         })
       }
+      <NavLink
+        key={"add-folder"}
+        to="/folders/add"
+        onClick={() => {
+          setBackground("#0078d4");
+          if (/Mobi|Android/i.test(navigator.userAgent)) {
+            closeSelf();
+          }
+        }}
+        >
+        <img
+          className="icon"
+          src={PlusIcon}
+          alt="Plus icon not found"
+          />
+        Folder
+      </NavLink>
+
+      <NavLink
+        key={"archived"}
+        to="/folders/archived"
+        onClick={() => {
+          setBackground("#0078d4");
+          if (/Mobi|Android/i.test(navigator.userAgent)) {
+            closeSelf();
+          }
+        }}
+        >
+        <img
+          className="icon"
+          src={ArchiveIcon}
+          alt="Folder icon not found"
+          />
+        Archived
+      </NavLink>
     </Sidebar>
   );
 };

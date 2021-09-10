@@ -207,12 +207,25 @@ const userId = Meteor.userId();
               <label className="name">
               {`${user.name} ${user.surname}`}
             </label>
-            <label className="role">
+            <label className="role" onClick={() => {
+              const newUsers = users.map(u => {
+                if (u._id !== user._id){
+                  return {...u};
+                }
+                if (u.admin){
+                  return {...u, admin: false};
+                }
+                return {...u, admin: true};
+              })
+              setUsers(newUsers);
+              }}
+              >
               {user.admin ? translations[language].admin : translations[language].user}
+              { user._id !== userId && ` (Click to change to ${user.admin ? translations[language].user : translations[language].admin})` }
             </label>
           </div>
               {
-                !user.admin &&
+                user._id !== userId &&                
               <LinkButton
                 onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}
                 >

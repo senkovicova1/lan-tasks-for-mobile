@@ -51,7 +51,7 @@ export default function MainPage( props ) {
 
   useEffect(() => {
     if (currentUser && folders.length > 0){
-      const newMyFolders = folders.filter(folder => folder.users.find(user => user._id  === currentUser._id));
+      const newMyFolders = folders.filter(folder => folder.users.find(user => user._id  === currentUser._id)).sort((f1, f2) => f1.name > f2.name ? 1 : -1);
     dispatch(setFolders(newMyFolders));
   }
 }, [folders, currentUser]);
@@ -82,6 +82,8 @@ useEffect(() => {
 
   const [ search, setSearch ] = useState( "" );
   const [ openSidebar, setOpenSidebar ] = useState( false );
+  const [ sortBy, setSortBy ] = useState("name");
+  const [ sortDirection, setSortDirection ] = useState("asc");
 
   return (
     <div style={{height: "100vh"}}>
@@ -95,6 +97,10 @@ useEffect(() => {
             setSearch={setSearch}
             search={search}
             setParentOpenSidebar={setOpenSidebar}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            sortDirection={sortDirection}
+            setSortDirection={setSortDirection}
             />
         )}
         />
@@ -113,6 +119,8 @@ useEffect(() => {
                 <TaskList
                    {...props}
                    search={search}
+                   sortBy={sortBy}
+                   sortDirection={sortDirection}
                    />
               )}
               />
