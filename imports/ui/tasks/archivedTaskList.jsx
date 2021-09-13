@@ -31,13 +31,13 @@ export default function ArchivedTaskList( props ) {
 
   const {
     match,
-    history
+    history,
+    search,
+    sortBy,
+    sortDirection,
   } = props;
 
-  const [ search, setSearch ] = useState( "" );
   const [ showClosed, setShowClosed ] = useState(false);
-  const [ sortBy, setSortBy ] = useState("");
-  const [ sortDirection, setSortDirection ] = useState("");
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
@@ -55,8 +55,8 @@ export default function ArchivedTaskList( props ) {
       }, [folders]);
 
     const filteredTasks = useMemo(() => {
-      return tasks.filter(task => (showClosed || !task.closed) && !task.removedDate && task.folder.archived);
-    }, [tasks, showClosed]);
+      return tasks.filter(task => !task.removedDate && task.folder.archived);
+    }, [tasks]);
 
     const searchedTasks = useMemo(() => {
       return filteredTasks.filter(task => task.name.toLowerCase().includes(search.toLowerCase()));
@@ -77,25 +77,22 @@ export default function ArchivedTaskList( props ) {
         });
     }, [searchedTasks, sortBy, sortDirection]);
 
+    const activeTasks = useMemo(() => {
+      return sortedTasks.filter(task => !task.closed);
+    }, [sortedTasks, sortBy, sortDirection]);
+
+    const closedTasks = useMemo(() => {
+      if (showClosed){
+        return sortedTasks.filter(task => task.closed);
+      }
+      return [];
+    }, [sortedTasks, showClosed, sortBy, sortDirection]);
 
   return (
     <List>
 
-        <div className="sort">
-          <label htmlFor="sort">Sort by</label>
-          <select  className="sort-by" id="sort" name="sort" value={sortBy} onChange={(e) => {setSortBy(e.target.value)}}>
-            <option value="name">name</option>
-            <option value="assigned">assigned user</option>
-            <option value="date">date created</option>
-          </select>
-          <select className="sort-direction" id="sort2" name="sort2" value={sortDirection} onChange={(e) => {setSortDirection(e.target.value)}}>
-            <option value="asc">ascending</option>
-            <option value="desc">descending</option>
-          </select>
-        </div>
-
       {
-        searchedTasks.map(
+        activeTasks.map(
           (task) =>
           <ItemContainer
             key={task._id}
@@ -116,6 +113,7 @@ export default function ArchivedTaskList( props ) {
         )
       }
 
+              <hr style={{marginTop: "7px", marginBottom: "7px"}}/>
       <ItemContainer key="commands" >
         <Switch
           id="show-closed"
@@ -136,7 +134,30 @@ export default function ArchivedTaskList( props ) {
       </ItemContainer>
 
       {
-        (  folders[0].users.find(user => user._id === userId).admin ) &&
+        closedTasks.map(
+          (task) =>
+          <ItemContainer
+            key={task._id}
+            >
+            <Input
+              type="checkbox"
+              style={{
+                marginRight: "0.2em",
+                width: "1.5em"
+              }}
+              checked={task.closed}
+              disabled={true}
+              />
+            <span>
+              {task.name}
+            </span>
+          </ItemContainer>
+        )
+      }
+
+      {
+        folder &&
+        folder.users.find(user => user._id === userId).admin  &&
               <ItemContainer key="button" >
         <LinkButton
           onClick={(e) => {

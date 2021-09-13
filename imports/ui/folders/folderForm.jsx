@@ -8,18 +8,14 @@ import Select from 'react-select';
 
 import {
   selectStyle
-} from '../../other/styles/selectStyles';
+} from '/imports/other/styles/selectStyles';
 
 import { DeleteIcon, UserIcon } from  "/imports/other/styles/icons";
-
-import {
-  uint8ArrayToImg
-} from '../../other/helperFunctions';
 
 import { useSelector } from 'react-redux';
 import {
   translations
-} from '../../other/translations.jsx';
+} from '/imports/other/translations.jsx';
 
 import {
   Form,
@@ -29,7 +25,7 @@ import {
   FullButton,
   UserEntry,
   Color
-} from "../../other/styles/styledComponents";
+} from "/imports/other/styles/styledComponents";
 
 const colours = [
   "#A62B2B",
@@ -104,22 +100,16 @@ const userId = Meteor.userId();
   const usersWithRights = useMemo(() => {
    return users.map(user =>
         {
-        let newUser = {...dbUsers.find(u => u._id === user._id).profile, ...user};
-        newUser.img = uint8ArrayToImg(newUser.avatar);
-        return newUser;
+        return {...dbUsers.find(u => u._id === user._id), ...user};
       });
   }, [users, dbUsers]);
 
   const usersToSelect = useMemo(() => {
-    return dbUsers.filter(user => !users.find(u => u._id === user._id)).map(user => {
-      const img = uint8ArrayToImg(user.profile.avatar);
-      return {...user.profile, _id: user._id, admin: false, label: `${user.profile.name} ${user.profile.surname}`, value: user._id, img};
-    }
-  );
+    return dbUsers.filter(user => !users.find(u => u._id === user._id));
   }, [dbUsers, users]);
 
   const language = useMemo(() => {
-    return dbUsers.find(user => user._id === userId).profile.language;
+    return dbUsers.find(user => user._id === userId).language;
   }, [userId, dbUsers]);
 
   document.onkeydown = function (e) {
@@ -225,7 +215,7 @@ const userId = Meteor.userId();
             </label>
           </div>
               {
-                user._id !== userId &&                
+                user._id !== userId &&
               <LinkButton
                 onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}
                 >

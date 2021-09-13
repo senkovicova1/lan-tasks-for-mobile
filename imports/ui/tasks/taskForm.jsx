@@ -33,6 +33,7 @@ export default function TaskForm( props ) {
     _id: taskId,
     name: taskName,
     assigned: taskAssigned,
+    description: taskDescription,
     folder: taskFolder,
     language,
     onSubmit,
@@ -47,6 +48,7 @@ export default function TaskForm( props ) {
 
   const [ name, setName ] = useState( "" );
   const [ assigned, setAssigned ] = useState( "" );
+  const [ description, setDescription ] = useState( "" );
 
   useEffect( () => {
     if ( taskName ) {
@@ -59,7 +61,12 @@ export default function TaskForm( props ) {
     } else {
       setAssigned( dbUsers.find(user => user._id === userId ) );
     }
-  }, [ taskName, taskAssigned, dbUsers, userId ] );
+    if ( taskDescription ) {
+      setDescription( taskDescription );
+    } else {
+      setDescription( "" );
+    }
+  }, [ taskName, taskAssigned, taskDescription, dbUsers, userId ] );
 
   const usersWithRights = useMemo(() => {
     if (folder){
@@ -76,14 +83,6 @@ export default function TaskForm( props ) {
     e = e || window.event;
     switch (e.which || e.keyCode) {
       case 13 :
-      if (name.length > 0){
-        onSubmit(
-          name,
-          assigned._id,
-          folderID,
-          moment().unix()
-        );
-      }
       break;
     }
   }
@@ -115,6 +114,16 @@ export default function TaskForm( props ) {
           />
       </section>
 
+        <section>
+          <label htmlFor="description">{translations[language].description}</label>
+          <Textarea
+            type="text"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            />
+        </section>
+
       <ButtonRow>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
         <FullButton
@@ -123,6 +132,7 @@ export default function TaskForm( props ) {
           onClick={(e) => {e.preventDefault(); onSubmit(
             name,
             assigned._id,
+            description,
             folderID,
             moment().unix()
           );}}

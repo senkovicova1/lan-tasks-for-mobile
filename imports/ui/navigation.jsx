@@ -8,9 +8,9 @@ import {
 } from 'react-router-dom';
 
 import { useDispatch } from 'react-redux';
-import { setFolders } from '../redux/foldersSlice';
-import { setTasks } from '../redux/tasksSlice';
-import { setUsers } from '../redux/usersSlice';
+import { setFolders } from '/imports/redux/foldersSlice';
+import { setTasks } from '/imports/redux/tasksSlice';
+import { setUsers } from '/imports/redux/usersSlice';
 
 import {
   FoldersCollection
@@ -33,45 +33,45 @@ import EditUserContainer from './users/editUserContainer';
 
 import {
   uint8ArrayToImg
-} from '../other/helperFunctions';
+} from '/imports/other/helperFunctions';
 import {
   Content
-} from '../other/styles/styledComponents';
+} from '/imports/other/styles/styledComponents';
 
 export default function MainPage( props ) {
   const dispatch = useDispatch();
 
   console.log("All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Dmitri13 (https://www.flaticon.com/authors/dmitri13), Phatplus (https://www.flaticon.com/authors/phatplus), Freepik (https://www.flaticon.com/authors/freepik)");
 
-  const folders = useTracker( () => FoldersCollection.find( {} ).fetch() );
-  const tasks = useTracker( () => TasksCollection.find( {} ).fetch() );
-  const users = useTracker( () => Meteor.users.find( {} )
-    .fetch() );
   const currentUser = useTracker( () => Meteor.user() );
+  const userId = Meteor.userId();
 
+  const folders = useTracker( () => FoldersCollection.find( { users:  { $elemMatch: { _id: userId } } } ).fetch() );
   useEffect(() => {
-    if (currentUser && folders.length > 0){
-      const newMyFolders = folders.filter(folder => folder.users.find(user => user._id  === currentUser._id)).sort((f1, f2) => f1.name > f2.name ? 1 : -1);
-    dispatch(setFolders(newMyFolders));
-  }
-}, [folders, currentUser]);
+      const newMyFolders = folders.map(folder => ({...folder, label: folder.name, value: folder._id})).sort((f1, f2) => f1.name > f2.name ? 1 : -1);
+      dispatch(setFolders(newMyFolders));
+}, [folders]);
 
+const foldersIds = folders.map(folder => folder._id);
+const tasks = useTracker( () => TasksCollection.find( { folder: {$in: foldersIds}} ).fetch() );
 useEffect(() => {
-  if (currentUser && tasks.length > 0 && folders.length > 0){
+  if (folders.length > 0){
     let newTasks = tasks.map(task =>  ({
       ...task,
       folder: folders.find( folder => folder._id === task.folder ),
     }));
-    newTasks = newTasks.filter(task => task.folder.users.find(user => user._id  === currentUser._id));
     dispatch(setTasks(newTasks));
   }
-}, [folders, tasks, currentUser]);
+}, [folders, tasks]);
 
+const users = useTracker( () => Meteor.users.find( {} )
+.fetch() );
 useEffect(() => {
     dispatch(
       setUsers(
         users.map(user => ({
-          ...user,
+          _id: user._id,
+          ...user.profile,
           label:  `${user.profile.name} ${user.profile.surname}`,
           value: user._id,
           img: user.profile.avatar ? uint8ArrayToImg(user.profile.avatar) : null
@@ -133,7 +133,18 @@ useEffect(() => {
                 <FolderList {...props} search={search} />
               )}
               />
-              <Route exact path={"/folders/archived/:folderID"} component={ArchviedTaskList} />
+                <Route
+                  exact
+                  path={"/folders/archived/:folderID"}
+                  render={(props) => (
+                  <ArchviedTaskList
+                     {...props}
+                     search={search}
+                     sortBy={sortBy}
+                     sortDirection={sortDirection}
+                     />
+                )}
+                />
               <Route
                 exact
                 path={"/settings"}

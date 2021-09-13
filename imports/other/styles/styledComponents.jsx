@@ -481,7 +481,7 @@ export const Form = styled.form `
       margin: 0px 1em 0em 0em;
       font-weight: 500;
     }
-    input[type=text], input[type=color], input[type=password],  &>div {
+    input[type=text], input[type=color], input[type=password],  &>div, textarea {
       width: 100%;
     }
     input[type=color]{
@@ -578,12 +578,16 @@ export const InlineInput = styled.div `
     height: 1.6em;
   }
 
+  button.connected-btn{
+    background-color: white !important;
+  }
+
 `;
 
 export const Textarea = styled.textarea `
   background-color: white !important;
   outline: none !important;
-  border: 1px solid transparent;
+  border: ${(props) => props.error ? "1px solid red" : "1px solid #d6d6d6"};
   width: ${(props) => props.width ? props.width : "auto"};
   padding-left: 0.4em;
 

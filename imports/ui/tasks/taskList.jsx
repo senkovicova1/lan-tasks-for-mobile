@@ -14,7 +14,7 @@ import {
   translations
 } from '../../other/translations.jsx';
 
-import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon } from  "/imports/other/styles/icons";
+import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon, SendIcon } from  "/imports/other/styles/icons";
 
 import {
   useTracker
@@ -156,7 +156,6 @@ export default function TaskList( props ) {
           return t1.dateCreated < t2.dateCreated ? 1*multiplier : (-1)*multiplier;
         }
           return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1*multiplier : (-1)*multiplier;
-
       });
   }, [searchedTasks, sortBy, sortDirection]);
 
@@ -170,6 +169,17 @@ export default function TaskList( props ) {
     }
     return [];
   }, [sortedTasks, showClosed, sortBy, sortDirection]);
+
+  document.onkeydown = function (e) {
+    e = e || window.event;
+    switch (e.which || e.keyCode) {
+      case 13 :
+      if (newTaskName.length > 0){
+        addQuickTask();
+      }
+      break;
+    }
+  }
 
   return (
     <List>
@@ -187,7 +197,7 @@ export default function TaskList( props ) {
         folderID &&
         !openNewTask &&
         <InlineInput>
-        <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewTask(true)}}>
+        <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewTask(true);}}>
           <img
             className="icon"
             style={{marginLeft: "2px", marginRight: "0.8em"}}
@@ -210,6 +220,17 @@ export default function TaskList( props ) {
             value={newTaskName}
             onChange={(e) => setNewTaskName(e.target.value)}
             />
+            <LinkButton
+              onClick={(e) => {e.preventDefault(); setOpenNewTask(false);}}
+              className="connected-btn"
+              >
+              <img
+                className="icon"
+                src={CloseIcon}
+                alt="Close icon not found"
+                />
+            </LinkButton>
+
           {
             newTaskName.length > 0 &&
             <LinkButton
@@ -217,8 +238,8 @@ export default function TaskList( props ) {
               >
               <img
                 className="icon"
-                src={PlusIcon}
-                alt="Plus icon not found"
+                src={SendIcon}
+                alt="Send icon not found"
                 />
             </LinkButton>
           }

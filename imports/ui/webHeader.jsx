@@ -45,6 +45,8 @@ export default function WebHeader( props ) {
   const folderID = match.params.folderID;
 
   const currentUser = useTracker( () => Meteor.user() );
+  const userId = Meteor.userId();
+
   const logout = () => Meteor.logout();
 
   const folders = useSelector((state) => state.folders.value);
@@ -81,7 +83,35 @@ export default function WebHeader( props ) {
     return uint8ArrayToImg(currentUser.profile.avatar);
   }, [currentUser])
 
-  const canEditFolder = folderID && folderID !== 'all' && folders.length > 0 ? folders.find(f => f._id === folderID).users.find(user => user._id === currentUser._id).admin : false;
+  const canEditFolder = useMemo(() => {
+    if (folderID && folderID !== 'all' && folders.length > 0) {
+      const folder = folders.find(f => f._id === folderID);
+      const user = folder.users.find(user => user._id === userId);
+      return user.admin;
+    }
+    return false;
+  }, [folderID, folders, userId]);
+
+  document.addEventListener("click", (evt) => {
+      const sortMenu = document.getElementById("sort-menu");
+      const openSortMenuBtn = document.getElementById("sort-menu-button");
+      let targetElement = evt.target; // clicked element
+      do {
+          if (targetElement == sortMenu) {
+              // This is a click inside. Do nothing, just return.
+              return;
+          }
+          if (targetElement == openSortMenuBtn) {
+              setOpenSort(!openSort);
+              return;
+          }
+          // Go up the DOM
+          targetElement = targetElement.parentNode;
+      } while (targetElement);
+
+      // This is a click outside.
+      setOpenSort(false);
+  });
 
   return (
     <PageHeader style={{backgroundColor: background}}>
@@ -146,6 +176,8 @@ export default function WebHeader( props ) {
     currentUser &&
     <LinkButton
       font="white"
+      id="sort-menu-button"
+      name="sort-menu-button"
       onClick={(e) => {
         e.preventDefault();
         setOpenSort(!openSort);
@@ -231,7 +263,7 @@ export default function WebHeader( props ) {
 
         {
           openSort &&
-          <Sort>
+          <Sort id="sort-menu" name="sort-menu">
             <h3>Sort by</h3>
             <span>
               <input
@@ -242,6 +274,9 @@ export default function WebHeader( props ) {
                 onChange={() => {
                   setSortBy("name");
                   setSortDirection("asc");
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    setOpenSort(!openSort);
+                  }
                 }}
                 />
               <label htmlFor="sort-by-name-asc">Name (ascending)</label>
@@ -256,6 +291,9 @@ export default function WebHeader( props ) {
                   onChange={() => {
                     setSortBy("name");
                     setSortDirection("desc");
+                    if (/Mobi|Android/i.test(navigator.userAgent)) {
+                      setOpenSort(!openSort);
+                    }
                   }}
                   />
                 <label htmlFor="sort-by-name-desc">Name (descending)</label>
@@ -270,6 +308,9 @@ export default function WebHeader( props ) {
                     onChange={() => {
                       setSortBy("assigned");
                       setSortDirection("asc");
+                      if (/Mobi|Android/i.test(navigator.userAgent)) {
+                        setOpenSort(!openSort);
+                      }
                     }}
                     />
                   <label htmlFor="sort-by-name-asc">Assigned user (ascending)</label>
@@ -284,6 +325,9 @@ export default function WebHeader( props ) {
                       onChange={() => {
                         setSortBy("assigned");
                         setSortDirection("desc");
+                        if (/Mobi|Android/i.test(navigator.userAgent)) {
+                          setOpenSort(!openSort);
+                        }
                       }}
                       />
                     <label htmlFor="sort-by-name-asc">Assigned user (descending)</label>
@@ -298,6 +342,9 @@ export default function WebHeader( props ) {
                         onChange={() => {
                           setSortBy("date");
                           setSortDirection("asc");
+                          if (/Mobi|Android/i.test(navigator.userAgent)) {
+                            setOpenSort(!openSort);
+                          }
                         }}
                         />
                       <label htmlFor="sort-by-name-asc">Date created (ascending)</label>
@@ -312,6 +359,9 @@ export default function WebHeader( props ) {
                           onChange={() => {
                             setSortBy("date");
                             setSortDirection("desc");
+                            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                              setOpenSort(!openSort);
+                            }
                           }}
                           />
                         <label htmlFor="sort-by-name-asc">Date created (descending)</label>

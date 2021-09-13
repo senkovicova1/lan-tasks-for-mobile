@@ -25,6 +25,7 @@ export const translations = {
     'editTask': 'Edit task',
     'task': 'Task',
     'assigned': 'Assigned',
+    'description': 'Description',
 
     'archived': 'Archived',
     'users': 'Users',
@@ -58,6 +59,7 @@ export const translations = {
     'editTask': 'Upraviť úlohu',
     'task': 'Úloha',
     'assigned': 'Rieši',
+    'description': 'Popis',
 
     'archived': 'Archivovaný',
     'users': 'Používatelia',

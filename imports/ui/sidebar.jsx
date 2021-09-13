@@ -55,15 +55,9 @@ export default function Menu( props ) {
   const [ folderListOpen, setFolderListOpen ] = useState(false);
   const [ selectedFolder, setSelectedFolder ] = useState({label: translations[language].allFolders, value: "all"});
 
-  const myFolders = useMemo(() => {
-    let newMyFolders = folders.filter(folder => folder.users.find(user => user._id === userId));
-    newMyFolders = newMyFolders.map(folder => ({...folder, label: folder.name, value: folder._id}));
-    return newMyFolders;
-  }, [userId, folders]);
-
   const myActiveFolders = useMemo(() => {
-    return [{label: translations[language].allFolders, value: "all"}, ...myFolders.filter(folder => !folder.archived), {label: translations[language].archivedFolders, value: "archived"}];
-  }, [myFolders]);
+    return [{label: translations[language].allFolders, value: "all"}, ...folders.filter(folder => !folder.archived), {label: translations[language].archivedFolders, value: "archived"}];
+  }, [folders]);
 
   useEffect(() => {
     if (!match.params.folderID || match.params.folderID === "all"){
@@ -72,15 +66,15 @@ export default function Menu( props ) {
     } else if (location.pathname == "/folders/archived"){
       setSelectedFolder({label: translations[language].archivedFolders, value: "archived"});
       setBackground("#0078d4");
-    } else if (myFolders && myFolders.length > 0){
-      const newFolder = myFolders.find(folder => folder._id === match.params.folderID);
+    } else if (folders && folders.length > 0){
+      const newFolder = folders.find(folder => folder._id === match.params.folderID);
       setBackground(newFolder.colour);
       setSelectedFolder(newFolder);
   } else {
     setSelectedFolder({label: translations[language].allFolders, value: "all"});
     setBackground("#0078d4");
   }
-}, [match.params.folderID, location.pathname, language, myFolders]);
+}, [match.params.folderID, location.pathname, language, folders]);
 
   return (
     <Sidebar>
@@ -91,6 +85,7 @@ export default function Menu( props ) {
           return (
             <NavLink
               key={folder.value}
+              className={!match.params.folderID && folder.value === "all" ? "active" : ""}
               to={`/${folder.value}/list`}
               onClick={() => {
                 setBackground(folder.colour ? folder.colour : "#0078d4");
