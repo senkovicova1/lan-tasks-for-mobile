@@ -10,7 +10,7 @@ import Switch from "react-switch";
 import {
   selectStyle
 } from '../../other/styles/selectStyles';
-import { SettingsIcon } from  "/imports/other/styles/icons";
+import { SettingsIcon, FullStarIcon, EmptyStarIcon } from  "/imports/other/styles/icons";
 import {
   translations
 } from '../../other/translations.jsx';
@@ -99,13 +99,25 @@ export default function ArchivedTaskList( props ) {
             >
             <Input
               type="checkbox"
-              style={{
-                marginRight: "0.2em",
-                width: "1.5em"
-              }}
               checked={task.closed}
               disabled={true}
               />
+            {
+              task.important &&
+              <img
+                className="icon star"
+                src={FullStarIcon}
+                alt="Full star icon not found"
+                />
+            }
+          {
+            !task.important &&
+            <img
+              className="icon star"
+              src={EmptyStarIcon}
+              alt="Empty star icon not found"
+              />
+          }
             <span>
               {task.name}
             </span>
@@ -141,13 +153,25 @@ export default function ArchivedTaskList( props ) {
             >
             <Input
               type="checkbox"
-              style={{
-                marginRight: "0.2em",
-                width: "1.5em"
-              }}
               checked={task.closed}
               disabled={true}
               />
+            {
+              task.important &&
+              <img
+                className="icon star"
+                src={FullStarIcon}
+                alt="Full star icon not found"
+                />
+            }
+          {
+            !task.important &&
+            <img
+              className="icon star"
+              src={EmptyStarIcon}
+              alt="Empty star icon not found"
+              />
+          }
             <span>
               {task.name}
             </span>

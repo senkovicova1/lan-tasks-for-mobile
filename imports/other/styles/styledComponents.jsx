@@ -307,6 +307,8 @@ export const LinkButton = styled.button `
     margin-right: ${(props) => props.searchButton ? "0.6em" : "0.3em" }
   }
   img {
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+
     ${(props) => props.searchButton && `
       filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(191deg) brightness(97%) contrast(101%) !important;
       `};
@@ -399,8 +401,6 @@ export const List = styled.section `
     border: 1px solid ${basicBlueColour} !important;
     outline: none !important;
   }
-
-
 `;
 
 export const ItemContainer = styled.section `
@@ -417,6 +417,7 @@ export const ItemContainer = styled.section `
   input[type=checkbox]{
     width: 1.5em !important;
     height: 1.5em !important;
+    margin-right: 0.6em;
   }
 
   &> span:not(.colour) {
@@ -429,7 +430,7 @@ export const ItemContainer = styled.section `
     width: calc(100% - 6em);
   }
 
-  img.icon{
+  img.icon:not(.star){
     height: 1.3em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
@@ -466,22 +467,17 @@ export const Form = styled.form `
   section {
     margin: 0em 0em 1.5em 0em;
 
-    i {
-      font-size: 1.5em;
-    }
-
     img {
-      width:32px;
-      height: 32px;
+      width: 1.6em;
+      height: 100%;
       border-radius: 50px;
-      margin-right: 1em;
     }
 
     label{
       margin: 0px 1em 0em 0em;
       font-weight: 500;
     }
-    input[type=text], input[type=color], input[type=password],  &>div, textarea {
+    input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div, textarea {
       width: 100%;
     }
     input[type=color]{
@@ -575,7 +571,6 @@ export const InlineInput = styled.div `
 
   img{
     margin-left: 0.6em;
-    height: 1.6em;
   }
 
   button.connected-btn{
@@ -685,6 +680,39 @@ export const UserEntry = styled.div`
 
   button{
     margin-left: auto;
+  }
+`;
+
+export const CommentContainer = styled.div`
+  align-items: center;
+  margin-bottom: 0.5em;
+
+  div {
+    display: flex;
+    align-items: center;
+  }
+
+  img.avatar{
+    width: 32px;
+    height: 32px;
+  }
+
+  label.name {
+  display: block;
+  font-weight: 400;
+  color: ${basicBlueColour};
+  margin-left: 0.6em;
+  }
+
+  p.body {
+  display: block;
+  font-weight: 400;
+  padding: 0.6em 0em;
+  }
+
+  span.dateCreated{
+    margin-left: auto;
+    font-size: 0.9em;
   }
 `;
 

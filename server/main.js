@@ -8,6 +8,12 @@ import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 import {
+  SubtasksCollection
+} from '/imports/api/subtasksCollection';
+import {
+  CommentsCollection
+} from '/imports/api/commentsCollection';
+import {
   FoldersCollection
 } from '/imports/api/foldersCollection';
 import {

@@ -10,6 +10,8 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import {addNewSubtask, editSubtask, removeSubtask} from './subtasksHandlers';
+import {addNewComment, editComment, removeComment} from './commentsHandlers';
 import {
   translations
 } from '../../other/translations.jsx';
@@ -20,6 +22,11 @@ import {
 } from 'reactstrap';
 
 import TaskForm from './taskForm';
+
+const NO_CHANGE = 0;
+const ADDED = 1;
+const EDITED = 2;
+const DELETED = 3;
 
 export default function EditTaskContainer( props ) {
 
@@ -33,13 +40,45 @@ export default function EditTaskContainer( props ) {
     return user.profile.language;
   }, [user]);
 
-  const editTask = ( name, assigned, description ) => {
-    let data = {name, assigned, description};
+  const editTask = ( name, important, assigned, deadline, hours, description, subtasks, comments ) => {
+    let data = {name, important, assigned, deadline, hours, description};
     TasksCollection.update( task._id, {
       $set: {
         ...data
       }
-    } )
+    } );
+    const addedSubtasks = subtasks.filter(subtask => subtask.change === ADDED);
+    const editedSubtasks = subtasks.filter(subtask => subtask.change === EDITED);
+    const deletedSubtasks = subtasks.filter(subtask => subtask.change === DELETED);
+
+    addedSubtasks.forEach((subtask, i) => {
+      addNewSubtask(subtask.name, subtask.closed, subtask.task, subtask.dateCreated);
+    });
+
+    editedSubtasks.forEach((subtask, i) => {
+      editSubtask(subtask._id, subtask.name, subtask.closed, subtask.task, subtask.dateCreated);
+    });
+
+    deletedSubtasks.forEach((subtask, i) => {
+      removeSubtask(subtask._id);
+    });
+
+    const addedComments = comments.filter(comment => comment.change === ADDED);
+    const editedComments = comments.filter(comment => comment.change === EDITED);
+    const deletedComments = comments.filter(comment => comment.change === DELETED);
+
+    addedComments.forEach((comment, i) => {
+      addNewComment(comment.author, comment.task, comment.dateCreated, comment.body);
+    });
+
+    editedComments.forEach((comment, i) => {
+      editComment(comment._id, comment.author, comment.task, comment.dateCreated, comment.body);
+    });
+
+    deletedComments.forEach((comment, i) => {
+      removeComment(comment._id);
+    });
+
     close();
   }
 

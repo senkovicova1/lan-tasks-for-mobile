@@ -14,7 +14,9 @@ import {
   translations
 } from '../../other/translations.jsx';
 
-import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon, SendIcon } from  "/imports/other/styles/icons";
+import { removeSubtask } from './subtasksHandlers';
+import { removeComment } from './commentsHandlers';
+import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon, SendIcon, FullStarIcon, EmptyStarIcon } from  "/imports/other/styles/icons";
 
 import {
   useTracker
@@ -64,6 +66,8 @@ export default function TaskList( props ) {
   }, [folders, folderID]);
 
   const tasks = useSelector((state) => state.tasks.value);
+  const subtasks = useSelector((state) => state.subtasks.value);
+  const comments = useSelector((state) => state.comments.value);
 
   const closeTask = (task) => {
     let data = {
@@ -87,10 +91,18 @@ export default function TaskList( props ) {
     if (removedTasks.length >= 5){
       let difference = removedTasks.length - 4;
       const idsToDelete = removedTasks.slice(4).map(t => t._id);
+      const subtasksToDelete = subtasks.filter(subtask => idsToDelete.includes(subtask.task));
+      const commentsToDelete = comments.filter(comment=> idsToDelete.includes(comment.task));
       while (difference > 0) {
         TasksCollection.remove( {
           _id: idsToDelete[difference - 1]
         } );
+        subtasksToDelete.forEach((subtask, i) => {
+          removeSubtask(subtask._id);
+        });
+        commentsToDelete.forEach((comment, i) => {
+          removeComment(comment._id);
+        });
         difference -= 1;
       }
     }
@@ -254,12 +266,25 @@ export default function TaskList( props ) {
             <Input
               id={`task_name ${task._id}`}
               type="checkbox"
-              style={{
-                marginRight: "0.2em",
-              }}
               checked={task.closed}
               onChange={() => closeTask(task)}
               />
+            {
+              task.important &&
+              <img
+                className="icon star"
+                src={FullStarIcon}
+                alt="Full star icon not found"
+                />
+            }
+          {
+            !task.important &&
+            <img
+              className="icon star"
+              src={EmptyStarIcon}
+              alt="Empty star icon not found"
+              />
+          }
             <span htmlFor={`task_name ${task._id}`} onClick={() => setEditedTask(task._id)}>
               {task.name}
             </span>
@@ -334,12 +359,25 @@ export default function TaskList( props ) {
             <Input
               id={`task_name ${task._id}`}
               type="checkbox"
-              style={{
-                marginRight: "0.2em",
-              }}
               checked={task.closed}
               onChange={() => closeTask(task)}
               />
+              {
+              task.important &&
+              <img
+                className="icon star"
+                src={FullStarIcon}
+                alt="Full star icon not found"
+                />
+              }
+              {
+              !task.important &&
+              <img
+              className="icon star"
+              src={EmptyStarIcon}
+              alt="Empty star icon not found"
+              />
+              }
             <span htmlFor={`task_name ${task._id}`} onClick={() => setEditedTask(task._id)}>
               {task.name}
             </span>

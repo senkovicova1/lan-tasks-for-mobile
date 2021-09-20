@@ -10,6 +10,8 @@ import {
 import { useDispatch } from 'react-redux';
 import { setFolders } from '/imports/redux/foldersSlice';
 import { setTasks } from '/imports/redux/tasksSlice';
+import { setSubtasks } from '/imports/redux/subtasksSlice';
+import { setComments } from '/imports/redux/commentsSlice';
 import { setUsers } from '/imports/redux/usersSlice';
 
 import {
@@ -18,6 +20,12 @@ import {
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
+import {
+  SubtasksCollection
+} from '/imports/api/subtasksCollection';
+import {
+  CommentsCollection
+} from '/imports/api/commentsCollection';
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -61,8 +69,29 @@ useEffect(() => {
       folder: folders.find( folder => folder._id === task.folder ),
     }));
     dispatch(setTasks(newTasks));
+  } else {
+    dispatch(setTasks([]));
   }
 }, [folders, tasks]);
+
+const tasksIds = tasks.map(task => task._id);
+const subtasks = useTracker( () => SubtasksCollection.find( { task: {$in: tasksIds}} ).fetch() );
+useEffect(() => {
+  if (subtasks.length > 0){
+    dispatch(setSubtasks(subtasks));
+  } else {
+    dispatch(setSubtasks([]));
+  }
+}, [subtasks]);
+
+const comments = useTracker( () => CommentsCollection.find( { task: {$in: tasksIds}} ).fetch() );
+useEffect(() => {
+  if (comments.length > 0){
+    dispatch(setComments(comments));
+  } else {
+    dispatch(setComments([]));
+  }
+}, [comments]);
 
 const users = useTracker( () => Meteor.users.find( {} )
 .fetch() );

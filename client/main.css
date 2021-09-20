@@ -2,6 +2,9 @@ body {
   background-color: #f6f6f6 !important;
 }
 
+body img.star{
+  filter: invert(98%) sepia(89%) saturate(7455%) hue-rotate(318deg) brightness(107%) contrast(91%) !important;
+}
 .modal-dialog{
   max-width: 800px !important;
   position: relative;
