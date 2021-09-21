@@ -40,7 +40,6 @@ export const MainPage = styled.div `
   }
 
   img.icon {
-    height: 1.3em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
 
@@ -50,6 +49,7 @@ export const MainPage = styled.div `
     border-radius: 50px;
     margin-right: 0.6em;
   }
+
 `;
 
 export const MobilePageHeader = styled.header `
@@ -65,13 +65,11 @@ export const MobilePageHeader = styled.header `
     }
     img.icon {
       filter: invert(1);
-      height: 1.5em;
-      width: 1.5em;
       margin-right: 0px;
     }
     img.search-icon{
-      height: 1.3em;
-      width: 1.3em;
+      height: 1em;
+      width: 1em;
     }
     button{
       i{
@@ -148,8 +146,6 @@ export const PageHeader = styled.header `
 
     img.icon {
       filter: invert(1);
-      height: 1.5em;
-      width: 1.5em;
       margin-right: 0px;
     }
   }
@@ -180,8 +176,8 @@ export const SearchSection = styled.section `
   }
 
     img.search-icon{
-      height: 1.3em;
-      width: 1.3em;
+      height: 1em;
+      width: 1em;
     }
 
   button:last-of-type {
@@ -191,7 +187,7 @@ export const SearchSection = styled.section `
 
   button:first-of-type {
     margin-right: 0em;
-    padding-left: ${inputOffset};
+    padding-left: 0.6em;
   }
 
 `;
@@ -277,14 +273,12 @@ export const Sidebar = styled.section `
   a {
     color: ${basicBlueColour} !important;
     display: flex;
+    align-items: center;
     height: 3em;
     padding: 10px ${inputOffset};
     text-decoration: none !important;
-    i, img.icon{
+    i, .icon{
       margin-right: 10px;
-    }
-    img.icon{
-      filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(80%) contrast(101%);
     }
   }
 
@@ -304,9 +298,9 @@ export const LinkButton = styled.button `
   display: flex;
   align-items: center;
   i, img {
-    margin-right: ${(props) => props.searchButton ? "0.6em" : "0.3em" }
+    margin-right: 0.6em;
   }
-  img {
+   img.icon {
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
 
     ${(props) => props.searchButton && `
@@ -329,10 +323,10 @@ export const FullButton = styled.button `
   height: 2em;
   align-items: center;
   padding: 0px 0.5em;
-  i, img.icon {
+  i, .icon {
     margin-right: 0.3em;
   }
-  img.icon{
+  .icon{
     filter: invert(1) !important;
   }
 `;
@@ -364,7 +358,7 @@ right: ${inputOffset};
     vertical-align: text-bottom;
     margin-left: 0.3em;
   }
-  img.icon{
+  .icon{
     filter: invert(1) !important;
   }
 `;
@@ -431,11 +425,10 @@ export const ItemContainer = styled.section `
   }
 
   img.icon:not(.star){
-    height: 1.3em;
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
 
-  img.usericon{
+  .usericon{
     width: 32px;
     height: 32px;
     border-radius: 50px;
@@ -468,8 +461,6 @@ export const Form = styled.form `
     margin: 0em 0em 1.5em 0em;
 
     img {
-      width: 1.6em;
-      height: 100%;
       border-radius: 50px;
     }
 
@@ -477,7 +468,7 @@ export const Form = styled.form `
       margin: 0px 1em 0em 0em;
       font-weight: 500;
     }
-    input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div, textarea {
+    input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
       width: 100%;
     }
     input[type=color]{
@@ -515,6 +506,15 @@ export const Form = styled.form `
         justify-content: space-between;
         align-items: center;
       }
+    }
+
+    div.files{
+      display: inline;
+    }
+
+    div.spinner{
+      height: 1em;
+      width: 1em;
     }
 `;
 
@@ -713,6 +713,23 @@ export const CommentContainer = styled.div`
   span.dateCreated{
     margin-left: auto;
     font-size: 0.9em;
+  }
+`;
+
+export const FileContainer = styled.div`
+  display: inline-block;
+  align-items: center;
+  line-height: 1.6em;
+  margin-right: 1em;
+  margin-bottom: 0.6em;
+  a{
+    display: inline;
+  }
+  button{
+    display: inline;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.3em;
   }
 `;
 

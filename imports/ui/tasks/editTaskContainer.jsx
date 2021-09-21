@@ -40,8 +40,8 @@ export default function EditTaskContainer( props ) {
     return user.profile.language;
   }, [user]);
 
-  const editTask = ( name, important, assigned, deadline, hours, description, subtasks, comments ) => {
-    let data = {name, important, assigned, deadline, hours, description};
+  const editTask = ( name, important, assigned, deadline, hours, description, subtasks, comments, files ) => {
+    let data = {name, important, assigned, deadline, hours, description, files};
     TasksCollection.update( task._id, {
       $set: {
         ...data

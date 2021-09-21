@@ -6,6 +6,7 @@ import React, {
 import Select from 'react-select';
 import moment from 'moment';
 import { useSelector } from 'react-redux';
+import { Spinner } from 'reactstrap';
 
 import { FullStarIcon, EmptyStarIcon, PlusIcon, CloseIcon, SendIcon, UserIcon, DeleteIcon, PencilIcon } from  "/imports/other/styles/icons";
 
@@ -30,7 +31,8 @@ import {
   FullButton,
   GroupButton,
   LinkButton,
-  CommentContainer
+  CommentContainer,
+  FileContainer
 } from "../../other/styles/styledComponents";
 
 const NO_CHANGE = 0;
@@ -50,6 +52,7 @@ export default function TaskForm( props ) {
     deadline: taskDeadline,
     hours: taskHours,
     folder: taskFolder,
+    files: taskFiles,
     language,
     onSubmit,
     onCancel,
@@ -80,6 +83,7 @@ export default function TaskForm( props ) {
   const [ editedCommentBody, setEditedCommentBody ] = useState("");
 
     const [ files, setFiles ] = useState( [] );
+    const [ showSpinner, setShowSpinner ] = useState( false );
 
   useEffect( () => {
     if ( taskName ) {
@@ -112,7 +116,12 @@ export default function TaskForm( props ) {
     } else {
       setHours( "" );
     }
-  }, [ taskName, taskImportant, taskAssigned, taskDescription, taskDeadline, taskHours, dbUsers, userId ] );
+    if ( taskFiles ) {
+      setFiles( taskFiles );
+    } else {
+      setFiles( [] );
+    }
+  }, [ taskName, taskImportant, taskAssigned, taskDescription, taskDeadline, taskHours, taskFiles, dbUsers, userId ] );
 
   useEffect( () => {
     let newSubtasks = allSubtasks.filter(subtask => subtask.task === taskId).map(subtask => ({...subtask, change: NO_CHANGE}));
@@ -134,7 +143,7 @@ export default function TaskForm( props ) {
       if (author){
         return ({...comment, author});
       }
-      return comment;
+      return ({...comment, author: {}});
     }).sort((st1, st2) => st1.dateCreated < st2.dateCreated ? 1 : -1);
   }, [comments, dbUsers]);
 
@@ -233,9 +242,12 @@ export default function TaskForm( props ) {
           />
       </section>
 
-{false &&
       <section>
         <label htmlFor="files">{translations[language].files}</label>
+        {
+          showSpinner &&
+          <Spinner color="primary" size="1em" className="spinner" children=""/>
+        }
             <Input
               id="files"
               name="files"
@@ -243,25 +255,42 @@ export default function TaskForm( props ) {
               onChange={(e) =>  {
                 e.persist();
                 var file = e.target.files[0];
+                setShowSpinner(true);
                 if (!file) return;
                 var reader = new FileReader();
                 reader.onload = e => {
-                  var myObj = {
+                  var newFile = {
+                    dateCreated: moment().unix(),
                     name: file.name,
-                    data: reader.result.split('base64,')[1]
+                    data: reader.result
                   };
-                  console.log(URL.createObjectURL(myObj.data));
+                  setShowSpinner(false);
+                  setFiles([...files, newFile]);
                 };
                 reader.readAsDataURL(file);
               }}
               />
+
+            <div className="files">
             {
               files.map(file => (
-                <div key={file.dateCreated}>{file.name}</div>
+                <FileContainer key={file.dateCreated}>
+                  <a href={file.data} download={file.name}>{file.name}</a>
+                    <LinkButton
+                      onClick={(e) => {e.preventDefault(); setFiles(files.filter(f => f.dateCreated !== file.dateCreated))}}
+                      className="connected-btn"
+                      >
+                      <img
+                        className="icon"
+                        src={CloseIcon}
+                        alt="Close icon not found"
+                        />
+                    </LinkButton>
+                </FileContainer>
               ))
             }
+          </div>
       </section>
-    }
 
         <section>
           <label htmlFor="description">{translations[language].description}</label>
@@ -340,11 +369,6 @@ export default function TaskForm( props ) {
                   </LinkButton>
                 }
                 </InlineInput>
-              }
-
-              {
-                displayedSubtasks.length === 0 &&
-                <span className="message" style={{margin: "0px"}}>You have no subtasks.</span>
               }
 
               {
@@ -456,20 +480,17 @@ export default function TaskForm( props ) {
             </ButtonRow>
 
             {
-              displayedComments.length === 0 &&
-              <span className="message" style={{margin: "0px"}}>There are no comments.</span>
-            }
-
-            {
               displayedComments.length > 0 &&
               displayedComments.map(comment => (
                 <CommentContainer key={comment._id ? comment._id : comment.dateCreated }>
                   <div>
                   {
+                    comment.author &&
                     comment.author.avatar &&
                     <img className="avatar" src={comment.author.img} alt="" />
                   }
                   {
+                    comment.author &&
                     !comment.author.avatar &&
                     <img className="avatar" className="" src={UserIcon} alt="" />
                   }
@@ -595,6 +616,7 @@ export default function TaskForm( props ) {
             description,
             subtasks,
             comments,
+            files,
             folderID,
             moment().unix()
           );

@@ -46,7 +46,7 @@ export default function AddTaskContainer( props ) {
 
   const toggleAddTask = () => showAddTask( !addTaskOpen );
 
-  const addNewTask = ( name, important, assigned, deadline, hours, description, subtasks, comments, folder, dateCreated ) => {
+  const addNewTask = ( name, important, assigned, deadline, hours, description, subtasks, comments, files, folder, dateCreated ) => {
     TasksCollection.insert( {
       name,
       important,
@@ -55,6 +55,7 @@ export default function AddTaskContainer( props ) {
       hours,
       description,
       folder,
+      files,
       dateCreated,
       closed: false
     }, (error, _id) => {
@@ -76,7 +77,7 @@ export default function AddTaskContainer( props ) {
         deletedSubtasks.forEach((subtask, i) => {
           removeSubtask(subtask._id);
         });
-        
+
         const addedComments = comments.filter(comment => comment.change === ADDED);
         const editedComments = comments.filter(comment => comment.change === EDITED);
         const deletedComments = comments.filter(comment => comment.change === DELETED);
