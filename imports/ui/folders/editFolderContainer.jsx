@@ -25,7 +25,7 @@ export default function EditFolderContainer( props ) {
   const folderID = match.params.folderID;
   const folders = useSelector((state) => state.folders.value);
   const folder = useMemo(() => {
-    return  folders.find(folder => folder._id === folderID);
+    return  [...folders.active, ...folders.active].find(folder => folder._id === folderID);
   }, [folders, folderID]);
 
   const userId = Meteor.userId();

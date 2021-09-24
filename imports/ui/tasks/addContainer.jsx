@@ -24,7 +24,7 @@ import {
 import {addNewSubtask, editSubtask, removeSubtask} from './subtasksHandlers';
 import {addNewComment, removeComment} from './commentsHandlers';
 
-import TaskForm from './taskForm';
+import Form from './form';
 
 import {
   FloatingButton
@@ -102,7 +102,7 @@ export default function AddTaskContainer( props ) {
   const close = () => {
     showAddTask( false );
   }
-//position: "sticky", bottom: "2px", left: "100%"
+  
   return (
     <div style={{}}>
       {!addTaskOpen &&
@@ -122,7 +122,7 @@ export default function AddTaskContainer( props ) {
           {addTaskOpen &&
           <Modal className="add-task-modal" isOpen={true}>
             <ModalBody>
-          <TaskForm {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
+          <Form {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
         </ModalBody>
       </Modal>
         }

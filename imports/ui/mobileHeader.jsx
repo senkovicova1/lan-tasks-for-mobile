@@ -6,19 +6,23 @@ import React, {
 import {
   Link
 } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
 
 import { SettingsIcon, MenuIcon, LogoutIcon, CloseIcon, SearchIcon, LeftArrowIcon, UserIcon, MenuIcon2 } from  "/imports/other/styles/icons";
 
 import Menu from './sidebar';
 
+import { setLayout, setSortBy, setSortDirection, setSearch, setSidebarOpen } from '/imports/redux/metadataSlice';
 import {
-  useTracker
-} from 'meteor/react-meteor-data';
+  PLAIN,
+  COLUMNS,
+  sortByOptions,
+  sortDirectionOptions
+} from "/imports/other/constants";
 
-import {
-  uint8ArrayToImg
-} from '/imports/other/helperFunctions';
 import {
   MobilePageHeader as PageHeader,
   LinkButton,
@@ -28,67 +32,51 @@ import {
 } from '../other/styles/styledComponents';
 
 export default function MobileHeader( props ) {
+  const dispatch = useDispatch();
 
   const {
     match,
     location,
-    setSearch,
-    search,
-    setParentOpenSidebar,
-    sortBy,
-    setSortBy,
-    sortDirection,
-    setSortDirection
   } = props;
 
-  const folderID = match.params.folderID;
+    const folderID = match.params.folderID;
+    const userId = Meteor.userId();
+    const currentUser = useTracker( () => Meteor.user() );
+    const logout = () => Meteor.logout();
+    const { folder, layout, sidebarOpen, search, sortBy, sortDirection } = useSelector( ( state ) => state.metadata.value );
+    const folders = useSelector((state) => state.folders.value).active;
 
-  const currentUser = useTracker( () => Meteor.user() );
-  const userId = Meteor.userId();
-  const logout = () => Meteor.logout();
+    const [ title, setTitle ] = useState("TaskApp");
+    const [ background, setBackground ] = useState("#0078d4");
+    const [ openSort, setOpenSort ] = useState(false);
+    const [ openSearch, setOpenSearch ] = useState(true);
 
-  const folders = useSelector((state) => state.folders.value);
+      useEffect(() => {
+        if (location.pathname === "/folders/archived") {
+          setTitle("Archived Folders");
+          setBackground("#0078d4");
+        }
+        if (!folderID || folderID === "all") {
+          setTitle("TaskApp");
+          setBackground("#0078d4");
+        }
+        let folder = [...folders.active, ...folders.archived].find(folder => folder._id === folderID);
+        if (folder) {
+          setTitle(folder.name);
+          setBackground(folder.colour);
+        } else {
+          setTitle("TaskApp");
+          setBackground("#0078d4");
+        }
+      }, [folderID, location.pathname, folders]);
 
-  const [ openSidebar, setOpenSidebar ] = useState(false);
-  const [ openSort, setOpenSort ] = useState(false);
-  const [ openSearch, setOpenSearch ] = useState(false);
-  const [ title, setTitle ] = useState("TaskApp");
-  const [ background, setBackground ] = useState("#0078d4");
-
-  useEffect(() => {
-    if (location.pathname === "/folders/archived") {
-      setTitle("Archived Folders");
-      setBackground("#0078d4");
-    }
-    if (!folderID || folderID === "all") {
-      setTitle("TaskApp");
-      setBackground("#0078d4");
-    }
-    let folder = folders.find(folder => folder._id === folderID);
-    if (folder) {
-      setTitle(folder.name);
-      setBackground(folder.colour);
-    } else {
-      setTitle("TaskApp");
-      setBackground("#0078d4");
-    }
-  }, [folderID, location.pathname, folders]);
-
-  const avatar = useMemo(() => {
-    if (!currentUser || !currentUser.profile.avatar){
-      return null;
-    }
-    return uint8ArrayToImg(currentUser.profile.avatar);
-  }, [currentUser])
-
-  const canEditFolder = useMemo(() => {
-    if (folderID && folderID !== 'all' && folders.length > 0) {
-      const folder = folders.find(f => f._id === folderID);
-      const user = folder.users.find(user => user._id === userId);
-      return user.admin;
-    }
-    return false;
-  }, [folderID, folders, userId]);
+      const canEditFolder = useMemo(() => {
+        if (folderID && folderID !== 'all' && [...folders.active, ...folders.archived].length > 0) {
+          const folder = [...folders.active, ...folders.archived].find(f => f._id === folderID);
+          const user = folder.users.find(user => user._id === userId);
+          return user.admin;
+      }
+    }, [folders, folderID, userId]);
 
     document.addEventListener("click", (evt) => {
         const sortMenu = document.getElementById("sort-menu");
@@ -111,6 +99,21 @@ export default function MobileHeader( props ) {
         setOpenSort(false);
     });
 
+    useEffect(() => {
+      if (window.innerWidth >= 800) {
+        dispatch(setSidebarOpen(true));
+      } else {
+        dispatch(setSidebarOpen(false));
+      }
+    }, [window.innerWidth]);
+
+      const avatar = useMemo(() => {
+        if (!currentUser || !currentUser.profile.avatar){
+          return UserIcon;
+        }
+        return uint8ArrayToImg(currentUser.profile.avatar);
+      }, [currentUser])
+
   return (
     <PageHeader style={{backgroundColor: background}}>
         {
@@ -119,8 +122,7 @@ export default function MobileHeader( props ) {
             font="white"
             onClick={(e) => {
               e.preventDefault();
-              setOpenSidebar(!openSidebar);
-              setParentOpenSidebar(!openSidebar);
+              dispatch(setSidebarOpen(!sidebarOpen));
             }}
             >
             <img
@@ -159,7 +161,7 @@ export default function MobileHeader( props ) {
           <Input
             placeholder="Search"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => dispatch(setSearch(e.target.value))}
             />
         </div>
       }
@@ -171,7 +173,7 @@ export default function MobileHeader( props ) {
           searchButton
           onClick={(e) => {
             e.preventDefault();
-            setSearch("");
+            dispatch(setSearch(""));
           }}
           >
           <img
@@ -231,14 +233,7 @@ export default function MobileHeader( props ) {
             props.history.push("/settings");
           }}
           >
-          {
-            avatar &&
           <img className="avatar" src={avatar} alt="assignedAvatar" />
-          }
-          {
-            !avatar &&
-            <img className="icon" src={UserIcon} alt="assignedAvatar" />
-          }
         </LinkButton>
       }
 
@@ -283,95 +278,39 @@ export default function MobileHeader( props ) {
         openSort &&
         <Sort id="sort-menu" name="sort-menu">
           <h3>Sort by</h3>
-          <span>
-            <input
-              id="sort-by-name-asc"
-              name="sort-by-name-asc"
-              type="checkbox"
-              checked={sortBy === "name" && sortDirection === "asc"}
-              onChange={() => {
-                setSortBy("name");
-                setSortDirection("asc");
-              }}
-              />
-            <label htmlFor="sort-by-name-asc">Name (ascending)</label>
-          </span>
-
-            <span>
-              <input
-                id="sort-by-name-desc"
-                name="sort-by-name-desc"
-                type="checkbox"
-                checked={sortBy === "name" && sortDirection === "desc"}
-                onChange={() => {
-                  setSortBy("name");
-                  setSortDirection("desc");
-                }}
-                />
-              <label htmlFor="sort-by-name-desc">Name (descending)</label>
-            </span>
-
-              <span>
-                <input
-                  id="sort-by-assigned-asc"
-                  name="sort-by-assigned-asc"
-                  type="checkbox"
-                  checked={sortBy === "assigned" && sortDirection === "asc"}
-                  onChange={() => {
-                    setSortBy("assigned");
-                    setSortDirection("asc");
-                  }}
-                  />
-                <label htmlFor="sort-by-name-asc">Assigned user (ascending)</label>
-              </span>
-
-                <span>
+            {
+              sortByOptions
+              .flatMap(x => sortDirectionOptions.map(y => ({
+                label: `${x.label}  (${y.label})`,
+                value: `${x.value}-${y.value}`,
+                sortByValue: x.value,
+                sortDirectionValue: y.value
+              })))
+              .map(item => (
+                <span key={item.value}>
                   <input
-                    id="sort-by-assigned-desc"
-                    name="sort-by-assigned-desc"
+                    id={item.value}
+                    name={item.value}
                     type="checkbox"
-                    checked={sortBy === "assigned" && sortDirection === "desc"}
+                    checked={sortBy === item.sortByValue && sortDirection === item.sortDirectionValue}
                     onChange={() => {
-                      setSortBy("assigned");
-                      setSortDirection("desc");
+                      dispatch(setSortBy(item.sortByValue));
+                      dispatch(setSortDirection(item.sortDirectionValue));
+                      if (/Mobi|Android/i.test(navigator.userAgent)) {
+                        setOpenSort(!openSort);
+                      }
                     }}
                     />
-                  <label htmlFor="sort-by-name-asc">Assigned user (descending)</label>
+                  <label htmlFor={item.value}>{item.label}</label>
                 </span>
-
-                  <span>
-                    <input
-                      id="sort-by-date-asc"
-                      name="sort-by-date-asc"
-                      type="checkbox"
-                      checked={sortBy === "date" && sortDirection === "asc"}
-                      onChange={() => {
-                        setSortBy("date");
-                        setSortDirection("asc");
-                      }}
-                      />
-                    <label htmlFor="sort-by-name-asc">Date created (ascending)</label>
-                  </span>
-
-                    <span>
-                      <input
-                        id="sort-by-date-desc"
-                        name="sort-by-date-desc"
-                        type="checkbox"
-                        checked={sortBy === "date" && sortDirection === "desc"}
-                        onChange={() => {
-                          setSortBy("date");
-                          setSortDirection("desc");
-                        }}
-                        />
-                      <label htmlFor="sort-by-name-asc">Date created (descending)</label>
-                    </span>
+              ))
+            }
         </Sort>
       }
       {
         openSidebar &&
         currentUser &&
-        <Menu {...props} setBackground={setBackground} widthWithSidebar={openSidebar} closeSelf={() => setOpenSidebar(false)}/>
+        <Menu {...props} setBackground={setBackground} widthWithSidebar={sidebarOpen}/>
       }
 
     </PageHeader>

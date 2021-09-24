@@ -195,38 +195,36 @@ export const SearchSection = styled.section `
 export const Content = styled.main `
   display: block;
   overflow-y: auto;
-  padding-top: 7px;
   height: calc(100vh - 50px);
   @media all and (max-width: 799px), @media handheld {
     width: 100%;
   }
   @media all and (min-width: 800px) and (max-width: 1299px){
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
     ${(props) =>
-      props.withSidebar &&
+      props.columns &&
       `
-        &>div{
-          max-width: 800px;
-          padding-left: ${sidebarWidthWeb};
-          margin-right: auto;
-        }
-      `
-    }
-    ${(props) =>
-      !props.withSidebar &&
-      `
-      &>div{
-            width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-          }
+        width: 100%;
+        margin-left: ${props.withSidebar ? sidebarWidthWeb : "auto"};
+        margin-right: auto;
       `
     }
   }
   @media all and (min-width: 1300px) {
-    &>div{
-      width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    ${(props) =>
+      props.columns &&
+      `
+        width: ${props.withSidebar ? `calc(100vw - ${sidebarWidthWeb})` : `100%`};
+        margin-left: ${props.withSidebar ? sidebarWidthWeb : "auto"};
+        margin-right: auto;
+      `
     }
   }
 `;
@@ -677,7 +675,6 @@ export const UserEntry = styled.div`
   color: ${basicBlueColour};
   font-size: 0.9em;
   }
-
   button{
     margin-left: auto;
   }

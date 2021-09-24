@@ -7,12 +7,17 @@ import {
   BrowserRouter
 } from 'react-router-dom';
 
-import { useDispatch } from 'react-redux';
-import { setFolders } from '/imports/redux/foldersSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setActive, setArchived } from '/imports/redux/foldersSlice';
 import { setTasks } from '/imports/redux/tasksSlice';
 import { setSubtasks } from '/imports/redux/subtasksSlice';
 import { setComments } from '/imports/redux/commentsSlice';
 import { setUsers } from '/imports/redux/usersSlice';
+import { setLanguage, setUser } from '/imports/redux/metadataSlice';
+
+import {
+  COLUMNS
+} from "/imports/other/constants";
 
 import {
   FoldersCollection
@@ -32,13 +37,13 @@ import {
 
 import Header from './header';
 import Login from './login';
-import TaskList from './tasks/taskList';
-import ArchviedTaskList from './tasks/archivedTaskList';
+import TaskContainer from './tasks/tasksContainer';
 import FolderList from './folders/folderList';
 import FolderEdit from './folders/editFolderContainer';
 import FolderAdd from './folders/addFolderContainer';
 import EditUserContainer from './users/editUserContainer';
 
+import { UserIcon } from  "/imports/other/styles/icons";
 import {
   uint8ArrayToImg
 } from '/imports/other/helperFunctions';
@@ -53,11 +58,15 @@ export default function MainPage( props ) {
 
   const currentUser = useTracker( () => Meteor.user() );
   const userId = Meteor.userId();
+  const {layout, sidebarOpen} = useSelector( ( state ) => state.metadata.value );
 
   const folders = useTracker( () => FoldersCollection.find( { users:  { $elemMatch: { _id: userId } } } ).fetch() );
   useEffect(() => {
       const newMyFolders = folders.map(folder => ({...folder, label: folder.name, value: folder._id})).sort((f1, f2) => f1.name > f2.name ? 1 : -1);
-      dispatch(setFolders(newMyFolders));
+      const activeFolders = newMyFolders.filter(folder => !folder.archived);
+      const archivedFolders = newMyFolders.filter(folder => folder.archived);
+      dispatch(setActive(activeFolders));
+      dispatch(setArchived(archivedFolders));
 }, [folders]);
 
 const foldersIds = folders.map(folder => folder._id);
@@ -103,84 +112,61 @@ useEffect(() => {
           ...user.profile,
           label:  `${user.profile.name} ${user.profile.surname}`,
           value: user._id,
-          img: user.profile.avatar ? uint8ArrayToImg(user.profile.avatar) : null
+          img: user.profile.avatar ? uint8ArrayToImg(user.profile.avatar) : UserIcon
         }) )
       )
       );
 }, [users]);
 
-  const [ search, setSearch ] = useState( "" );
-  const [ openSidebar, setOpenSidebar ] = useState( false );
-  const [ sortBy, setSortBy ] = useState("name");
-  const [ sortDirection, setSortDirection ] = useState("asc");
-
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
         <Route
-          exact
-          path={["/", "/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
-          render={(props) => (
-          <Header
-            {...props}
-            setSearch={setSearch}
-            search={search}
-            setParentOpenSidebar={setOpenSidebar}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            sortDirection={sortDirection}
-            setSortDirection={setSortDirection}
-            />
-        )}
-        />
+            exact
+            path={["/", "/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
+            render={(props) => (
+            <Header
+              {...props}
+              />
+          )}
+          />
+
         {!currentUser &&
-          <Content>
+          <Content withSidebar={false}>
             <Route path={["/", "/login"]} component={Login} />
           </Content>
         }
-        {currentUser &&
-          <Content withSidebar={openSidebar}>
+        {
+          currentUser &&
+          <Content
+            withSidebar={sidebarOpen}
+            columns={layout === COLUMNS}
+            >
             <div style={{height: "100%", position: "relative"}}>
-              <Route
-                exact
-                path={["/", "/:folderID/list"]}
-                render={(props) => (
-                <TaskList
-                   {...props}
-                   search={search}
-                   sortBy={sortBy}
-                   sortDirection={sortDirection}
-                   />
-              )}
-              />
-              <Route exact path={"/:folderID/edit"} component={FolderEdit} />
+
               <Route exact path={"/folders/add"} component={FolderAdd} />
+              <Route exact path={"/:folderID/edit"} component={FolderEdit} />
+
               <Route
                 exact
                 path={"/folders/archived"}
-                render={(props) => (
-                <FolderList {...props} search={search} />
-              )}
-              />
-                <Route
-                  exact
-                  path={"/folders/archived/:folderID"}
-                  render={(props) => (
-                  <ArchviedTaskList
-                     {...props}
-                     search={search}
-                     sortBy={sortBy}
-                     sortDirection={sortDirection}
-                     />
-                )}
+                component={FolderList}
                 />
+
+              <Route
+                exact
+                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                component={TaskContainer}
+                />
+
               <Route
                 exact
                 path={"/settings"}
                 render={(props) => (
                   <EditUserContainer {...props} user={currentUser} />
-                )}/>
-              </div>
+                )}
+                />
+            </div>
           </Content>
         }
       </BrowserRouter>

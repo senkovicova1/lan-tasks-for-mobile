@@ -8,24 +8,30 @@ import Select from 'react-select';
 import { useSelector } from 'react-redux';
 import Switch from "react-switch";
 import {
+  Modal,
+  ModalBody
+} from 'reactstrap';
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
+import {
   selectStyle
 } from '../../other/styles/selectStyles';
 import {
   translations
 } from '../../other/translations.jsx';
+import {
+  PLAIN,
+  COLUMNS
+} from "/imports/other/constants";
 
 import { removeSubtask } from './subtasksHandlers';
 import { removeComment } from './commentsHandlers';
+import { addTask, closeTask, restoreLatestTask, removeTask } from './tasksHandlers';
+
 import { RestoreIcon, PlusIcon, CloseIcon, SettingsIcon, UserIcon, SendIcon, FullStarIcon, EmptyStarIcon } from  "/imports/other/styles/icons";
 
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
-import {
-  TasksCollection
-} from '/imports/api/tasksCollection';
-import AddTaskContainer from './addTaskContainer';
-import EditTaskContainer from './editTaskContainer';
+import EditTask from './editContainer';
 import {
   List,
   ItemContainer,
@@ -33,121 +39,60 @@ import {
   Input,
   InlineInput,
   FloatingButton
-} from "../../other/styles/styledComponents";
+} from "/imports/other/styles/styledComponents";
 
 export default function TaskList( props ) {
 
   const {
     match,
     history,
-    search,
-    sortBy,
-    sortDirection,
+    folder,
+    setParentChosenTask,
+    chosenTask
   } = props;
 
-
-  const [ editedTask, setEditedTask ] = useState( null );
   const [ showClosed, setShowClosed ] = useState(false);
   const [ newTaskName, setNewTaskName ] = useState("");
   const [ openNewTask, setOpenNewTask ] = useState(false);
 
+  const { folderID } = match.params;
+  const { layout, search, sortBy, sortDirection } = useSelector( ( state ) => state.metadata.value );
+
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
-  const dbUsers = useSelector((state) => state.users.value);
   const language = useMemo(() => {
     return user.profile.language;
   }, [user]);
 
-  const folderID = !match.params.folderID || match.params.folderID === 'all' ? null : match.params.folderID;
-  const folders = useSelector((state) => state.folders.value);
-  const folder = useMemo(() => {
-    const maybeFolder = folders.find(folder => folder._id === folderID);
-    return  maybeFolder ? maybeFolder : null;
-  }, [folders, folderID]);
-
+  const dbUsers = useSelector((state) => state.users.value);
   const tasks = useSelector((state) => state.tasks.value);
   const subtasks = useSelector((state) => state.subtasks.value);
   const comments = useSelector((state) => state.comments.value);
 
-  const closeTask = (task) => {
-    let data = {
-      closed: !task.closed,
-    };
-    TasksCollection.update( task._id, {
-      $set: {
-        ...data
-      }
-    } );
-  }
-
   const removedTasks = useMemo(() => {
-    if (folderID) {
-      return tasks.filter(t => t.folder._id === folderID && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
+    if (folder._id) {
+      return tasks.filter(t => t.folder._id === folder._id && t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
     }
     return tasks.filter(t => t.removedDate).sort((t1,t2) => (t1.removedDate < t2.removedDate ? 1 : -1));
-  }, [tasks, folderID]);
-
-  const removeTask = ( task ) => {
-    if (removedTasks.length >= 5){
-      let difference = removedTasks.length - 4;
-      const idsToDelete = removedTasks.slice(4).map(t => t._id);
-      const subtasksToDelete = subtasks.filter(subtask => idsToDelete.includes(subtask.task));
-      const commentsToDelete = comments.filter(comment=> idsToDelete.includes(comment.task));
-      while (difference > 0) {
-        TasksCollection.remove( {
-          _id: idsToDelete[difference - 1]
-        } );
-        subtasksToDelete.forEach((subtask, i) => {
-          removeSubtask(subtask._id);
-        });
-        commentsToDelete.forEach((comment, i) => {
-          removeComment(comment._id);
-        });
-        difference -= 1;
-      }
-    }
-
-    let data = {
-      removedDate: moment().unix(),
-    };
-    TasksCollection.update( task._id, {
-      $set: {
-        ...data
-      }
-    } );
-  }
-
-  const restoreLatestTask = () => {
-    let data = {
-      removedDate: null,
-    };
-    TasksCollection.update( removedTasks[0]._id, {
-      $set: {
-        ...data
-      }
-    } );
-  }
+  }, [tasks, folder._id]);
 
   const addQuickTask = () => {
-    TasksCollection.insert( {
-      name: newTaskName,
-      assigned: userId,
-      folder: folderID,
-      dateCreated: moment().unix(),
-      closed: false
-    }, (error, _id) => {
-      if (error){
-        console.log(error);
-      } else {
+    addTask(
+      newTaskName,
+      userId,
+      folderID,
+      moment().unix(),
+      () => {
         setNewTaskName("");
         setOpenNewTask(false);
-      }
-    } );
+      },
+      () => console.log(error)
+    );
   }
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter(task => !task.removedDate && (!folderID || task.folder._id === folderID) && !task.folder.archived && (folderID || task.assigned === userId));
-  }, [tasks, folderID, userId]);
+    return tasks.filter(task => !task.removedDate && (task.folder._id === folder.value || (!folder._id && task.assigned === userId)));
+  }, [tasks, folder, userId]);
 
   const assignedTasks = useMemo(() => {
     return filteredTasks.map(task => ({...task, assigned: dbUsers.find(u => u._id === task.assigned)}));
@@ -201,12 +146,18 @@ export default function TaskList( props ) {
       }
 
       {
-        editedTask &&
-        <EditTaskContainer {...props} task={activeTasks.find(task => task._id === editedTask)} close={() => setEditedTask(null)}/>
+        chosenTask &&
+        layout === PLAIN &&
+          <Modal isOpen={true}>
+            <ModalBody>
+        <EditTask {...props}  modal={true} task={chosenTask} close={() => setParentChosenTask(null)}/>
+        </ModalBody>
+      </Modal>
       }
 
       {
-        folderID &&
+        folder._id &&
+        !match.path.includes("archived") &&
         !openNewTask &&
         <InlineInput>
         <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewTask(true);}}>
@@ -222,7 +173,7 @@ export default function TaskList( props ) {
       }
 
       {
-        folderID &&
+        folder._id &&
         openNewTask &&
         <InlineInput>
           <input
@@ -262,6 +213,7 @@ export default function TaskList( props ) {
         activeTasks.map((task) => (
           <ItemContainer
             key={task._id}
+            active={chosenTask && task._id === chosenTask._id}
             >
             <Input
               id={`task_name ${task._id}`}
@@ -285,7 +237,7 @@ export default function TaskList( props ) {
               alt="Empty star icon not found"
               />
           }
-            <span htmlFor={`task_name ${task._id}`} onClick={() => setEditedTask(task._id)}>
+            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task)}>
               {task.name}
             </span>
             {
@@ -299,7 +251,7 @@ export default function TaskList( props ) {
               <img className="usericon" src={UserIcon} alt="" title={task.assigned.label}/>
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task)}}
+              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
               >
               <img
                 className="icon"
@@ -330,19 +282,22 @@ export default function TaskList( props ) {
           <span htmlFor="show-closed">
             {translations[language].showClosed}
           </span>
-          <LinkButton
-            style={{marginLeft: "auto"}}
-            onClick={(e) => {e.preventDefault(); restoreLatestTask()}}
-            >
-            <img
-              className="icon"
-              src={RestoreIcon}
-              alt="Back icon not found"
-              />
-            <span>
-            {translations[language].restoreTask}
-          </span>
-          </LinkButton>
+          {
+            removedTasks.length > 0 &&
+            <LinkButton
+              style={{marginLeft: "auto"}}
+              onClick={(e) => {e.preventDefault(); restoreLatestTask(removedTasks)}}
+              >
+              <img
+                className="icon"
+                src={RestoreIcon}
+                alt="Back icon not found"
+                />
+              <span>
+              {translations[language].restoreTask}
+            </span>
+            </LinkButton>
+          }
         </ItemContainer>
 
         {
@@ -378,7 +333,7 @@ export default function TaskList( props ) {
               alt="Empty star icon not found"
               />
               }
-            <span htmlFor={`task_name ${task._id}`} onClick={() => setEditedTask(task._id)}>
+            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task)}>
               {task.name}
             </span>
             {
@@ -392,7 +347,7 @@ export default function TaskList( props ) {
               <img className="usericon" src={UserIcon} alt="" title={task.assigned.label}/>
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task)}}
+              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
               >
               <img
                 className="icon"

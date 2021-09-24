@@ -6,6 +6,7 @@ import usersReducer from './usersSlice';
 import tasksReducer from './tasksSlice';
 import subtasksReducer from './subtasksSlice';
 import commentsReducer from './commentsSlice';
+import metadataReducer from './metadataSlice';
 
 export default configureStore( {
   reducer: {
@@ -14,5 +15,6 @@ export default configureStore( {
     tasks: tasksReducer,
     subtasks: subtasksReducer,
     comments: commentsReducer,
+    metadata: metadataReducer,
   },
 } )

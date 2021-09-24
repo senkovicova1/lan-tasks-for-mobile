@@ -51,8 +51,9 @@ export default function TaskForm( props ) {
     description: taskDescription,
     deadline: taskDeadline,
     hours: taskHours,
-    folder: taskFolder,
+    folder,
     files: taskFiles,
+    title,
     language,
     onSubmit,
     onCancel,
@@ -62,7 +63,6 @@ export default function TaskForm( props ) {
 
   const userId = Meteor.userId();
   const dbUsers = useSelector((state) => state.users.value);
-  const folder = useSelector((state) => state.folders.value).find(f => f._id === folderID);
   const allSubtasks = useSelector((state) => state.subtasks.value);
   const allComments = useSelector((state) => state.comments.value);
 
@@ -167,6 +167,7 @@ export default function TaskForm( props ) {
   }
   return (
     <Form>
+      <h2>{title}</h2>
 
       <section>
         <label htmlFor="name">{translations[language].name}</label>
@@ -601,7 +602,9 @@ export default function TaskForm( props ) {
         </section>
 
       <ButtonRow>
+        {onCancel &&
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
+      }
         <FullButton
           colour=""
           disabled={name.length === 0}

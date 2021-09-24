@@ -188,10 +188,10 @@ const userId = Meteor.userId();
             usersWithRights.map(user =>
               <UserEntry key={user._id}>
                 {user.avatar &&
-              <img src={user.img} alt="" />
+              <img className="avatar" src={user.img} alt="" />
             }
             {!user.avatar &&
-              <img className="" src={UserIcon} alt="" />
+              <img className="avatar" src={UserIcon} alt="" />
             }
               <div>
               <label className="name">

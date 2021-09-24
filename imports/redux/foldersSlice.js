@@ -5,22 +5,31 @@ import {
 export const foldersSlice = createSlice( {
   name: 'folders',
   initialState: {
-    value: [],
+    value: {
+      active: [],
+      archived: [],
+    },
   },
   reducers: {
-    setFolders: ( state, action ) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
-      state.value = action.payload
+    setActive: ( state, action ) => {
+      state.value = {
+        ...state.value,
+        active: action.payload
+      }
+    },
+    setArchived: ( state, action ) => {
+      state.value = {
+        ...state.value,
+        archived: action.payload
+      }
     },
   },
 } )
 
 // Action creators are generated for each case reducer function
 export const {
-  setFolders
+  setActive,
+  setArchived,
 } = foldersSlice.actions
 
 export default foldersSlice.reducer

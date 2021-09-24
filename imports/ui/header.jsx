@@ -5,10 +5,6 @@ import MobileHeader from '/imports/ui/mobileHeader';
 
 export default function Header( props ) {
 
-  const {
-    setParentOpenSidebar
-  } = props;
-
   if (window.innerWidth >= 800) {
     return (
       <WebHeader {...props}/>
