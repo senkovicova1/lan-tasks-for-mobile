@@ -8,7 +8,20 @@ import moment from 'moment';
 import { useSelector } from 'react-redux';
 import { Spinner } from 'reactstrap';
 
-import { FullStarIcon, EmptyStarIcon, PlusIcon, CloseIcon, SendIcon, UserIcon, DeleteIcon, PencilIcon } from  "/imports/other/styles/icons";
+import {
+  FullStarIcon,
+  EmptyStarIcon,
+  PlusIcon,
+  CloseIcon,
+  SendIcon,
+  UserIcon,
+  DeleteIcon,
+  PencilIcon,
+  ClockIcon,
+  CalendarIcon,
+  PaperClipIcon,
+  TextIcon
+} from "/imports/other/styles/icons";
 
 import {
   selectStyle
@@ -22,9 +35,12 @@ import {
 import {
   Form,
   FormTable,
+  TitleInput,
   Input,
   InlineInput,
+  HiddenInput,
   Textarea,
+  HiddenTextarea,
   List,
   ItemContainer,
   ButtonRow,
@@ -45,6 +61,7 @@ export default function TaskForm( props ) {
   const {
     match,
     _id: taskId,
+    closed: taskClosed,
     name: taskName,
     important: taskImportant,
     assigned: taskAssigned,
@@ -68,6 +85,7 @@ export default function TaskForm( props ) {
 
   const [ name, setName ] = useState( "" );
   const [ important, setImportant ] = useState( false );
+  const [ closed, setClosed ] = useState( false );
   const [ assigned, setAssigned ] = useState( "" );
   const [ description, setDescription ] = useState( "" );
   const [ deadline, setDeadline ] = useState( "" );
@@ -82,8 +100,8 @@ export default function TaskForm( props ) {
   const [ editedComment, setEditedComment ] = useState(null);
   const [ editedCommentBody, setEditedCommentBody ] = useState("");
 
-    const [ files, setFiles ] = useState( [] );
-    const [ showSpinner, setShowSpinner ] = useState( false );
+  const [ files, setFiles ] = useState( [] );
+  const [ showSpinner, setShowSpinner ] = useState( false );
 
   useEffect( () => {
     if ( taskName ) {
@@ -95,6 +113,11 @@ export default function TaskForm( props ) {
       setImportant( taskImportant );
     } else {
       setImportant( false );
+    }
+    if ( taskClosed ) {
+      setClosed( taskClosed );
+    } else {
+      setClosed( false );
     }
     if ( taskAssigned ) {
       setAssigned( taskAssigned );
@@ -121,7 +144,7 @@ export default function TaskForm( props ) {
     } else {
       setFiles( [] );
     }
-  }, [ taskName, taskImportant, taskAssigned, taskDescription, taskDeadline, taskHours, taskFiles, dbUsers, userId ] );
+  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskHours, taskFiles, dbUsers, userId ] );
 
   useEffect( () => {
     let newSubtasks = allSubtasks.filter(subtask => subtask.task === taskId).map(subtask => ({...subtask, change: NO_CHANGE}));
@@ -160,52 +183,113 @@ export default function TaskForm( props ) {
 
   document.onkeydown = function (e) {
     e = e || window.event;
-    switch (e.which || e.keyCode) {
-      case 13 :
-      break;
+    if (e.which === 13 || e.keyCode === 13){
+      if (newSubtaskName.length > 0){
+        const newSubtask = {
+          name: newSubtaskName,
+          task: taskId,
+          closed: false,
+          dateCreated: moment().unix(),
+          change: ADDED,
+        }
+        setSubtasks([...subtasks, newSubtask]);
+        setNewSubtaskName("");
+        setOpenNewSubtask(false);
+      } else {
+        subtasks.forEach((subtask, i) => {
+          document.getElementById(  `subtask_name ${subtask._id}`).blur();
+        });
+      }
     }
   }
+
   return (
     <Form>
-      <h2>{title}</h2>
+      <ButtonRow>
+        {onCancel &&
+          <FullButton right={true} width={"150px"} colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
+        }
+        <FullButton
+          colour=""
+          width={"150px"}
+          disabled={name.length === 0}
+          onClick={(e) => {
+            e.preventDefault();
+            onSubmit(
+              name,
+              important,
+              assigned._id,
+              deadline,
+              hours,
+              description,
+              subtasks,
+              comments,
+              files,
+              folderID,
+              moment().unix()
+            );
+          }}
+          >
+          {translations[language].save}
+        </FullButton>
+      </ButtonRow>
 
-      <section>
-        <label htmlFor="name">{translations[language].name}</label>
-        <div style={{display: "flex"}}>
-          <LinkButton
-            onClick={(e) => {
-              e.preventDefault();
-              setImportant(!important)
-            }}
-            >
-            {
-              important &&
-              <img
-                className="icon star"
-                src={FullStarIcon}
-                alt="Full star icon not found"
-                />
-            }
-            {
-              !important &&
-              <img
-                className="icon star"
-                src={EmptyStarIcon}
-                alt="Empty star icon not found"
-                />
-            }
-          </LinkButton>
-        <Input
+      <section className="attribute">
+        <TitleInput
+          id={`task-checked`}
+          type="checkbox"
+          checked={closed}
+          onChange={() => {
+            setClosed(!closed)
+          }}
+          />
+        <TitleInput
           type="text"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           />
-      </div>
       </section>
 
-      <section>
-        <label htmlFor="assigned">{translations[language].assigned}</label>
+      <section className="attribute">
+      <LinkButton
+        style={{color: "#f3d053"}}
+        onClick={(e) => {
+          e.preventDefault();
+          setImportant(!important)
+        }}
+        >
+        {
+          important &&
+          <img
+            style={{margin: "0px"}}
+            className="label-icon star"
+            src={FullStarIcon}
+            alt="Full star icon not found"
+            />
+        }
+        {
+          !important &&
+          <img
+            style={{margin: "0px"}}
+            className="label-icon star"
+            src={EmptyStarIcon}
+            alt="Empty star icon not found"
+            />
+        }
+        Important
+      </LinkButton>
+      </section>
+
+      <section className="attribute">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="assigned"
+            src={UserIcon}
+            alt="User icon not found"
+            />
+        </span>
         <Select
           id="assigned"
           name="assigned"
@@ -218,8 +302,15 @@ export default function TaskForm( props ) {
           />
       </section>
 
-      <section>
-        <label htmlFor="deadline">{translations[language].deadline}</label>
+      <section className="attribute">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="deadline"
+            src={CalendarIcon}
+            alt="Calendar icon not found"
+            />
+        </span>
         <Input
           type="datetime-local"
           name="deadline"
@@ -231,8 +322,15 @@ export default function TaskForm( props ) {
           />
       </section>
 
-      <section>
-        <label htmlFor="hours">{translations[language].hours}</label>
+      <section className="attribute">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="hours"
+            src={ClockIcon}
+            alt="Clock icon not found"
+            />
+        </span>
         <Input
           type="number"
           name="hours"
@@ -243,12 +341,54 @@ export default function TaskForm( props ) {
           />
       </section>
 
-      <section>
-        <label htmlFor="files">{translations[language].files}</label>
-        {
-          showSpinner &&
-          <Spinner color="primary" size="1em" className="spinner" children=""/>
-        }
+      <section className="attribute">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="description"
+            src={TextIcon}
+            alt="Text icon not found"
+            />
+        </span>
+        <Textarea
+          type="text"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          />
+      </section>
+
+      <section className="attribute">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="files"
+            src={PaperClipIcon}
+            alt="PaperClip icon not found"
+            />
+        </span>
+        <div className="files">
+            {
+              files.map(file => (
+                <FileContainer key={file.dateCreated}>
+                  <a href={file.data} download={file.name}>{file.name}</a>
+                    <LinkButton
+                      onClick={(e) => {e.preventDefault(); setFiles(files.filter(f => f.dateCreated !== file.dateCreated))}}
+                      className="connected-btn"
+                      >
+                      <img
+                        className="icon"
+                        src={CloseIcon}
+                        alt="Close icon not found"
+                        />
+                    </LinkButton>
+                </FileContainer>
+              ))
+            }
+            {
+              showSpinner &&
+              <Spinner color="primary" size="1em" className="spinner" children=""/>
+            }
             <Input
               id="files"
               name="files"
@@ -271,107 +411,13 @@ export default function TaskForm( props ) {
                 reader.readAsDataURL(file);
               }}
               />
-
-            <div className="files">
-            {
-              files.map(file => (
-                <FileContainer key={file.dateCreated}>
-                  <a href={file.data} download={file.name}>{file.name}</a>
-                    <LinkButton
-                      onClick={(e) => {e.preventDefault(); setFiles(files.filter(f => f.dateCreated !== file.dateCreated))}}
-                      className="connected-btn"
-                      >
-                      <img
-                        className="icon"
-                        src={CloseIcon}
-                        alt="Close icon not found"
-                        />
-                    </LinkButton>
-                </FileContainer>
-              ))
-            }
           </div>
       </section>
 
-        <section>
-          <label htmlFor="description">{translations[language].description}</label>
-          <Textarea
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            />
-        </section>
-
-        <section>
+        <section className="subtasks">
           <label htmlFor="subtasks">{translations[language].subtasks}</label>
 
             <List style={{height: "auto"}}>
-            {
-              !openNewSubtask &&
-              <InlineInput style={{padding: "0px"}}>
-              <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewSubtask(true);}}>
-                <img
-                  className="icon"
-                  style={{marginLeft: "0px", marginRight: "0.8em", height: "1.3em"}}
-                  src={PlusIcon}
-                  alt="Plus icon not found"
-                  />
-                Subtask
-              </LinkButton>
-            </InlineInput>
-            }
-
-            {
-              openNewSubtask &&
-              <InlineInput
-                style={{padding: "0px"}}
-                >
-                <input
-                  id={`add-task`}
-                  type="text"
-                  placeholder="New task"
-                  value={newSubtaskName}
-                  onChange={(e) => setNewSubtaskName(e.target.value)}
-                  />
-                  <LinkButton
-                    onClick={(e) => {e.preventDefault(); setOpenNewSubtask(false);}}
-                    className="connected-btn"
-                    >
-                    <img
-                      className="icon"
-                      src={CloseIcon}
-                      alt="Close icon not found"
-                      />
-                  </LinkButton>
-
-                {
-                  newSubtaskName.length > 0 &&
-                  <LinkButton
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const newSubtask = {
-                        name: newSubtaskName,
-                        task: taskId,
-                        closed: false,
-                        dateCreated: moment().unix(),
-                        change: ADDED,
-                      }
-                      setSubtasks([...subtasks, newSubtask]);
-                      setNewSubtaskName("");
-                      setOpenNewSubtask(false);
-                    }}
-                    >
-                    <img
-                      className="icon"
-                      src={SendIcon}
-                      alt="Send icon not found"
-                      />
-                  </LinkButton>
-                }
-                </InlineInput>
-              }
-
               {
                 displayedSubtasks.length > 0 &&
                 displayedSubtasks.map((subtask) => (
@@ -395,7 +441,7 @@ export default function TaskForm( props ) {
                         setSubtasks(newSubtasks);
                       }}
                       />
-                    <Input
+                    <HiddenInput
                         id={`subtask_name ${subtask._id}`}
                         type="text"
                         value={subtask.name}
@@ -435,17 +481,79 @@ export default function TaskForm( props ) {
                   </ItemContainer>
                 ))
               }
+              {
+                !openNewSubtask &&
+                <InlineInput style={{padding: "0px"}}>
+                <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewSubtask(true);}}>
+                  <img
+                    className="icon"
+                    style={{marginLeft: "0px", marginRight: "0.8em", height: "1.3em"}}
+                    src={PlusIcon}
+                    alt="Plus icon not found"
+                    />
+                  Subtask
+                </LinkButton>
+              </InlineInput>
+              }
 
+              {
+                openNewSubtask &&
+                <InlineInput
+                  style={{padding: "0px"}}
+                  >
+                  <input
+                    id={`add-task`}
+                    type="text"
+                    placeholder="New task"
+                    value={newSubtaskName}
+                    onChange={(e) => setNewSubtaskName(e.target.value)}
+                    />
+                    <LinkButton
+                      onClick={(e) => {e.preventDefault(); setOpenNewSubtask(false);}}
+                      className="connected-btn"
+                      >
+                      <img
+                        className="icon"
+                        src={CloseIcon}
+                        alt="Close icon not found"
+                        />
+                    </LinkButton>
+
+                  {
+                    newSubtaskName.length > 0 &&
+                    <LinkButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const newSubtask = {
+                          name: newSubtaskName,
+                          task: taskId,
+                          closed: false,
+                          dateCreated: moment().unix(),
+                          change: ADDED,
+                        }
+                        setSubtasks([...subtasks, newSubtask]);
+                        setNewSubtaskName("");
+                        setOpenNewSubtask(false);
+                      }}
+                      >
+                      <img
+                        className="icon"
+                        src={SendIcon}
+                        style={{marginLeft: "0px", marginRight: "0.3em", width: "1.6em"}}
+                        alt="Send icon not found"
+                        />
+                    </LinkButton>
+                  }
+                  </InlineInput>
+                }
             </List>
         </section>
-
-        <section>
-          <label htmlFor="comments">{translations[language].comments}</label>
-          <Textarea
+        <section className="comments">
+          <HiddenTextarea
             type="text"
             id="comments"
             name="comments"
-            placeholder="Comment"
+            placeholder="Write a comment"
             value={newCommentBody}
             onChange={(e) => setNewCommentBody(e.target.value)}
             />
@@ -470,13 +578,13 @@ export default function TaskForm( props ) {
                   setNewCommentBody("");
               }}
                 >
-                {translations[language].sendComment}
                 <img
                   className="icon"
-                  style={{width: "1em", marginLeft: "0.3em"}}
+                  style={{width: "1.6em", margin: "0em"}}
                   src={SendIcon}
                   alt="Send icon not found"
                   />
+                {translations[language].sendComment}
               </LinkButton>
             </ButtonRow>
 
@@ -601,33 +709,6 @@ export default function TaskForm( props ) {
 
         </section>
 
-      <ButtonRow>
-        {onCancel &&
-        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
-      }
-        <FullButton
-          colour=""
-          disabled={name.length === 0}
-          onClick={(e) => {
-            e.preventDefault();
-            onSubmit(
-            name,
-            important,
-            assigned._id,
-            deadline,
-            hours,
-            description,
-            subtasks,
-            comments,
-            files,
-            folderID,
-            moment().unix()
-          );
-        }}
-          >
-          {translations[language].save}
-        </FullButton>
-      </ButtonRow>
 
     </Form>
   );

@@ -14,10 +14,10 @@ export const LANGUAGES = [
     }
 ];
 
-const NO_CHANGE = 0;
-const ADDED = 1;
-const EDITED = 2;
-const DELETED = 3;
+export const NO_CHANGE = 0;
+export const ADDED = 1;
+export const EDITED = 2;
+export const DELETED = 3;
 
 export const allMyTasksFolder = (language) => {
   return ({label: translations[language].allFolders, value: "all"});

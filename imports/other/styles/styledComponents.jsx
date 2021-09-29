@@ -49,7 +49,6 @@ export const MainPage = styled.div `
     border-radius: 50px;
     margin-right: 0.6em;
   }
-
 `;
 
 export const MobilePageHeader = styled.header `
@@ -102,7 +101,6 @@ export const MobilePageHeader = styled.header `
       }
     }
 `;
-
 
 export const PageHeader = styled.header `
   display: flex;
@@ -160,7 +158,6 @@ export const PageHeader = styled.header `
     input:focus{
       border: none !important;
     }
-
 `;
 
 export const SearchSection = styled.section `
@@ -189,7 +186,6 @@ export const SearchSection = styled.section `
     margin-right: 0em;
     padding-left: 0.6em;
   }
-
 `;
 
 export const Content = styled.main `
@@ -311,10 +307,12 @@ export const LinkButton = styled.button `
 `;
 
 export const FullButton = styled.button `
-  width: 100%;
+  width: ${(props) => props.width ? props.width : "100%" };
   color: white;
   padding: 0px;
   background-color: ${(props) => props.colour ? props.colour : "#0078d4" } !important;
+  margin-left: ${(props) => props.right ? "auto" : "0px" };
+  margin-right: ${(props) => props.left ? "auto" : "0px" };
   outline: none !important;
   border: none !important;
   line-height: 2em;
@@ -341,14 +339,14 @@ export const FloatingButton = styled.button `
   position: absolute;
   bottom: 40px;
   ${(props) => props.left &&
-`
-left: ${inputOffset};
-`
-  }
-  ${(props) => !props.left &&
-`
-right: ${inputOffset};
-`
+  `
+  left: ${inputOffset};
+  `
+    }
+    ${(props) => !props.left &&
+  `
+  right: ${inputOffset};
+  `
   }
   display: flex;
 
@@ -439,7 +437,6 @@ export const ItemContainer = styled.section `
     width: 2em;
     height: 2em;
   }
-
 `;
 
 export const Form = styled.form `
@@ -455,20 +452,32 @@ export const Form = styled.form `
     margin: 0em 0em 1em 0em;
   }
 
-  section {
+  label{
+    margin: 0px 1em 0em 0em;
+    font-weight: 500;
+  }
+
+  section.attribute {
+    display: flex;
+    align-items: flex-start;
     margin: 0em 0em 1.5em 0em;
 
-    img {
-      border-radius: 50px;
+    span.icon-container{
+      height: 40px;
+      display: flex;
+      align-items: center;
+      margin-right: 0.6em;
     }
 
-    label{
-      margin: 0px 1em 0em 0em;
-      font-weight: 500;
+    img.label-icon{
+      width: 2em;
+      height: 1.3em;
     }
+
     input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
       width: 100%;
     }
+
     input[type=color]{
         border: none;
         background-color: transparent !important;
@@ -476,21 +485,67 @@ export const Form = styled.form `
       }
 
     input[type=file]{
-      width: calc(100% - 5em);
       border: none;
       background-color: transparent !important;
+      padding: 0px;
+      content: "HI";
+
+      /* IE UPLOAD BUTTON STYLE: This attempts to alter the file upload button style in IE.  Keep in mind IE gives you limited design control but at least you can customize its upload button.*/
+      ::-ms-browse { /* IE */
+          display: inline-block;
+          margin: 0;
+          padding: .2em .5em;
+          padding: .2rem .5rem;
+          text-align: center;
+          outline: none;
+          border: none;
+          background: #fff;
+          white-space: nowrap;
+          cursor: pointer;
+      }
+      /* FIREFOX UPLOAD BUTTON STYLE */
+      ::file-selector-button {/* firefox */
+          display: inline-block;
+          margin: 0rem 1rem 0rem 0rem;
+          padding: .18em .5em;
+          padding: .18rem .5rem;
+          -webkit-appearance: button;
+          text-align: center;
+          border-radius: .1rem 0rem 0rem .1rem;
+          outline: none;
+          border: none;
+          border-right: 2px solid #bbb;
+          background: #eee;
+          white-space: nowrap;
+          cursor: pointer;
+      }
+      /* CHROME AND EDGE UPLOAD BUTTON STYLE */
+      ::-webkit-file-upload-button { /* chrome and edge */
+          display: inline-block;
+          margin: 0em;
+          -webkit-appearance: button;
+          text-align: center;
+          border-radius: 0em;
+          outline: none;
+          border: none;
+          color: ${basicBlueColour};
+          background: ${lightBlueColour};
+          margin-right: 0.3em;
+          white-space: nowrap;
+          cursor: pointer;
+      }
     }
 
     input[type=checkbox] + label{
         vertical-align: middle;
       }
 
-  input[type=checkbox]{
+    input[type=checkbox]{
       margin-right: 5px;
     }
-    section:last-of-type {
-      margin: 0em !important;
-    }
+  }
+  section:last-of-type, section:first-of-type  {
+    margin: 0em !important;
   }
 
     section.color-picker{
@@ -503,6 +558,21 @@ export const Form = styled.form `
         margin-bottom: 0.6em;
         justify-content: space-between;
         align-items: center;
+      }
+    }
+
+    section.subtasks{
+      margin: 0em 0em 1.5em 0em;
+    }
+
+    section.comments {
+      img.label-icon{
+        width: 2em;
+        height: 1.3em;
+      }
+
+      input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
+        width: 100%;
       }
     }
 
@@ -538,10 +608,24 @@ export const Color = styled.div`
   }
 `
 
+export const TitleInput = styled.input `
+  background-color: transparent !important;
+  font-size: 2em;
+  font-weight: 300;
+  height: 2em;
+  outline: none !important;
+  border: none !important;
+  width: auto;
+
+  &[type=checkbox]{
+    width: 1em;
+  }
+`;
+
 export const Input = styled.input `
   background-color: white !important;
   outline: none !important;
-  border: ${(props) => props.error ? "1px solid red" : "1px solid #d6d6d6"};
+  border: ${(props) => props.error ? "1px solid red" : "0px solid #d6d6d6"};
   width: ${(props) => props.width ? props.width : "auto"};
   padding-left: 0.4em;
   height: 2.5em !important;
@@ -574,18 +658,52 @@ export const InlineInput = styled.div `
   button.connected-btn{
     background-color: white !important;
   }
+`;
 
+export const HiddenInput = styled.input `
+    padding: 7px;
+    background-color: transparent !important;
+    outline: none !important;
+    border: none;
+    width: fill-available;
+    height: 2.5em !important;
+    margin-right: 0.3em;
+
+  &:focus{
+    background-color: white !important;
+    border: 0px solid #d6d6d6;
+  }
 `;
 
 export const Textarea = styled.textarea `
   background-color: white !important;
   outline: none !important;
-  border: ${(props) => props.error ? "1px solid red" : "1px solid #d6d6d6"};
+  border: ${(props) => props.error ? "1px solid red" : "0px solid #d6d6d6"};
   width: ${(props) => props.width ? props.width : "auto"};
   padding-left: 0.4em;
 
   &:focus{
     border: 1px solid ${basicBlueColour} !important;
+  }
+`;
+
+export const HiddenTextarea = styled.textarea `
+    height: 2.5em !important;
+    padding: 7px;
+    background-color: white !important;
+    outline: none !important;
+    border: ${(props) => props.error ? "1px solid red" : "0px solid #d6d6d6"};
+    width: ${(props) => props.width ? props.width : "auto"};
+    margin-right: 0.3em;
+
+::placeholder{
+  color: ${basicBlueColour};
+}
+
+  &:focus{
+    background-color: white !important;
+    border: 0px solid #d6d6d6;
+    height: 4em !important;
   }
 `;
 
@@ -609,7 +727,6 @@ export const Sort = styled.div`
     margin-right: 0.6em;
   }
 `;
-
 
 export const GroupButton = styled.button `
   width: -webkit-fill-available;
@@ -665,6 +782,7 @@ export const UserEntry = styled.div`
     display: inline-block;
   }
   label.name {
+    color: black;
   display: block;
   font-weight: 400;
   }
@@ -682,7 +800,8 @@ export const UserEntry = styled.div`
 
 export const CommentContainer = styled.div`
   align-items: center;
-  margin-bottom: 0.5em;
+  padding-top: 0.6em;
+  border-top: 1px solid #d6d6d6;
 
   div {
     display: flex;
@@ -692,12 +811,13 @@ export const CommentContainer = styled.div`
   img.avatar{
     width: 32px;
     height: 32px;
+    border-radius: 16px;
   }
 
   label.name {
   display: block;
-  font-weight: 400;
-  color: ${basicBlueColour};
+  font-weight: 500;
+  color: black;
   margin-left: 0.6em;
   }
 
@@ -717,10 +837,13 @@ export const FileContainer = styled.div`
   display: inline-block;
   align-items: center;
   line-height: 1.6em;
-  margin-right: 1em;
+  margin-right: 0.6em;
   margin-bottom: 0.6em;
+  border-right: 1px solid ${basicBlueColour};
+  padding-right: 0.6em;
   a{
     display: inline;
+    text-decoration: none;
   }
   button{
     display: inline;
