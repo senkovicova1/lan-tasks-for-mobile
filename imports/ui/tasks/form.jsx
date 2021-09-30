@@ -36,6 +36,7 @@ import {
   Form,
   FormTable,
   TitleInput,
+  TitleCheckbox,
   Input,
   InlineInput,
   HiddenInput,
@@ -184,7 +185,7 @@ export default function TaskForm( props ) {
   document.onkeydown = function (e) {
     e = e || window.event;
     if (e.which === 13 || e.keyCode === 13){
-      if (newSubtaskName.length > 0){
+      if (openNewSubtask){
         const newSubtask = {
           name: newSubtaskName,
           task: taskId,
@@ -207,7 +208,17 @@ export default function TaskForm( props ) {
     <Form>
       <ButtonRow>
         {onCancel &&
-          <FullButton right={true} width={"150px"} colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language].cancel}</FullButton>
+          <LinkButton
+            onClick={(e) => {e.preventDefault(); onCancel()}}
+            style={{border: "1px solid #0078d4", borderRadius: "2em", width: "2.5em"}}
+            >
+            <img
+              className="icon"
+              style={{ margin: "0px", marginLeft: "auto", marginRight: "auto"}}
+              src={CloseIcon}
+              alt="Close icon not found"
+              />
+          </LinkButton>
         }
         <FullButton
           colour=""
@@ -235,7 +246,7 @@ export default function TaskForm( props ) {
       </ButtonRow>
 
       <section className="attribute">
-        <TitleInput
+        <TitleCheckbox
           id={`task-checked`}
           type="checkbox"
           checked={closed}
@@ -277,7 +288,9 @@ export default function TaskForm( props ) {
             alt="Empty star icon not found"
             />
         }
-        Important
+        <span style={{marginLeft: "10px"}}>
+          Important
+        </span>
       </LinkButton>
       </section>
 
@@ -519,8 +532,6 @@ export default function TaskForm( props ) {
                         />
                     </LinkButton>
 
-                  {
-                    newSubtaskName.length > 0 &&
                     <LinkButton
                       onClick={(e) => {
                         e.preventDefault();
@@ -543,7 +554,6 @@ export default function TaskForm( props ) {
                         alt="Send icon not found"
                         />
                     </LinkButton>
-                  }
                   </InlineInput>
                 }
             </List>

@@ -287,7 +287,7 @@ export const LinkButton = styled.button `
   height: 2.5em;
   background-color: ${(props) => props.searchButton ? "white" : "transparent" } !important;
   outline: none !important;
-  border: none !important;
+  border: none;
   line-height: 1em;
   display: flex;
   align-items: center;
@@ -486,13 +486,15 @@ export const Form = styled.form `
 
     input[type=file]{
       border: none;
+      color: #f6f6f6;
       background-color: transparent !important;
       padding: 0px;
-      content: "HI";
+      width: 100px;
 
       /* IE UPLOAD BUTTON STYLE: This attempts to alter the file upload button style in IE.  Keep in mind IE gives you limited design control but at least you can customize its upload button.*/
       ::-ms-browse { /* IE */
           display: inline-block;
+          vertical-align: -webkit-baseline-middle;
           margin: 0;
           padding: .2em .5em;
           padding: .2rem .5rem;
@@ -506,6 +508,7 @@ export const Form = styled.form `
       /* FIREFOX UPLOAD BUTTON STYLE */
       ::file-selector-button {/* firefox */
           display: inline-block;
+          vertical-align: -webkit-baseline-middle;
           margin: 0rem 1rem 0rem 0rem;
           padding: .18em .5em;
           padding: .18rem .5rem;
@@ -522,6 +525,7 @@ export const Form = styled.form `
       /* CHROME AND EDGE UPLOAD BUTTON STYLE */
       ::-webkit-file-upload-button { /* chrome and edge */
           display: inline-block;
+          vertical-align: -webkit-baseline-middle;
           margin: 0em;
           -webkit-appearance: button;
           text-align: center;
@@ -608,14 +612,45 @@ export const Color = styled.div`
   }
 `
 
-export const TitleInput = styled.input `
+export const TitleInput = styled.textarea `
   background-color: transparent !important;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  resize: none;
+  margin-top: 0.6em;
   font-size: 2em;
   font-weight: 300;
   height: 2em;
   outline: none !important;
   border: none !important;
   width: auto;
+
+  &:focus{
+    background-color: white !important;
+    border: 1px solid ${basicBlueColour} !important;
+    padding: 0.3em;
+  }
+
+  &[type=checkbox]{
+    width: 1em;
+  }
+`;
+
+export const TitleCheckbox = styled.input `
+  background-color: transparent !important;
+  margin-top: 0.6em;
+  font-size: 2em;
+  font-weight: 300;
+  height: 2em;
+  outline: none !important;
+  border: none !important;
+  width: auto;
+
+  &:focus{
+    background-color: white !important;
+    border: 1px solid ${basicBlueColour};
+    padding: 0.3em;
+  }
 
   &[type=checkbox]{
     width: 1em;
@@ -844,12 +879,14 @@ export const FileContainer = styled.div`
   a{
     display: inline;
     text-decoration: none;
+    vertical-align: -webkit-baseline-middle;
   }
   button{
     display: inline;
     width: 1em;
     height: 1em;
     margin-left: 0.3em;
+    vertical-align: -webkit-baseline-middle;
   }
 `;
 
