@@ -1,29 +1,30 @@
 import React, {
   useState
 } from 'react';
-
 import {
   Meteor
 } from 'meteor/meteor';
-
 import {
   Accounts
 } from 'meteor/accounts-base';
 
-import Loader from "../other/loadingScreen";
-import AddUser from '../users/userForm';
+import AddUser from '/imports/ui/users/userForm';
+import Loader from "/imports/ui/other/loadingScreen";
 
 export default function SignInForm( props ) {
 
-  const { history, openLogIn } = props;
+  const {
+    history,
+    openLogIn
+  } = props;
   const [ errorMessage, setErrorMessage ] = useState( '' );
   const [ showLoading, setShowLoading ] = useState( false );
 
   const onSubmit = ( name, surname, avatar, colour, language, email, password ) => {
-    setShowLoading(true);
-    setErrorMessage("");
+    setShowLoading( true );
+    setErrorMessage( "" );
     createUser( name, surname, avatar, colour, language, email, password );
-    history.push("/all/list");
+    history.push( "/all/list" );
   };
 
   const createUser = ( name, surname, avatar, colour, language, email, password ) => {
@@ -37,14 +38,14 @@ export default function SignInForm( props ) {
         colour,
         language
       }
-    }, (error) => {
-      console.log(error);
-      setShowLoading(false);
-      if (error) {
-        if (error.reason === "Incorrect password." || error.reason === "User not found."){
-          setErrorMessage("Incorrect login details.");
+    }, ( error ) => {
+      console.log( error );
+      setShowLoading( false );
+      if ( error ) {
+        if ( error.reason === "Incorrect password." || error.reason === "User not found." ) {
+          setErrorMessage( "Incorrect login details." );
         } else {
-          setErrorMessage(error.reason);
+          setErrorMessage( error.reason );
         }
       }
     } );

@@ -4,9 +4,13 @@ import React, {
   useEffect,
 } from 'react';
 
-import { useSelector } from 'react-redux';
+import {
+  useSelector
+} from 'react-redux';
 
-import { FolderIcon } from  "/imports/other/styles/icons";
+import {
+  FolderIcon
+} from "/imports/other/styles/icons";
 
 import {
   List,
@@ -24,14 +28,16 @@ export default function FolderList( props ) {
   } = props;
 
   const userId = Meteor.userId();
-  const { search } = useSelector((state) => state.metadata.value);
-  const folders = useSelector((state) => state.folders.value);
+  const {
+    search
+  } = useSelector( ( state ) => state.metadata.value );
+  const folders = useSelector( ( state ) => state.folders.value );
 
-  const [ showClosed, setShowClosed ] = useState(false);
+  const [ showClosed, setShowClosed ] = useState( false );
 
-  const mySearchedFolders = useMemo(() => {
-    return folders.archived.filter(folder => folder.name.toLowerCase().includes(search.toLowerCase()));
-  }, [search, folders])
+  const mySearchedFolders = useMemo( () => {
+    return folders.archived.filter( folder => folder.name.toLowerCase().includes( search.toLowerCase() ) );
+  }, [ search, folders ] );
 
   return (
     <List>
@@ -52,7 +58,7 @@ export default function FolderList( props ) {
               >
               {folder.name}
             </span>
-            <span className="colour"  style={folder.colour ? {backgroundColor: folder.colour} : {}}></span>
+            <span className="colour" style={folder.colour ? {backgroundColor: folder.colour} : {}}></span>
           </ItemContainer>
         )
       }

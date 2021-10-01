@@ -14,7 +14,13 @@ export const addNewComment = ( author, task, dateCreated, body ) => {
 };
 
 export const editComment = ( commentId, author, task, dateCreated, body ) => {
-  let data = { commentId, author, task, dateCreated, body };
+  let data = {
+    commentId,
+    author,
+    task,
+    dateCreated,
+    body
+  };
   CommentsCollection.update( commentId, {
     $set: {
       ...data
@@ -22,7 +28,7 @@ export const editComment = ( commentId, author, task, dateCreated, body ) => {
   } )
 };
 
-export const removeComment = (commentId) => {
+export const removeComment = ( commentId ) => {
   CommentsCollection.remove( {
     _id: commentId
   } );

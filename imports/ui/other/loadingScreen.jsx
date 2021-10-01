@@ -8,7 +8,7 @@ import {
 
 import {
   LoadingScreen,
-} from "../../other/styles/styledComponents";
+} from "/imports/other/styles/styledComponents";
 
 export default function Loader( props ) {
   return (

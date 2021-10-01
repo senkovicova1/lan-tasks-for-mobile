@@ -2,14 +2,23 @@ body {
   background-color: #f6f6f6 !important;
 }
 
-body img.icon{
+img.icon{
     height: 1em;
     width: 1em;
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
 }
 
-body img.star{
+img.star{
   filter: invert(98%) sepia(89%) saturate(7455%) hue-rotate(318deg) brightness(107%) contrast(91%) !important;
 }
+
+img.avatar {
+  width:32px;
+  height: 32px;
+  border-radius: 50px;
+  margin-right: 0.6em;
+}
+
 .modal-dialog{
   max-width: 800px !important;
   position: relative;
@@ -24,7 +33,7 @@ body img.star{
 }
 
 .modal-body{
-  padding: 20px !important;
+  padding: 0px !important;
 }
 @media all and (max-width: 800px) {
   .modal-dialog{

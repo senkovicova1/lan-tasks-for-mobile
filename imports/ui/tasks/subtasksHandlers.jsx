@@ -14,7 +14,12 @@ export const addNewSubtask = ( name, closed, task, dateCreated ) => {
 };
 
 export const editSubtask = ( subtaskId, name, closed, task, dateCreated ) => {
-  let data = { name, closed, task, dateCreated };
+  let data = {
+    name,
+    closed,
+    task,
+    dateCreated
+  };
   SubtasksCollection.update( subtaskId, {
     $set: {
       ...data
@@ -22,7 +27,7 @@ export const editSubtask = ( subtaskId, name, closed, task, dateCreated ) => {
   } )
 };
 
-export const removeSubtask = (subtaskId) => {
+export const removeSubtask = ( subtaskId ) => {
   SubtasksCollection.remove( {
     _id: subtaskId
   } );

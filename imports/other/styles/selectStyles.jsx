@@ -49,6 +49,7 @@ export const selectStyle = {
     borderRadius: 0,
     font: '14px Segoe UI',
     color: '#333',
+    width: "100%",
   } ),
   input: base => ( {
     ...base,

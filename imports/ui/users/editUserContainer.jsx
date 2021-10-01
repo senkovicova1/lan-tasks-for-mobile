@@ -9,16 +9,21 @@ export default function EditUserContainer( props ) {
     user,
   } = props;
 
-
   const editUser = ( name, surname, avatar, colour, language ) => {
-    let data = {name, surname, avatar, colour, language};
+    let data = {
+      name,
+      surname,
+      avatar,
+      colour,
+      language
+    };
 
-    Meteor.users.update(user._id, {
+    Meteor.users.update( user._id, {
       $set: {
         profile: data
       }
-    });
-    history.push("/all/list");
+    } );
+    history.push( "/all/list" );
   };
 
   const removeUser = ( userId ) => {
@@ -28,13 +33,12 @@ export default function EditUserContainer( props ) {
       } );
     }
   }
-/*
-    const changeEmail = (email) => {
-        const newEmail = [{address: email, verified: false}];
-        Meteor.users.update({_id: user._id}, {$set: {emails: newEmail }});
-    }*/
 
   return (
-        <UserForm {...user} onSubmit={editUser} onCancel={() => props.history.push("/all/list")} />
+      <UserForm
+        {...user}
+        onSubmit={editUser}
+        onCancel={() => props.history.push("/all/list")}
+        />
   );
 };

@@ -1,10 +1,12 @@
 import React, {
+  useMemo,
   useState,
-  useMemo
 } from 'react';
+
 import {
   useSelector
 } from 'react-redux';
+
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -26,48 +28,54 @@ export default function TasksContainer( props ) {
     history,
   } = props;
 
-  const { folderID } = match.params;
-  const { layout } = useSelector( ( state ) => state.metadata.value );
+  const {
+    folderID
+  } = match.params;
+
+  const {
+    layout
+  } = useSelector( ( state ) => state.metadata.value );
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
-  const language = useMemo(() => {
+
+  const language = useMemo( () => {
     return user.profile.language;
-  }, [user]);
+  }, [ user ] );
 
-  const folders = useSelector((state) => state.folders.value);
-  const folder = useMemo(() => {
-    let group =  folders.active;
-    if (match.path.includes("archived")){
-      group =  folders.archived;
+  const folders = useSelector( ( state ) => state.folders.value );
+  const folder = useMemo( () => {
+    let group = folders.active;
+    if ( match.path.includes( "archived" ) ) {
+      group = folders.archived;
     }
-    if (!folderID || folderID === "all"){
-      return allMyTasksFolder(language);
+    if ( !folderID || folderID === "all" ) {
+      return allMyTasksFolder( language );
     }
-    const maybeFolder = group.find(folder => folder._id === folderID);
-    return  maybeFolder;
-  }, [folders, folderID]);
+    const maybeFolder = group.find( folder => folder._id === folderID );
+    return maybeFolder;
+  }, [ folders, folderID ] );
 
-  const [chosenTask, setChosenTask] = useState(null);
+  const [ chosenTask, setChosenTask ] = useState( null );
 
-  if (!folder){
+  if ( !folder ) {
     return <Loader />;
   }
 
-  if (window.innerWidth <= 820 || layout === PLAIN){
-        return  (<TasksList
-                  {...props}
-                  setParentChosenTask={setChosenTask}
-                  chosenTask={chosenTask}
-                  folder={folder}
-                  />);
-    }
-
+  if ( window.innerWidth <= 820 || layout === PLAIN ) {
+    return (
+      <TasksList
+          {...props}
+          setParentChosenTask={setChosenTask}
+          chosenTask={chosenTask}
+          folder={folder}
+          />
+    );
+  }
 
   return (
     <div style={{display: "flex", height: "-webkit-fill-available"}}>
-      <div style={{width: "100%", position: "relative",
-    padding: "20px 15px"}}>
+      <div style={{width: "100%", position: "relative", padding: "20px 15px"}}>
         <TasksList
           {...props}
           setParentChosenTask={setChosenTask}
@@ -75,16 +83,15 @@ export default function TasksContainer( props ) {
           folder={folder}
           />
       </div>
-      <div style={{width: "80%", backgroundColor: "white", height: "-webkit-fill-available", position: "relative",
-    padding: "5px 15px"}}>
+      <div style={{width: "80%", backgroundColor: "white", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>
         {
           chosenTask &&
-          <EditTask {...props} task={chosenTask} setParentChosenTask={setChosenTask}/>
+          <EditTask {...props} taskId={chosenTask} setParentChosenTask={setChosenTask}/>
         }
         {
           !chosenTask &&
-        <div style={{padding: "15px"}}><h2>No chosen task</h2> </div>
-      }
+          <div style={{padding: "15px"}}><h2>No chosen task</h2> </div>
+        }
       </div>
     </div>
   );

@@ -16,6 +16,7 @@ export const MainPage = styled.div `
   font-size: 1em;
   text-align: left;
   line-height: 1.5em;
+  overflow: hidden !important;
 
   h1, h2, h3, h4 {
     font-weight: lighter;
@@ -25,10 +26,6 @@ export const MainPage = styled.div `
     font-size: 2em;
   }
 
-  ul {
-    list-style-type: none;
-    padding: 0px;
-  }
   label {
     margin: 0px;
   }
@@ -37,17 +34,6 @@ export const MainPage = styled.div `
     color: #d6d6d6;
     margin: 0px;
     opacity: 1;
-  }
-
-  img.icon {
-    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
-  }
-
-  img.avatar {
-    width:32px;
-    height: 32px;
-    border-radius: 50px;
-    margin-right: 0.6em;
   }
 `;
 
@@ -58,48 +44,37 @@ export const MobilePageHeader = styled.header `
   position: relative;
   height: 50px;
   background-color: ${basicBlueColour};
-    padding: 0px ${inputOffset};
-    i {
-      font-size: 1.5em;
-    }
-    img.icon {
-      filter: invert(1);
-      margin-right: 0px;
-    }
-    img.search-icon{
-      height: 1em;
-      width: 1em;
-    }
-    button{
-      i{
-        margin: 0px !important;
-      }
-      margin-right: 1em;
-    }
-    button:last-of-type{
-        margin: 0px !important;
-    }
+  padding: 0px ${inputOffset};
 
-    h1 {
-      height: 32px;
-      padding-left: 0em;
-      display: inline;
-      font-size: 1.5em;
-      color: white;
-      margin-bottom: 0em;
-    }
+  img.icon {
+    filter: invert(1) !important;
+    margin-right: 0px;
+  }
 
-    div.search-section{
+  button{
+    margin-right: 1em;
+  }
+  button:last-of-type{
+      margin: 0px !important;
+  }
+
+  h1 {
+    height: 32px;
+    padding-left: 0em;
+    display: inline;
+    font-size: 1.5em;
+    color: white;
+    margin-bottom: 0em;
+  }
+
+  div.search-section{
+    width: -webkit-fill-available;
+    input{
       width: -webkit-fill-available;
-      input{
-        width: -webkit-fill-available;
-        border: none !important;
-        outline: none !important;
-      }
-      input:focus{
-        border: none !important;
-      }
+      border: none !important;
+      outline: none !important;
     }
+  }
 `;
 
 export const PageHeader = styled.header `
@@ -115,67 +90,73 @@ export const PageHeader = styled.header `
     align-items: center;
     display: flex;
 
-       overflow: hidden;
-       text-overflow: ellipsis;
-       white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+  }
 
-    button{
-      margin-right: 1em;
-      @media all and (max-width: 799px), @media handheld {
-        margin-right: 0.3em;
-      }
+  section.header-section button{
+    margin-right: 1em;
+    @media all and (max-width: 799px), @media handheld {
+      margin-right: 0.3em;
     }
-    button:last-of-type{
-      margin: 0px !important;
-    }
+  }
 
-    h1 {
-           overflow: hidden;
-           text-overflow: ellipsis;
-           white-space: nowrap;
-      height: 32px;
-      padding-left: 0em;
-      display: inline;
-      font-size: 1.5em;
-      color: white;
-      margin-bottom: 0em;
-      margin-left: 1em;
-    }
+  button:last-of-type{
+    margin: 0px !important;
+  }
 
-    img.icon {
-      filter: invert(1);
-      margin-right: 0px;
-    }
+ section.header-section img.icon {
+    filter: invert(1);
+    margin-right: 0px;
+  }
+
+  h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 32px;
+    padding-left: 0em;
+    display: inline;
+    font-size: 1.5em;
+    color: white;
+    margin-bottom: 0em;
+    margin-left: 1em;
   }
 
   div.search-section{
     width: -webkit-fill-available;
-    input{
-      width: -webkit-fill-available;
-      border: none !important;
-      outline: none !important;
-    }
-    input:focus{
-      border: none !important;
-    }
+  }
+
+  div.search-section  input{
+    width: -webkit-fill-available;
+    border: none !important;
+    outline: none !important;
+  }
+
+  div.search-section input:focus{
+    border: none !important;
+  }
 `;
 
 export const SearchSection = styled.section `
   display: flex;
   width: 800px !important;
+
   input{
     width: -webkit-fill-available;
     border: none !important;
     outline: none !important;
   }
+
   input:focus{
     border: none !important;
   }
 
-    img.search-icon{
-      height: 1em;
-      width: 1em;
-    }
+  img.search-icon{
+    height: 1em;
+    width: 1em;
+  }
 
   button:last-of-type {
     margin-left: 0em !important;
@@ -192,34 +173,33 @@ export const Content = styled.main `
   display: block;
   overflow-y: auto;
   height: calc(100vh - 50px);
+
   @media all and (max-width: 799px), @media handheld {
     width: 100%;
   }
+
   @media all and (min-width: 800px) and (max-width: 1299px){
-    width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    padding-left: calc(50vw - 400px);
+    padding-right: calc(50vw - 400px);
 
     ${(props) =>
       props.columns &&
       `
-        width: 100%;
-        margin-left: ${props.withSidebar ? sidebarWidthWeb : "auto"};
-        margin-right: auto;
+        padding-left: ${props.withSidebar ? `${sidebarWidthWeb}` : "0px"};
+        padding-right: 0px;
       `
     }
   }
+
   @media all and (min-width: 1300px) {
-    width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    padding-left: calc(50vw - 400px);
+    padding-right: calc(50vw - 400px);
 
     ${(props) =>
       props.columns &&
       `
-        width: ${props.withSidebar ? `calc(100vw - ${sidebarWidthWeb})` : `100%`};
-        margin-left: ${props.withSidebar ? sidebarWidthWeb : "auto"};
-        margin-right: auto;
+        padding-left: ${props.withSidebar ? `${sidebarWidthWeb}` : "0px"};
+        padding-right: 0px;
       `
     }
   }
@@ -229,36 +209,44 @@ export const ButtonRow = styled.section `
   display: flex;
   margin-top: 0em !important;
   margin-bottom: 0em;
+
   button:first-of-type{
     margin-right: 0.5em;
   }
+
   button:last-of-type{
     margin-left: 0.5em;
   }
 `;
 
 export const ButtonCol = styled.section `
-  margin-top: 0em !important;
-    button:not(last-of-type) {
-      margin-bottom: 1.5em;
-    }
+  button{
+    margin: 0em 0em 1.5em 0em;
+  }
+
+  button:last-of-type{
+    margin-bottom: 0em;
   }
 `;
 
 export const Sidebar = styled.section `
   background-color: ${backgroundColour};
   position: absolute;
+  overflow: hidden;
   left: 0;
+
   @media all and (max-width: 799px), @media handheld  {
     box-shadow: 5px 0px 13px 0px slategrey;
     width: ${sidebarWidthMobile};
   }
+
   @media all and (min-width: 800px){
     box-shadow: none;
     border-right: 0px solid #d6d6d6;
     width: ${sidebarWidthWeb};
     background-color: white;
   }
+
   top: 50px;
   height: calc(100vh - 50px);
   z-index: 3;
@@ -271,9 +259,10 @@ export const Sidebar = styled.section `
     height: 3em;
     padding: 10px ${inputOffset};
     text-decoration: none !important;
-    i, .icon{
-      margin-right: 10px;
-    }
+  }
+
+  a .icon{
+    margin-right: 10px;
   }
 
   a.active {
@@ -284,7 +273,7 @@ export const Sidebar = styled.section `
 export const LinkButton = styled.button `
   color: ${(props) => props.font ? props.font : basicBlueColour};
   padding: 0px;
-  height: 2.5em;
+  height: ${(props) => props.height === "fit" ? "fit-content" : "2.5em"};
   background-color: ${(props) => props.searchButton ? "white" : "transparent" } !important;
   outline: none !important;
   border: none;
@@ -306,6 +295,29 @@ export const LinkButton = styled.button `
   }
 `;
 
+export const CircledButton = styled.button `
+  color: ${(props) => props.font ? props.font : basicBlueColour};
+  border: 1px solid #0078d4;
+  border-radius: 2em;
+  margin-left: ${(props) => props.left ? "auto" : ""};
+
+  width: 2em;
+  height: 2em;
+  background-color: transparent !important;
+  outline: none !important;
+
+  display: flex;
+  align-items: center;
+
+ .icon {
+    filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+
+    margin: 0px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+`;
+
 export const FullButton = styled.button `
   width: ${(props) => props.width ? props.width : "100%" };
   color: white;
@@ -319,10 +331,9 @@ export const FullButton = styled.button `
   height: 2em;
   align-items: center;
   padding: 0px 0.5em;
-  i, .icon {
-    margin-right: 0.3em;
-  }
+
   .icon{
+    margin-right: 0.3em;
     filter: invert(1) !important;
   }
 `;
@@ -338,22 +349,25 @@ export const FloatingButton = styled.button `
   align-items: center;
   position: absolute;
   bottom: 40px;
-  ${(props) => props.left &&
-  `
-  left: ${inputOffset};
-  `
-    }
-    ${(props) => !props.left &&
-  `
-  right: ${inputOffset};
-  `
-  }
   display: flex;
+
+  ${(props) => props.left &&
+    `
+    left: ${inputOffset};
+    `
+  }
+
+  ${(props) => !props.left &&
+    `
+    right: ${inputOffset};
+    `
+  }
 
   span{
     vertical-align: text-bottom;
     margin-left: 0.3em;
   }
+
   .icon{
     filter: invert(1) !important;
   }
@@ -371,10 +385,6 @@ export const List = styled.section `
   }
 
   button.item{
-    i {
-      width: 1.5em;
-      margin-right: 10px;
-    }
     height: 3em;
   }
 
@@ -387,6 +397,7 @@ export const List = styled.section `
   div.sort>label, div.sort>.sort-by{
     margin-right: 0.6em;
   }
+
   div.sort>select{
     border: 1px solid ${basicBlueColour} !important;
     outline: none !important;
@@ -420,7 +431,7 @@ export const ItemContainer = styled.section `
     width: calc(100% - 6em);
   }
 
-  img.icon:not(.star){
+  .icon:not(.star){
     filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
   }
 
@@ -440,8 +451,26 @@ export const ItemContainer = styled.section `
 `;
 
 export const Form = styled.form `
-  padding: 1em ${inputOffset};
+  padding: 1em;
   width: -webkit-fill-available;
+
+  section{
+    margin: 0em 0em 1.5em 0em;
+    padding: ${(props) => props.excludeBtn ? "0em 0.7em" : "0px"};
+  }
+
+  section.fit{
+    height: fit-content;
+  }
+
+  section.inline{
+    display: flex;
+    align-items: center;
+  }
+
+  section:last-of-type {
+    margin: 0em !important;
+  }
 
   h1{
     font-size: 1.5em;
@@ -457,137 +486,111 @@ export const Form = styled.form `
     font-weight: 500;
   }
 
-  section.attribute {
+  .icon-container{
+    height: 40px;
     display: flex;
-    align-items: flex-start;
-    margin: 0em 0em 1.5em 0em;
+    align-items: center;
+    margin-right: 0.6em;
+  }
 
-    span.icon-container{
-      height: 40px;
-      display: flex;
-      align-items: center;
-      margin-right: 0.6em;
-    }
+  .label-icon{
+    width: 2em;
+    height: 1.3em;
+  }
 
-    img.label-icon{
-      width: 2em;
-      height: 1.3em;
-    }
+  input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
+    width: 100%;
+  }
 
-    input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
-      width: 100%;
-    }
+  input[type=color]{
+    padding: 0px;
+  }
 
-    input[type=color]{
-        border: none;
-        background-color: transparent !important;
-        padding: 0px;
-      }
+  input[type=checkbox] + label{
+    vertical-align: middle;
+  }
 
-    input[type=file]{
+  input[type=checkbox]{
+    margin-right: 5px;
+    width: 1em;
+    height: 1em;
+  }
+
+  input[type=file]{
+    border: none;
+    color: #f6f6f6;
+    background-color: transparent !important;
+    padding: 0px;
+    width: 100px;
+
+    /* IE UPLOAD BUTTON STYLE: This attempts to alter the file upload button style in IE.  Keep in mind IE gives you limited design control but at least you can customize its upload button.*/
+    ::-ms-browse { /* IE */
+      display: inline-block;
+      vertical-align: -webkit-baseline-middle;
+      margin: 0;
+      padding: .2em .5em;
+      padding: .2rem .5rem;
+      text-align: center;
+      outline: none;
       border: none;
-      color: #f6f6f6;
-      background-color: transparent !important;
-      padding: 0px;
-      width: 100px;
-
-      /* IE UPLOAD BUTTON STYLE: This attempts to alter the file upload button style in IE.  Keep in mind IE gives you limited design control but at least you can customize its upload button.*/
-      ::-ms-browse { /* IE */
-          display: inline-block;
-          vertical-align: -webkit-baseline-middle;
-          margin: 0;
-          padding: .2em .5em;
-          padding: .2rem .5rem;
-          text-align: center;
-          outline: none;
-          border: none;
-          background: #fff;
-          white-space: nowrap;
-          cursor: pointer;
-      }
-      /* FIREFOX UPLOAD BUTTON STYLE */
-      ::file-selector-button {/* firefox */
-          display: inline-block;
-          vertical-align: -webkit-baseline-middle;
-          margin: 0rem 1rem 0rem 0rem;
-          padding: .18em .5em;
-          padding: .18rem .5rem;
-          -webkit-appearance: button;
-          text-align: center;
-          border-radius: .1rem 0rem 0rem .1rem;
-          outline: none;
-          border: none;
-          border-right: 2px solid #bbb;
-          background: #eee;
-          white-space: nowrap;
-          cursor: pointer;
-      }
-      /* CHROME AND EDGE UPLOAD BUTTON STYLE */
-      ::-webkit-file-upload-button { /* chrome and edge */
-          display: inline-block;
-          vertical-align: -webkit-baseline-middle;
-          margin: 0em;
-          -webkit-appearance: button;
-          text-align: center;
-          border-radius: 0em;
-          outline: none;
-          border: none;
-          color: ${basicBlueColour};
-          background: ${lightBlueColour};
-          margin-right: 0.3em;
-          white-space: nowrap;
-          cursor: pointer;
-      }
+      background: #fff;
+      white-space: nowrap;
+      cursor: pointer;
     }
-
-    input[type=checkbox] + label{
-        vertical-align: middle;
-      }
-
-    input[type=checkbox]{
-      margin-right: 5px;
+    /* FIREFOX UPLOAD BUTTON STYLE */
+    ::file-selector-button {/* firefox */
+      display: inline-block;
+      vertical-align: -webkit-baseline-middle;
+      margin: 0rem 1rem 0rem 0rem;
+      padding: .18em .5em;
+      padding: .18rem .5rem;
+      -webkit-appearance: button;
+      text-align: center;
+      border-radius: .1rem 0rem 0rem .1rem;
+      outline: none;
+      border: none;
+      border-right: 2px solid #bbb;
+      background: #eee;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    /* CHROME AND EDGE UPLOAD BUTTON STYLE */
+    ::-webkit-file-upload-button { /* chrome and edge */
+      display: inline-block;
+      vertical-align: -webkit-baseline-middle;
+      margin: 0em;
+      -webkit-appearance: button;
+      text-align: center;
+      border-radius: 0em;
+      outline: none;
+      border: none;
+      color: ${basicBlueColour};
+      background: ${lightBlueColour};
+      margin-right: 0.3em;
+      white-space: nowrap;
+      cursor: pointer;
     }
   }
-  section:last-of-type, section:first-of-type  {
-    margin: 0em !important;
+
+  .color-picker label{
+      display: block;
   }
 
-    section.color-picker{
-      label{
-        display: block;
-      }
-
-      div.colours{
-        display: flex;
-        margin-bottom: 0.6em;
-        justify-content: space-between;
-        align-items: center;
-      }
+  .color-picker .colours{
+      display: flex;
+      margin-bottom: 0.6em;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    section.subtasks{
-      margin: 0em 0em 1.5em 0em;
-    }
+  .files{
+    display: inline;
+  }
 
-    section.comments {
-      img.label-icon{
-        width: 2em;
-        height: 1.3em;
-      }
-
-      input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
-        width: 100%;
-      }
-    }
-
-    div.files{
-      display: inline;
-    }
-
-    div.spinner{
-      height: 1em;
-      width: 1em;
-    }
+  .spinner{
+    height: 1em;
+    width: 1em;
+  }
 `;
 
 export const Color = styled.div`
@@ -617,10 +620,9 @@ export const TitleInput = styled.textarea `
   overflow-x: hidden;
   overflow-y: hidden;
   resize: none;
-  margin-top: 0.6em;
-  font-size: 2em;
+  font-size: 1.5em;
   font-weight: 300;
-  height: 2em;
+  height: 40px;
   outline: none !important;
   border: none !important;
   width: auto;
@@ -628,7 +630,7 @@ export const TitleInput = styled.textarea `
   &:focus{
     background-color: white !important;
     border: 1px solid ${basicBlueColour} !important;
-    padding: 0.3em;
+    padding-left: 0.3em;
   }
 
   &[type=checkbox]{
@@ -638,7 +640,6 @@ export const TitleInput = styled.textarea `
 
 export const TitleCheckbox = styled.input `
   background-color: transparent !important;
-  margin-top: 0.6em;
   font-size: 2em;
   font-weight: 300;
   height: 2em;
@@ -731,9 +732,9 @@ export const HiddenTextarea = styled.textarea `
     width: ${(props) => props.width ? props.width : "auto"};
     margin-right: 0.3em;
 
-::placeholder{
-  color: ${basicBlueColour};
-}
+  ::placeholder{
+    color: ${basicBlueColour};
+  }
 
   &:focus{
     background-color: white !important;
@@ -751,11 +752,13 @@ export const Sort = styled.div`
   top: 50px;
   right: 20px;
   padding: ${inputOffset};
+
   span{
     display: flex;
     align-items: center;
     line-height: 2em;
   }
+
   input{
     height: 1.3em;
     width: 1.3em;
@@ -786,7 +789,6 @@ export const LoginContainer = styled.div`
     width: 500px;
   }
 
-  height: calc(100vh - 50px);
   margin: auto;
 
   &>div{
@@ -796,6 +798,10 @@ export const LoginContainer = styled.div`
       position: relative;
       display: flex;
       align-items: center;
+  }
+
+  .signIn{
+    height: calc(100vh - 50px);
   }
 
   h1 {
@@ -813,21 +819,24 @@ export const UserEntry = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 0.5em;
+
   div {
     display: inline-block;
   }
+
   label.name {
     color: black;
-  display: block;
-  font-weight: 400;
+    display: block;
+    font-weight: 400;
   }
 
   label.role {
-  display: block;
-  font-weight: 400;
-  color: ${basicBlueColour};
-  font-size: 0.9em;
+    display: block;
+    font-weight: 400;
+    color: ${basicBlueColour};
+    font-size: 0.9em;
   }
+
   button{
     margin-left: auto;
   }
@@ -850,16 +859,16 @@ export const CommentContainer = styled.div`
   }
 
   label.name {
-  display: block;
-  font-weight: 500;
-  color: black;
-  margin-left: 0.6em;
+    display: block;
+    font-weight: 500;
+    color: black;
+    margin-left: 0.6em;
   }
 
   p.body {
-  display: block;
-  font-weight: 400;
-  padding: 0.6em 0em;
+    display: block;
+    font-weight: 400;
+    padding: 0.6em 0em;
   }
 
   span.dateCreated{
@@ -876,11 +885,13 @@ export const FileContainer = styled.div`
   margin-bottom: 0.6em;
   border-right: 1px solid ${basicBlueColour};
   padding-right: 0.6em;
+
   a{
     display: inline;
     text-decoration: none;
     vertical-align: -webkit-baseline-middle;
   }
+
   button{
     display: inline;
     width: 1em;
@@ -899,11 +910,13 @@ export const LoadingScreen = styled.div`
   height: 100%;
   display: flex;
   align-items: center;
+
   div{
     margin-left: auto;
     margin-right: auto;
-    span.sr-only{
-      display: none;
-    }
+  }
+
+  div span.sr-only{
+    display: none;
   }
 `;

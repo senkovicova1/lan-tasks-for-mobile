@@ -3,20 +3,18 @@ import React, {
   useMemo,
   useEffect,
 } from 'react';
-
+import {
+  useSelector
+} from 'react-redux';
 import Select from 'react-select';
 
 import {
+  DeleteIcon,
+  UserIcon
+} from "/imports/other/styles/icons";
+import {
   selectStyle
 } from '/imports/other/styles/selectStyles';
-
-import { DeleteIcon, UserIcon } from  "/imports/other/styles/icons";
-
-import { useSelector } from 'react-redux';
-import {
-  translations
-} from '/imports/other/translations.jsx';
-
 import {
   Form,
   Input,
@@ -27,26 +25,12 @@ import {
   Color
 } from "/imports/other/styles/styledComponents";
 
-const colours = [
-  "#A62B2B",
-  "#C92685",
-  "#A063A1",
-  "#5807BB",
-
-  "#201DED",
-  "#0078D4",
-  "#2189AB",
-  "#45BFB1",
-
-  "#28D27A",
-  "#1ADB27",
-  "#92CA2B",
-  "#D3D70F",
-
-  "#FFD12B",
-  "#E07F10",
-  "#E01010",
-]
+import {
+  colours
+} from '/imports/other/constants';
+import {
+  translations
+} from '/imports/other/translations';
 
 export default function FolderForm( props ) {
 
@@ -63,9 +47,9 @@ export default function FolderForm( props ) {
     location
   } = props;
 
-const dbUsers = useSelector((state) => state.users.value);
+  const dbUsers = useSelector( ( state ) => state.users.value );
 
-const userId = Meteor.userId();
+  const userId = Meteor.userId();
 
   const [ name, setName ] = useState( "" );
   const [ archived, setArchived ] = useState( false );
@@ -73,60 +57,71 @@ const userId = Meteor.userId();
   const [ users, setUsers ] = useState( [] );
 
   useEffect( () => {
+
     if ( folderName ) {
       setName( folderName );
     } else {
       setName( "" );
     }
+
     if ( folderArchived ) {
       setArchived( folderArchived );
     } else {
       setArchived( false );
     }
+
     if ( folderColor ) {
       setColor( folderColor );
     } else {
-      setColor(  "#0078D4"  );
+      setColor( "#0078D4" );
     }
 
     if ( folderUsers ) {
       setUsers( folderUsers );
     } else {
-      setUsers( [{_id: userId, admin: true}] );
+      setUsers( [ {
+        _id: userId,
+        admin: true
+      } ] );
     }
 
   }, [ folderName, folderArchived, folderColor, folderUsers ] );
 
-  const usersWithRights = useMemo(() => {
-   return users.map(user =>
-        {
-        return {...dbUsers.find(u => u._id === user._id), ...user};
-      });
-  }, [users, dbUsers]);
+  const usersWithRights = useMemo( () => {
+    return users.map( user => {
+      return {
+        ...dbUsers.find( u => u._id === user._id ),
+        ...user
+      };
+    } );
+  }, [ users, dbUsers ] );
 
-  const usersToSelect = useMemo(() => {
-    return dbUsers.filter(user => !users.find(u => u._id === user._id));
-  }, [dbUsers, users]);
+  const usersToSelect = useMemo( () => {
+    return dbUsers.filter( user => !users.find( u => u._id === user._id ) );
+  }, [ dbUsers, users ] );
 
-  const language = useMemo(() => {
-    return dbUsers.find(user => user._id === userId).language;
-  }, [userId, dbUsers]);
+  const language = useMemo( () => {
+    return dbUsers.find( user => user._id === userId ).language;
+  }, [ userId, dbUsers ] );
 
-  document.onkeydown = function (e) {
+  document.onkeydown = function( e ) {
     e = e || window.event;
-    switch (e.which || e.keyCode) {
-      case 13 :
-      if (name.length > 0){
-        onSubmit(
-           name,
-           colour,
-           archived,
-           users.map(user => ({_id: user._id, admin: user.admin}))
-        );
-      }
-      break;
+    switch ( e.which || e.keyCode ) {
+      case 13:
+        if ( name.length > 0 ) {
+          onSubmit(
+            name,
+            colour,
+            archived,
+            users.map( user => ( {
+              _id: user._id,
+              admin: user.admin
+            } ) )
+          );
+        }
+        break;
     }
-  }
+  };
 
   return (
     <Form>
@@ -183,51 +178,52 @@ const userId = Meteor.userId();
       </section>
 
       <section>
-          <label htmlFor="users">{translations[language].users}</label>
-          {
-            usersWithRights.map(user =>
-              <UserEntry key={user._id}>
-                {user.avatar &&
-              <img className="avatar" src={user.img} alt="" />
-            }
-            {!user.avatar &&
-              <img className="avatar" src={UserIcon} alt="" />
-            }
+        <label htmlFor="users">{translations[language].users}</label>
+        {
+          usersWithRights.map(user => (
+            <UserEntry key={user._id}>
+              {user.avatar &&
+                <img className="avatar" src={user.img} alt="" />
+              }
+              {!user.avatar &&
+                <img className="avatar" src={UserIcon} alt="" />
+              }
               <div>
-              <label className="name">
-              {`${user.name} ${user.surname}`}
-            </label>
-            <label className="role" onClick={() => {
-              const newUsers = users.map(u => {
-                if (u._id !== user._id){
-                  return {...u};
-                }
-                if (u.admin){
-                  return {...u, admin: false};
-                }
-                return {...u, admin: true};
-              })
-              setUsers(newUsers);
-              }}
-              >
-              {user.admin ? translations[language].admin : translations[language].user}
-              { user._id !== userId && ` (Click to change to ${user.admin ? translations[language].user : translations[language].admin})` }
-            </label>
-          </div>
+                <label className="name">
+                  {`${user.name} ${user.surname}`}
+                </label>
+                <label className="role" onClick={() => {
+                    const newUsers = users.map(u => {
+                      if (u._id !== user._id){
+                        return {...u};
+                      }
+                      if (u.admin){
+                        return {...u, admin: false};
+                      }
+                      return {...u, admin: true};
+                    })
+                    setUsers(newUsers);
+                  }}
+                  >
+                  {user.admin ? translations[language].admin : translations[language].user}
+                  { user._id !== userId && ` (Click to change to ${user.admin ? translations[language].user : translations[language].admin})` }
+                </label>
+              </div>
               {
                 user._id !== userId &&
-              <LinkButton
-                onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}
-                >
-              <img
-                className="icon"
-                src={DeleteIcon}
-                alt="Delete icon not found"
-                />
-              </LinkButton>
-            }
-            </UserEntry>)
-          }
+                <LinkButton
+                  onClick={(e) => {e.preventDefault(); setUsers(users.filter(u => u._id !== user._id))}}
+                  >
+                  <img
+                    className="icon"
+                    src={DeleteIcon}
+                    alt="Delete icon not found"
+                    />
+                </LinkButton>
+              }
+            </UserEntry>
+          ))
+        }
       </section>
 
       <section>
@@ -242,7 +238,8 @@ const userId = Meteor.userId();
 
       <ButtonCol>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>{translations[language].cancel}</FullButton>
-        {onRemove &&
+        {
+          onRemove &&
           <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(folderId); }}>{translations[language].delete}</FullButton>
         }
         <FullButton
@@ -251,10 +248,10 @@ const userId = Meteor.userId();
           onClick={(e) => {
             e.preventDefault();
             onSubmit(
-               name,
-               colour,
-               archived,
-               users.map(user => ({_id: user._id, admin: user.admin}))
+              name,
+              colour,
+              archived,
+              users.map(user => ({_id: user._id, admin: user.admin}))
             );
           }}
           >

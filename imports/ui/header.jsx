@@ -1,6 +1,7 @@
 import React from 'react';
 
 import WebHeader from '/imports/ui/webHeader';
+
 import MobileHeader from '/imports/ui/mobileHeader';
 
 export default function Header( props ) {

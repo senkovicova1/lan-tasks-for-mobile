@@ -1,33 +1,33 @@
 import React, {
-  useState,
   useEffect,
+  useState,
 } from 'react';
 
 import Select from 'react-select';
 
 import {
   selectStyle
-} from '../../other/styles/selectStyles';
+} from '/imports/other/styles/selectStyles';
+
+import {
+  ButtonCol,
+  Form,
+  FullButton,
+  Input,
+} from "/imports/other/styles/styledComponents";
+
+import {
+  LANGUAGES
+} from '/imports/other/constants';
+
+import {
+  translations
+} from '/imports/other/translations';
 
 import {
   isEmail,
   uint8ArrayToImg
-} from '../../other/helperFunctions.js';
-
-import {
-  translations
-} from '../../other/translations.jsx';
-
-import {
-  LANGUAGES
-} from '../../other/constants';
-
-import {
-  Form,
-  Input,
-  ButtonCol,
-  FullButton,
-} from "../../other/styles/styledComponents";
+} from '/imports/other/helperFunctions';
 
 export default function UserForm( props ) {
 
@@ -45,8 +45,12 @@ export default function UserForm( props ) {
   const [ name, setName ] = useState( "" );
   const [ surname, setSurname ] = useState( "" );
   const [ email, setEmail ] = useState( "" );
-  const [ avatar, setAvatar ] = useState( {name: "", buffer: null, img: null} );
-  const [ language, setLanguage ] = useState( LANGUAGES[0] );
+  const [ avatar, setAvatar ] = useState( {
+    name: "",
+    buffer: null,
+    img: null
+  } );
+  const [ language, setLanguage ] = useState( LANGUAGES[ 0 ] );
   const [ colour, setColour ] = useState( "#FFFFFF" );
   const [ password1, setPassword1 ] = useState( '' );
   const [ password2, setPassword2 ] = useState( '' );
@@ -54,33 +58,48 @@ export default function UserForm( props ) {
   const [ errors, setErrors ] = useState( [] );
 
   useEffect( () => {
+
     if ( profile?.name ) {
       setName( profile.name );
     } else {
       setName( "" );
     }
+
     if ( profile?.surname ) {
       setSurname( profile.surname );
     } else {
       setSurname( "" );
     }
+
     if ( profile?.avatar ) {
-      const img = uint8ArrayToImg(profile.avatar);
-      setAvatar( {name: "", buffer: profile.avatar, img} );
+      const img = uint8ArrayToImg( profile.avatar );
+      setAvatar( {
+        name: "",
+        buffer: profile.avatar,
+        img
+      } );
     } else {
-      setAvatar( {name: "", buffer: null, img: null} );
+      setAvatar( {
+        name: "",
+        buffer: null,
+        img: null
+      } );
     }
+
     if ( profile?.colour ) {
       setColour( profile.colour );
     } else {
       setColour( "#FFFFFF" );
     }
+
     if ( profile?.language ) {
-      setLanguage( LANGUAGES.find(lang => lang.value === profile.language ) );
+      setLanguage( LANGUAGES.find( lang => lang.value === profile.language ) );
     } else {
-      setLanguage( LANGUAGES[0] );
+      setLanguage( LANGUAGES[ 0 ] );
     }
-    setErrors([]);
+
+    setErrors( [] );
+
   }, [ profile ] );
 
   return (
@@ -126,7 +145,8 @@ export default function UserForm( props ) {
           />
       </section>
 
-      { !profile &&
+      {
+        !profile &&
         <section>
           <label  htmlFor="email">Email<span style={{color: "red"}}>*</span></label>
           <Input
@@ -199,7 +219,8 @@ export default function UserForm( props ) {
       </section>
 
 
-      { !profile &&
+      {
+        !profile &&
         <section>
           <label htmlFor="password1">{translations[language.value].pass}<span style={{color: "red"}}>*</span></label>
           <Input
@@ -220,7 +241,8 @@ export default function UserForm( props ) {
             />
         </section>
       }
-      { !profile &&
+      {
+        !profile &&
         <section>
           <label htmlFor="password2">{translations[language.value].repPass}<span style={{color: "red"}}>*</span></label>
           <Input
@@ -242,18 +264,21 @@ export default function UserForm( props ) {
         </section>
       }
 
-        {
-          errorMessage &&
-          <p>{errorMessage}</p>
-        }
+      {
+        errorMessage &&
+        <p>{errorMessage}</p>
+      }
       <ButtonCol>
-        {onCancel &&
+        {
+          onCancel &&
           <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel()}}>{translations[language.value].back}</FullButton>
         }
-        {openLogIn &&
+        {
+          openLogIn &&
           <FullButton colour="grey" onClick={(e) => {e.preventDefault(); openLogIn()}}>{translations[language.value].cancel}</FullButton>
         }
-        {onRemove &&
+        {
+          onRemove &&
           <FullButton colour="red" onClick={(e) => {e.preventDefault(); onRemove(userId); onCancel();}}>{translations[language.value].delete}</FullButton>
         }
         <FullButton
@@ -284,7 +309,7 @@ export default function UserForm( props ) {
                 password1
               );
             }
-          setErrors(errors);
+            setErrors(errors);
           }}
           >
           { isSignIn ? translations[language.value].sign : translations[language.value].save}

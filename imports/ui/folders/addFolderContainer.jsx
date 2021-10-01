@@ -8,23 +8,26 @@ import FolderForm from './folderForm';
 
 export default function AddFolderContainer( props ) {
 
-  const addNewFolder = (  name, colour, archived, users ) => {
+  const addNewFolder = ( name, colour, archived, users ) => {
     FoldersCollection.insert( {
-       name, colour, archived, users,
-    }, (error, _id) => {
-      if (error){
-        console.log(error);
+      name,
+      colour,
+      archived,
+      users,
+    }, ( error, _id ) => {
+      if ( error ) {
+        console.log( error );
       } else {
-        props.history.push(`/${_id}/list`);        
+        props.history.push( `/${_id}/list` );
       }
     } );
   }
 
   const cancel = () => {
-    props.history.push("/all/list");
+    props.history.push( "/all/list" );
   }
 
   return (
-        <FolderForm onSubmit={addNewFolder} onCancel={cancel}/>
+    <FolderForm onSubmit={addNewFolder} onCancel={cancel}/>
   );
 };

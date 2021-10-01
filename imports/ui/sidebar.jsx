@@ -1,39 +1,59 @@
 import React, {
-  useState,
+  useEffect,
   useMemo,
-  useEffect
+  useState,
 } from 'react';
-import { NavLink } from 'react-router-dom';
-import moment from 'moment';
-import Select from 'react-select';
-import { useDispatch, useSelector } from 'react-redux';
+
+import {
+  NavLink
+} from 'react-router-dom';
+
+import {
+  useDispatch,
+  useSelector
+} from 'react-redux';
+
 import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import { ListIcon, FolderIcon, ArchiveIcon, PlusIcon } from  "/imports/other/styles/icons";
-import { setSidebarOpen } from '/imports/redux/metadataSlice';
+import moment from 'moment';
+
+import Select from 'react-select';
+
+import {
+  setSidebarOpen
+} from '/imports/redux/metadataSlice';
+
+import {
+  ListIcon,
+  FolderIcon,
+  ArchiveIcon,
+  PlusIcon
+} from "/imports/other/styles/icons";
 
 import {
   invisibleSelectStyle
 } from '/imports/other/styles/selectStyles';
 
 import {
-  translations
-} from '../other/translations.jsx';
+  Sidebar,
+  SearchSection,
+  Input,
+  LinkButton
+} from "/imports/other/styles/styledComponents";
+
 import {
   allMyTasksFolder,
   archivedFolder
 } from "/imports/other/constants";
 
 import {
-  Sidebar,
-  SearchSection,
-  Input,
-  LinkButton
-} from "../other/styles/styledComponents";
+  translations
+} from '/imports/other/translations';
 
 export default function Menu( props ) {
+
   const dispatch = useDispatch();
 
   const {
@@ -41,17 +61,19 @@ export default function Menu( props ) {
     location,
   } = props;
 
-  const { folderID } = match.params;
-  const folders = useSelector((state) => state.folders.value).active;
+  const {
+    folderID
+  } = match.params;
+  const folders = useSelector( ( state ) => state.folders.value ).active;
   const currentUser = useTracker( () => Meteor.user() );
   const userId = Meteor.userId();
 
-  const actualAllMyTasksFolder = useMemo(() => {
-    return allMyTasksFolder(currentUser.profile.language);
-  }, [currentUser.profile.language])
-  const actualArchivedFolder = useMemo(() => {
-    return archivedFolder(currentUser.profile.language);
-  }, [currentUser.profile.language])
+  const actualAllMyTasksFolder = useMemo( () => {
+    return allMyTasksFolder( currentUser.profile.language );
+  }, [ currentUser.profile.language ] );
+  const actualArchivedFolder = useMemo( () => {
+    return archivedFolder( currentUser.profile.language );
+  }, [ currentUser.profile.language ] );
 
   return (
     <Sidebar>
@@ -75,24 +97,24 @@ export default function Menu( props ) {
 
       {
         folders.map(folder => (
-            <NavLink
-              key={folder._id}
-              className={folder._id === folderID ? "active" : ""}
-              to={`/${folder._id}/list`}
-              onClick={() => {
-                if (/Mobi|Android/i.test(navigator.userAgent)) {
-                  dispatch(setSidebarOpen(false));
-                }
-              }}
-              >
-              <img
-                className="icon"
-                src={FolderIcon}
-                alt="Folder icon not found"
-                />
-              <span>{folder.label}</span>
-            </NavLink>
-          ))
+          <NavLink
+            key={folder._id}
+            className={folder._id === folderID ? "active" : ""}
+            to={`/${folder._id}/list`}
+            onClick={() => {
+              if (/Mobi|Android/i.test(navigator.userAgent)) {
+                dispatch(setSidebarOpen(false));
+              }
+            }}
+            >
+            <img
+              className="icon"
+              src={FolderIcon}
+              alt="Folder icon not found"
+              />
+            <span>{folder.label}</span>
+          </NavLink>
+        ))
       }
       <NavLink
         key={"add-folder"}

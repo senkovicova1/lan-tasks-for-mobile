@@ -1,34 +1,44 @@
 import React, {
+  useMemo,
   useState,
-  useMemo
 } from 'react';
-
-import {
-  TasksCollection
-} from '/imports/api/tasksCollection';
-
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
-
-import { PlusIcon} from  "/imports/other/styles/icons";
-import {
-  translations
-} from '../../other/translations.jsx';
 
 import {
   Modal,
   ModalBody
 } from 'reactstrap';
 
-import {addNewSubtask, editSubtask, removeSubtask} from './subtasksHandlers';
-import {addNewComment, removeComment} from './commentsHandlers';
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
+
+import {
+  TasksCollection
+} from '/imports/api/tasksCollection';
+
+import {
+  addNewSubtask,
+  editSubtask,
+  removeSubtask
+} from './subtasksHandlers';
+import {
+  addNewComment,
+  removeComment
+} from './commentsHandlers';
 
 import Form from './form';
 
 import {
+  PlusIcon
+} from "/imports/other/styles/icons";
+
+import {
   FloatingButton
-} from '../../other/styles/styledComponents';
+} from '/imports/other/styles/styledComponents';
+
+import {
+  translations
+} from '/imports/other/translations.jsx';
 
 export default function AddTaskContainer( props ) {
 
@@ -38,9 +48,9 @@ export default function AddTaskContainer( props ) {
   } = props;
 
   const user = useTracker( () => Meteor.user() );
-  const language = useMemo(() => {
+  const language = useMemo( () => {
     return user.profile.language;
-  }, [user]);
+  }, [ user ] );
 
   const [ addTaskOpen, showAddTask ] = useState( false );
 
@@ -58,41 +68,41 @@ export default function AddTaskContainer( props ) {
       files,
       dateCreated,
       closed: false
-    }, (error, _id) => {
-      if (error){
-        console.log(error);
+    }, ( error, _id ) => {
+      if ( error ) {
+        console.log( error );
       } else {
-        const addedSubtasks = subtasks.filter(subtask => subtask.change === ADDED);
-        const editedSubtasks = subtasks.filter(subtask => subtask.change === EDITED);
-        const deletedSubtasks = subtasks.filter(subtask => subtask.change === DELETED);
+        const addedSubtasks = subtasks.filter( subtask => subtask.change === ADDED );
+        const editedSubtasks = subtasks.filter( subtask => subtask.change === EDITED );
+        const deletedSubtasks = subtasks.filter( subtask => subtask.change === DELETED );
 
-        addedSubtasks.forEach((subtask, i) => {
-          addNewSubtask(subtask.name, subtask.closed, _id, subtask.dateCreated);
-        });
+        addedSubtasks.forEach( ( subtask, i ) => {
+          addNewSubtask( subtask.name, subtask.closed, _id, subtask.dateCreated );
+        } );
 
-        editedSubtasks.forEach((subtask, i) => {
-          editSubtask(subtask._id, subtask.name, subtask.closed, _id, subtask.dateCreated);
-        });
+        editedSubtasks.forEach( ( subtask, i ) => {
+          editSubtask( subtask._id, subtask.name, subtask.closed, _id, subtask.dateCreated );
+        } );
 
-        deletedSubtasks.forEach((subtask, i) => {
-          removeSubtask(subtask._id);
-        });
+        deletedSubtasks.forEach( ( subtask, i ) => {
+          removeSubtask( subtask._id );
+        } );
 
-        const addedComments = comments.filter(comment => comment.change === ADDED);
-        const editedComments = comments.filter(comment => comment.change === EDITED);
-        const deletedComments = comments.filter(comment => comment.change === DELETED);
+        const addedComments = comments.filter( comment => comment.change === ADDED );
+        const editedComments = comments.filter( comment => comment.change === EDITED );
+        const deletedComments = comments.filter( comment => comment.change === DELETED );
 
-        addedComments.forEach((comment, i) => {
-          addNewComment(comment.author, comment.task, comment.dateCreated, comment.body);
-        });
+        addedComments.forEach( ( comment, i ) => {
+          addNewComment( comment.author, comment.task, comment.dateCreated, comment.body );
+        } );
 
-        editedComments.forEach((comment, i) => {
-          editComment(comment._id, comment.author, comment.task, comment.dateCreated, comment.body);
-        });
+        editedComments.forEach( ( comment, i ) => {
+          editComment( comment._id, comment.author, comment.task, comment.dateCreated, comment.body );
+        } );
 
-        deletedComments.forEach((comment, i) => {
-          removeComment(comment._id);
-        });
+        deletedComments.forEach( ( comment, i ) => {
+          removeComment( comment._id );
+        } );
 
       }
     } );
@@ -102,30 +112,33 @@ export default function AddTaskContainer( props ) {
   const close = () => {
     showAddTask( false );
   }
-  
+
   return (
-    <div style={{}}>
-      {!addTaskOpen &&
-      <FloatingButton onClick={toggleAddTask}>
-        <img
-          className="icon"
-          src={PlusIcon}
-          alt="Plus icon not found"
-          />
-        {!/Mobi|Android/i.test(navigator.userAgent) &&
-        <span>
-        {translations[language].task}
-      </span>
-    }
-      </FloatingButton>
-    }
-          {addTaskOpen &&
-          <Modal className="add-task-modal" isOpen={true}>
-            <ModalBody>
-          <Form {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
-        </ModalBody>
-      </Modal>
-        }
+    <div>
+      {
+        !addTaskOpen &&
+        <FloatingButton onClick={toggleAddTask}>
+          <img
+            className="icon"
+            src={PlusIcon}
+            alt="Plus icon not found"
+            />
+          {
+            !/Mobi|Android/i.test(navigator.userAgent) &&
+            <span>
+              {translations[language].task}
+            </span>
+          }
+        </FloatingButton>
+      }
+      {
+        addTaskOpen &&
+        <Modal className="add-task-modal" isOpen={true}>
+          <ModalBody>
+            <Form {...props} onSubmit={addNewTask} onCancel={close} language={language}/>
+          </ModalBody>
+        </Modal>
+      }
     </div>
   );
 };
