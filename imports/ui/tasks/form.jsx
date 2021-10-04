@@ -70,15 +70,19 @@ import {
 } from "/imports/other/styles/styledComponents";
 
 import {
-  translations,
-  uint8ArrayToImg
-} from '/imports/other/constants';
-
-import {
   NO_CHANGE,
   ADDED,
   EDITED,
   DELETED
+} from '/imports/other/constants';
+
+import {
+  uint8ArrayToImg,
+} from '/imports/other/helperFunctions';
+
+
+import {
+  translations
 } from '/imports/other/translations';
 
 export default function TaskForm( props ) {
@@ -239,13 +243,12 @@ export default function TaskForm( props ) {
     }
   }
 
-  const txHeight = 50;
+  const txHeight = 40;
   const tx = document.getElementsByTagName( "textarea" );
   for ( let i = 0; i < tx.length; i++ ) {
-    if ( tx[ i ].value == '' || tx[ i ].scrollHeight < 80 ) {
+    if ( tx[ i ].value == '' || tx[ i ].scrollHeight < 76 ) {
       tx[ i ].setAttribute( "style", "height:" + txHeight + "px;overflow-y:hidden;" );
     } else {
-      console.log( tx[ i ].scrollHeight );
       tx[ i ].setAttribute( "style", "height:" + ( tx[ i ].scrollHeight ) + "px;overflow-y:hidden;" );
     }
     tx[ i ].addEventListener( "input", OnInput, false );
@@ -272,7 +275,7 @@ export default function TaskForm( props ) {
         </CircledButton>
       }
 
-      <section className="inline">
+      <section className="inline" style={{marginTop: "0.3em"}}>
         <TitleCheckbox
           id={`task-checked`}
           type="checkbox"
@@ -297,6 +300,7 @@ export default function TaskForm( props ) {
       <section className="inline fit">
         <LinkButton
           style={{color: "#f3d053"}}
+          height="fit"
           onClick={(e) => {
             e.preventDefault();
             const newImportant = !important;

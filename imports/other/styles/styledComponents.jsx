@@ -619,18 +619,18 @@ export const TitleInput = styled.textarea `
   background-color: transparent !important;
   overflow-x: hidden;
   overflow-y: hidden;
+  padding-left: 6px;
   resize: none;
   font-size: 1.5em;
   font-weight: 300;
   height: 40px;
   outline: none !important;
-  border: none !important;
+  border: 1px solid #f6f6f6;
   width: auto;
 
   &:focus{
     background-color: white !important;
     border: 1px solid ${basicBlueColour} !important;
-    padding-left: 0.3em;
   }
 
   &[type=checkbox]{

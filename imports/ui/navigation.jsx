@@ -146,11 +146,11 @@ export default function MainPage( props ) {
             ...task,
             folder: folders.find( folder => folder._id === task.folder ),
             assigned: {
-              _id: newAssigned._id,
-              ...newAssigned.profile,
-              label: `${newAssigned.profile.name} ${newAssigned.profile.surname}`,
-              value: newAssigned._id,
-              img: newAssigned.profile.avatar ? uint8ArrayToImg( newAssigned.profile.avatar ) : UserIcon
+              _id: newAssigned ? newAssigned._id : "-1",
+              ...(newAssigned ? newAssigned.profile : {}),
+              label: newAssigned ? `${newAssigned.profile.name} ${newAssigned.profile.surname}` : "No assigned",
+              value: newAssigned ? newAssigned._id : "-1",
+              img: newAssigned && newAssigned.profile.avatar ? uint8ArrayToImg( newAssigned.profile.avatar ) : UserIcon
             },
           };
         }
