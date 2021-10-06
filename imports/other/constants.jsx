@@ -3,7 +3,7 @@ import {
   translations
 } from '/imports/other/translations';
 
-const colours = [
+export const colours = [
   "#A62B2B",
   "#C92685",
   "#A063A1",
@@ -42,6 +42,10 @@ export const DELETED = 3;
 
 export const allMyTasksFolder = (language) => {
   return ({label: translations[language].allFolders, value: "all"});
+}
+
+export const importantTasksFolder = (language) => {
+  return ({label: translations[language].importantFolder, value: "important"});
 }
 
 export const archivedFolder = (language) => {

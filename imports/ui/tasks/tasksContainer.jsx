@@ -18,7 +18,8 @@ import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   PLAIN,
-  allMyTasksFolder
+  allMyTasksFolder,
+  importantTasksFolder
 } from "/imports/other/constants";
 
 export default function TasksContainer( props ) {
@@ -51,6 +52,9 @@ export default function TasksContainer( props ) {
     }
     if ( !folderID || folderID === "all" ) {
       return allMyTasksFolder( language );
+    }
+    if ( folderID === "important" ) {
+      return importantTasksFolder( language );
     }
     const maybeFolder = group.find( folder => folder._id === folderID );
     return maybeFolder;

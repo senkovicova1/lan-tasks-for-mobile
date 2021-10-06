@@ -8,6 +8,9 @@ import FolderForm from './folderForm';
 
 export default function AddFolderContainer( props ) {
 
+
+  console.log("HI");
+
   const addNewFolder = ( name, colour, archived, users ) => {
     FoldersCollection.insert( {
       name,

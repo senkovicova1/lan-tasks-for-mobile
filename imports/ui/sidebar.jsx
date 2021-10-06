@@ -29,7 +29,8 @@ import {
   ListIcon,
   FolderIcon,
   ArchiveIcon,
-  PlusIcon
+  PlusIcon,
+  EmptyStarIcon
 } from "/imports/other/styles/icons";
 
 import {
@@ -45,6 +46,7 @@ import {
 
 import {
   allMyTasksFolder,
+  importantTasksFolder,
   archivedFolder
 } from "/imports/other/constants";
 
@@ -71,6 +73,9 @@ export default function Menu( props ) {
   const actualAllMyTasksFolder = useMemo( () => {
     return allMyTasksFolder( currentUser.profile.language );
   }, [ currentUser.profile.language ] );
+  const actualImportantTasksFolder = useMemo( () => {
+    return importantTasksFolder( currentUser.profile.language );
+  }, [ currentUser.profile.language ] );
   const actualArchivedFolder = useMemo( () => {
     return archivedFolder( currentUser.profile.language );
   }, [ currentUser.profile.language ] );
@@ -93,6 +98,24 @@ export default function Menu( props ) {
           alt="List icon not found"
           />
         {actualAllMyTasksFolder.label}
+      </NavLink>
+
+      <NavLink
+        key={"important"}
+        to="/important/list"
+        className={(!folderID || actualImportantTasksFolder.value === folderID)  ? "active" : ""}
+        onClick={() => {
+          if (/Mobi|Android/i.test(navigator.userAgent)) {
+            dispatch(setSidebarOpen(false));
+          }
+        }}
+        >
+        <img
+          className="icon"
+          src={EmptyStarIcon}
+          alt="Star icon not found"
+          />
+        {actualImportantTasksFolder.label}
       </NavLink>
 
       {

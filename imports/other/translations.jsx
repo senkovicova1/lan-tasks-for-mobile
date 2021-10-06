@@ -18,6 +18,7 @@ export const translations = {
     'accountReg': 'Account registration',
 
     'allFolders': 'All my tasks',
+    'importantFolder': 'Important tasks',
     'archivedFolders': 'Archived',
     'folder': 'Folder',
     'showClosed': 'Show closed',
@@ -60,6 +61,7 @@ export const translations = {
     'accountReg': 'Registrácia',
 
     'allFolders': 'Všetky moje úlohy',
+    'importantFolder': 'Dôležité úlohy',
     'archivedFolders': 'Archivované',
     'folder': 'Priečinok',
     'showClosed': 'Zobraziť uzavreté',

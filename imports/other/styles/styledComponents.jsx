@@ -35,6 +35,11 @@ export const MainPage = styled.div `
     margin: 0px;
     opacity: 1;
   }
+
+  .label-icon{
+    width: 2em;
+    height: 1.3em;
+  }
 `;
 
 export const MobilePageHeader = styled.header `
@@ -160,7 +165,7 @@ export const SearchSection = styled.section `
 
   button:last-of-type {
     margin-left: 0em !important;
-    padding-left: ${inputOffset};
+    padding-left: 7px;
   }
 
   button:first-of-type {
@@ -210,8 +215,14 @@ export const ButtonRow = styled.section `
   margin-top: 0em !important;
   margin-bottom: 0em;
 
+  button{
+    width: fit-content;
+    height: auto;
+  }
+
   button:first-of-type{
     margin-right: 0.5em;
+    margin-left: auto;
   }
 
   button:last-of-type{
@@ -763,6 +774,28 @@ export const Sort = styled.div`
     height: 1.3em;
     width: 1.3em;
     margin-right: 0.6em;
+  }
+`;
+
+export const Filter = styled.div`
+  position: absolute;
+  z-index: 999;
+  background-color: #f6f6f6;
+  box-shadow: 0px 0px 7px 0px slategrey;
+  width: 800px;
+  top: 50px;
+  right: calc(50vw - 400px);
+  padding: 0;
+
+  span{
+    display: flex;
+    align-items: center;
+    line-height: 2em;
+  }
+
+  input{
+    height: 1.3em;
+    width: 1.3em;
   }
 `;
 

@@ -8,6 +8,8 @@ import {
   Link
 } from 'react-router-dom';
 
+import Select from 'react-select';
+
 import {
   useTracker
 } from 'meteor/react-meteor-data';
@@ -36,8 +38,18 @@ import {
   SearchIcon,
   LeftArrowIcon,
   UserIcon,
-  MenuIcon2
+  MenuIcon2,
+  FilterIcon,
+  FullStarIcon,
+  EmptyStarIcon,
+  ClockIcon,
+  CalendarIcon,
+  FolderIcon
 } from "/imports/other/styles/icons";
+
+import {
+  selectStyle
+} from '/imports/other/styles/selectStyles';
 
 import {
   PageHeader,
@@ -45,7 +57,10 @@ import {
   FullButton,
   SearchSection,
   Input,
-  Sort
+  Sort,
+  Filter,
+  Form,
+  ButtonRow
 } from '/imports/other/styles/styledComponents';
 
 import {
@@ -87,6 +102,7 @@ const folders = useSelector( ( state ) => state.folders.value );
 const [ title, setTitle ] = useState( "TaskApp" );
 const [ background, setBackground ] = useState( "#0078d4" );
 const [ openSort, setOpenSort ] = useState( false );
+const [ openFilter, setOpenFilter ] = useState( false );
 const [ openSearch, setOpenSearch ] = useState( true );
 
 useEffect( () => {
@@ -98,6 +114,11 @@ useEffect( () => {
 
   if ( !folderID || folderID === "all" ) {
     setTitle( "TaskApp" );
+    setBackground( "#0078d4" );
+  }
+
+  if ( folderID === "important" ) {
+    setTitle( "Important tasks" );
     setBackground( "#0078d4" );
   }
 
@@ -113,7 +134,7 @@ useEffect( () => {
 }, [ folderID, location.pathname, folders ] );
 
 const canEditFolder = useMemo( () => {
-  if ( folderID && folderID !== 'all' && [ ...folders.active, ...folders.archived ].length > 0 ) {
+  if ( folderID && !['all', 'important'].includes(folderID) && [ ...folders.active, ...folders.archived ].length > 0 ) {
     const folder = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID );
     const user = folder.users.find( user => user._id === userId );
     return user.admin;
@@ -156,8 +177,10 @@ const avatar = useMemo( () => {
   return uint8ArrayToImg( currentUser.profile.avatar );
 }, [ currentUser ] );
 
+
   return (
-    <PageHeader style={{backgroundColor: background}}>
+    <PageHeader
+      id="filter" style={{backgroundColor: background}}>
       <section className="header-section">
         {
           currentUser &&
@@ -210,6 +233,154 @@ const avatar = useMemo( () => {
               alt="Close icon not found"
               />
           </LinkButton>
+        <LinkButton
+          font="#0078d4"
+          searchButton
+          onClick={(e) => {
+            e.preventDefault();
+            setOpenFilter(!openFilter);
+          }}
+          >
+          <img
+            className="search-icon"
+            src={FilterIcon}
+            alt="Close icon not found"
+            />
+        </LinkButton>
+
+        {
+          openFilter &&
+          <Filter>
+            <Form>
+              <section className="inline">
+                <span className="icon-container">
+                  <img
+                    className="label-icon"
+                    htmlFor="title"
+                    src={MenuIcon}
+                    alt="MenuIcon icon not found"
+                    />
+                </span>
+                <Input
+                  type="text"
+                  name="title"
+                  id="title"
+                  placeholder="Title"
+                  value={""}
+                  onChange={(e) => {}}
+                  />
+              </section>
+
+              <section className="inline">
+                <span className="icon-container">
+                  <img
+                    className="label-icon"
+                    htmlFor="folder"
+                    src={FolderIcon}
+                    alt="FolderIcon icon not found"
+                    />
+                </span>
+                <div style={{width: "100%"}}>
+                  <Select
+                    id="folder"
+                    name="folder"
+                    styles={selectStyle}
+                    value={null}
+                    onChange={(e) => {
+                    }}
+                    options={[]}
+                    />
+                </div>
+              </section>
+
+            <section className="inline fit">
+              <LinkButton
+                style={{color: "#f3d053", paddingLeft: "0px"}}
+                height="fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                }}
+                >
+                  <img
+                    style={{margin: "0px"}}
+                    className="label-icon star"
+                    src={FullStarIcon}
+                    alt="Full star icon not found"
+                    />
+                <span style={{marginLeft: "10px"}}>
+                  Important
+                </span>
+              </LinkButton>
+            </section>
+
+            <section className="inline">
+              <span className="icon-container">
+                <img
+                  className="label-icon"
+                  htmlFor="assigned"
+                  src={UserIcon}
+                  alt="User icon not found"
+                  />
+              </span>
+              <div style={{width: "100%"}}>
+                <Select
+                  id="assigned"
+                  name="assigned"
+                  styles={selectStyle}
+                  value={null}
+                  onChange={(e) => {
+                  }}
+                  options={[]}
+                  />
+              </div>
+            </section>
+
+            <section className="inline">
+              <span className="icon-container">
+                <img
+                  className="label-icon"
+                  htmlFor="deadline"
+                  src={CalendarIcon}
+                  alt="Calendar icon not found"
+                  />
+              </span>
+              <Input
+                type="datetime-local"
+                name="deadline"
+                id="deadline"
+                placeholder="Deadline"
+                value={""}
+                onChange={(e) => {}}
+                />
+            </section>
+
+            <section className="inline">
+              <span className="icon-container" style={{fontSize: "2em", paddingLeft: "8px"}}>
+                *
+              </span>
+              <Input
+                type="datetime-local"
+                name="dateCreated"
+                id="dateCreated"
+                placeholder="Set created date"
+                value={""}
+                onChange={(e) => {}}
+                />
+            </section>
+
+            <ButtonRow>
+              <LinkButton>
+                Save filter
+              </LinkButton>
+              <FullButton>
+                Aply filter
+              </FullButton>
+            </ButtonRow>
+
+          </Form>
+          </Filter>
+        }
+
         </SearchSection>
       }
 

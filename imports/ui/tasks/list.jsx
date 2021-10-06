@@ -130,7 +130,7 @@ const addQuickTask = () => {
 }
 
 const filteredTasks = useMemo( () => {
-  return tasks.filter( task => !task.removedDate && ( task.folder._id === folder.value || ( !folder._id && task.assigned && task.assigned._id === userId ) ) );
+  return tasks.filter( task => !task.removedDate && ( task.folder._id === folder.value || (folder.value === "important" && task.important) || ( "all" === folder.value && task.assigned && task.assigned._id === userId ) ) );
 }, [ tasks, folder, userId ] );
 
 const searchedTasks = useMemo( () => {

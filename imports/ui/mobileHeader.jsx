@@ -99,6 +99,11 @@ export default function MobileHeader( props ) {
       setBackground( "#0078d4" );
     }
 
+    if ( folderID === "important" ) {
+      setTitle( "Important tasks" );
+      setBackground( "#0078d4" );
+    }
+
     let folder = [ ...folders.active, ...folders.archived ].find( folder => folder._id === folderID );
 
     if ( folder ) {
@@ -112,7 +117,7 @@ export default function MobileHeader( props ) {
   }, [ folderID, location.pathname, folders ] );
 
   const canEditFolder = useMemo( () => {
-    if ( folderID && folderID !== 'all' && [ ...folders.active, ...folders.archived ].length > 0 ) {
+    if ( folderID && !['all', 'important'].includes(folderID) && [ ...folders.active, ...folders.archived ].length > 0 ) {
       const folder = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID );
       const user = folder.users.find( user => user._id === userId );
       return user.admin;
