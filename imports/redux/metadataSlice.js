@@ -19,6 +19,15 @@ export const metadataSlice = createSlice( {
       sidebarOpen: true,
       sortBy: sortByOptions[ 0 ].value,
       sortDirection: sortDirectionOptions[ 0 ].value,
+      filter: {
+        folders: [],
+        important: false,
+        deadlineMin: "",
+        deadlineMax: "",
+        assigned: [],
+        dateCreatedMin: "",
+        dateCreatedMax: "",
+      },
     },
   },
   reducers: {
@@ -52,6 +61,15 @@ export const metadataSlice = createSlice( {
         sortDirection: action.payload,
       }
     },
+    setFilter: ( state, action ) => {
+      state.value = {
+        ...state.value,
+        filter: {
+          ...state.value.filter,
+          ...action.payload
+        },
+      }
+    },
   },
 } )
 
@@ -61,6 +79,7 @@ export const {
   setSearch,
   setSortBy,
   setSortDirection,
+  setFilter
 } = metadataSlice.actions
 
 export default metadataSlice.reducer

@@ -6,6 +6,8 @@ import {
   MainPage
 } from '/imports/other/styles/styledComponents';
 
+import "react-datetime/css/react-datetime.css";
+
 export const App = () => (
   <MainPage>
     <Navigation />

@@ -40,6 +40,10 @@ export const MainPage = styled.div `
     width: 2em;
     height: 1.3em;
   }
+   .search-icon{
+      height: 1em !important;
+      width: 1em !important;
+    }
 `;
 
 export const MobilePageHeader = styled.header `
@@ -465,6 +469,10 @@ export const Form = styled.form `
   padding: 1em;
   width: -webkit-fill-available;
 
+  .full-width{
+    width: -webkit-fill-available;
+  }
+
   section{
     margin: 0em 0em 1.5em 0em;
     padding: ${(props) => props.excludeBtn ? "0em 0.7em" : "0px"};
@@ -676,6 +684,8 @@ export const Input = styled.input `
   width: ${(props) => props.width ? props.width : "auto"};
   padding-left: 0.4em;
   height: 2.5em !important;
+  border-radius: 0px !important;
+  box-shadow: none !important;
 
   &:focus{
     border: 1px solid ${basicBlueColour} !important;
@@ -782,9 +792,15 @@ export const Filter = styled.div`
   z-index: 999;
   background-color: #f6f6f6;
   box-shadow: 0px 0px 7px 0px slategrey;
-  width: 800px;
   top: 50px;
-  right: calc(50vw - 400px);
+  @media all and (max-width: 799px), @media handheld {
+    width: 100%;
+    right: 0;
+  }
+  @media all and (min-width: 800px){
+    width: 800px;
+    right: calc(50vw - 400px);
+  }
   padding: 0;
 
   span{
@@ -952,4 +968,31 @@ export const LoadingScreen = styled.div`
   div span.sr-only{
     display: none;
   }
+`;
+
+export const AppliedFilter = styled.section`
+  padding: 1em ${inputOffset};
+  color: ${basicBlueColour};
+
+  .filter{
+    background-color: ${lightBlueColour};
+    margin-right: 1em;
+    display: inline-block;
+    height: 2em;
+  }
+
+  .filter-container{
+    height: -webkit-fill-available;
+    display: flex;
+    align-items: center;
+  }
+
+  img, label{
+    margin-right: 0.3em;
+  }
+
+  img{
+      filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+  }
+
 `;

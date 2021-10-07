@@ -5,6 +5,7 @@ import React, {
 } from 'react';
 
 import {
+  useDispatch,
   useSelector
 } from 'react-redux';
 
@@ -41,6 +42,10 @@ import {
 import EditTask from './editContainer';
 
 import {
+  setFilter
+} from '/imports/redux/metadataSlice';
+
+import {
   RestoreIcon,
   PlusIcon,
   CloseIcon,
@@ -48,7 +53,11 @@ import {
   UserIcon,
   SendIcon,
   FullStarIcon,
-  EmptyStarIcon
+  EmptyStarIcon,
+  ClockIcon,
+  CalendarIcon,
+  FolderIcon,
+  AsteriskIcon
 } from "/imports/other/styles/icons";
 
 import {
@@ -61,7 +70,8 @@ import {
   LinkButton,
   Input,
   InlineInput,
-  FloatingButton
+  FloatingButton,
+  AppliedFilter
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -74,6 +84,8 @@ import {
 } from '/imports/other/translations';
 
 export default function TaskList( props ) {
+
+  const dispatch = useDispatch();
 
   const {
   match,
@@ -94,7 +106,8 @@ const {
   layout,
   search,
   sortBy,
-  sortDirection
+  sortDirection,
+  filter
 } = useSelector( ( state ) => state.metadata.value );
 
 const userId = Meteor.userId();
@@ -137,9 +150,20 @@ const searchedTasks = useMemo( () => {
   return filteredTasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
 }, [ search, filteredTasks ] );
 
+const tasksWithAdvancedFilters = useMemo( () => {
+  const folderIds = filter.folders.map(folder => folder._id);
+  const filteredByFolders = ["all", "important"].includes(folderID) ? searchedTasks.filter( task => filter.folders.length === 0 || folderIds.includes(task.folder._id)) : searchedTasks;
+  const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
+  const assignedIds = filter.assigned.map(user => user._id);
+  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || assignedIds.includes(task.assigned._id));
+  const filteredByDeadlines = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => task.deadline && (!filter.deadlineMin || filter.deadlineMin <= task.deadline) && (!filter.deadlineMax || task.deadline <= filter.deadlineMax)) : filteredByAssigned;
+  const filteredByDateCreated = filteredByDeadlines.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
+  return filteredByDateCreated;
+}, [ filter, searchedTasks, folderID ] );
+
 const sortedTasks = useMemo( () => {
   const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
-  return searchedTasks
+  return tasksWithAdvancedFilters
     .sort( ( t1, t2 ) => {
       if ( sortBy === "assigned" ) {
         return t1.assigned.label.toLowerCase() < t2.assigned.label.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
@@ -149,7 +173,7 @@ const sortedTasks = useMemo( () => {
       }
       return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
     } );
-}, [ searchedTasks, sortBy, sortDirection ] );
+}, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );
 
 const activeTasks = useMemo( () => {
   return sortedTasks.filter( task => !task.closed );
@@ -173,8 +197,171 @@ document.onkeydown = function( e ) {
   }
 };
 
+  const numberOfFilters = useMemo(() => {
+    return ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
+              (filter.important ? 1 : 0) +
+              (filter.assigned.length > 0 ? 1 : 0) +
+              (filter.deadlineMin ? 1 : 0) +
+              (filter.deadlineMax ? 1 : 0) +
+              (filter.dateCreatedMin ? 1 : 0) +
+              (filter.dateCreatedMax ? 1 : 0);
+  }, [filter]);
+
   return (
     <List>
+      {
+        numberOfFilters > 0 &&
+      <AppliedFilter>
+        {
+          ["all", "important"].includes(folderID) &&
+          filter.folders.length > 0 &&
+          <section className="filter">
+            <div className="filter-container">
+            <img
+              className="label-icon"
+              src={FolderIcon}
+              alt="FolderIcon icon not found"
+              />
+            <label>{filter.folders.map(folder => folder.name).join(", ")}</label>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setFilter({...filter, folders: []}));
+                }}
+                >
+                <img
+                  className="icon"
+                  src={CloseIcon}
+                  alt="Close icon not found"
+                  />
+              </LinkButton>
+          </div>
+          </section>
+        }
+        {
+          filter.important &&
+          <section className="filter">
+            <div className="filter-container">
+            <img
+              className="label-icon"
+              src={EmptyStarIcon}
+              alt="EmptyStarIcon icon not found"
+              />
+            <label>Important</label>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setFilter({...filter, important: false}));
+                }}
+                >
+                <img
+                  className="icon"
+                  src={CloseIcon}
+                  alt="Close icon not found"
+                  />
+              </LinkButton>
+          </div>
+          </section>
+        }
+        {
+          filter.assigned.length > 0 &&
+          <section className="filter">
+            <div className="filter-container">
+            <img
+              className="label-icon"
+              src={UserIcon}
+              alt="UserIcon icon not found"
+              />
+            <label>{filter.assigned.map(user => user.label).join(", ")}</label>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setFilter({...filter, assigned: []}));
+                }}
+                >
+                <img
+                  className="icon"
+                  src={CloseIcon}
+                  alt="Close icon not found"
+                  />
+              </LinkButton>
+          </div>
+          </section>
+        }
+        {
+          (filter.deadlineMin || filter.deadlineMax)  &&
+          <section className="filter">
+            <div className="filter-container">
+            <img
+              className="label-icon"
+              src={CalendarIcon}
+              alt="CalendarIcon icon not found"
+              />
+            <label>{`${filter.deadlineMin ? moment.unix(filter.deadlineMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.deadlineMax ? moment.unix(filter.deadlineMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setFilter({...filter, deadlineMin: "", deadlineMax: ""}));
+                }}
+                >
+                <img
+                  className="icon"
+                  src={CloseIcon}
+                  alt="Close icon not found"
+                  />
+              </LinkButton>
+          </div>
+          </section>
+        }
+        {
+          (filter.dateCreatedMin || filter.dateCreatedMax)  &&
+          <section className="filter">
+            <div className="filter-container">
+            <img
+              style={{width: "auto"}}
+              className="label-icon"
+              src={AsteriskIcon}
+              alt="AsteriskIcon icon not found"
+              />
+            <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setFilter({...filter, dateCreatedMin: "", dateCreatedMax: ""}));
+                }}
+                >
+                <img
+                  className="icon"
+                  src={CloseIcon}
+                  alt="Close icon not found"
+                  />
+              </LinkButton>
+          </div>
+          </section>
+        }
+
+        {
+          numberOfFilters >= 2 &&
+          <LinkButton
+            onClick={(e) => {
+              e.preventDefault();
+              dispatch(setFilter({
+                folders: [],
+                important: false,
+                deadlineMin: "",
+                deadlineMax: "",
+                assigned: [],
+                dateCreatedMin: "",
+                dateCreatedMax: "",
+              }));
+            }}
+            >
+            Remove all filters
+          </LinkButton>
+        }
+      </AppliedFilter>
+    }
+
       {
         activeTasks.length === 0 &&
         <span className="message">You have no open tasks.</span>

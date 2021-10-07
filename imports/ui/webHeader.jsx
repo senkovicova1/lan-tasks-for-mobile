@@ -10,14 +10,18 @@ import {
 
 import Select from 'react-select';
 
-import {
-  useTracker
-} from 'meteor/react-meteor-data';
+import moment from 'moment';
+
+import Datetime from 'react-datetime';
 
 import {
   useDispatch,
   useSelector
 } from 'react-redux';
+
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
 
 import Menu from './sidebar';
 
@@ -27,7 +31,8 @@ import {
   setSortBy,
   setSortDirection,
   setSearch,
-  setSidebarOpen
+  setSidebarOpen,
+  setFilter
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -80,103 +85,126 @@ export default function WebHeader( props ) {
 
   const dispatch = useDispatch();
 
-const {
-  match,
-  location,
-} = props;
+  const {
+    match,
+    location,
+  } = props;
 
-const folderID = match.params.folderID;
-const userId = Meteor.userId();
-const currentUser = useTracker( () => Meteor.user() );
-const logout = () => Meteor.logout();
-const {
-  folder,
-  layout,
-  sidebarOpen,
-  search,
-  sortBy,
-  sortDirection
-} = useSelector( ( state ) => state.metadata.value );
-const folders = useSelector( ( state ) => state.folders.value );
+  const folderID = match.params.folderID;
+  const userId = Meteor.userId();
+  const currentUser = useTracker( () => Meteor.user() );
+  const logout = () => Meteor.logout();
 
-const [ title, setTitle ] = useState( "TaskApp" );
-const [ background, setBackground ] = useState( "#0078d4" );
-const [ openSort, setOpenSort ] = useState( false );
-const [ openFilter, setOpenFilter ] = useState( false );
-const [ openSearch, setOpenSearch ] = useState( true );
+  const {
+    folder,
+    layout,
+    sidebarOpen,
+    search,
+    sortBy,
+    sortDirection,
+    filter
+  } = useSelector( ( state ) => state.metadata.value );
 
-useEffect( () => {
+  const folders = useSelector( ( state ) => state.folders.value );
+  const users = useSelector( ( state ) => state.users.value );
 
-  if ( location.pathname === "/folders/archived" ) {
-    setTitle( "Archived Folders" );
-    setBackground( "#0078d4" );
-  }
+  const [ title, setTitle ] = useState( "TaskApp" );
+  const [ background, setBackground ] = useState( "#0078d4" );
+  const [ openSort, setOpenSort ] = useState( false );
+  const [ openFilter, setOpenFilter ] = useState( false );
+  const [ openSearch, setOpenSearch ] = useState( true );
 
-  if ( !folderID || folderID === "all" ) {
-    setTitle( "TaskApp" );
-    setBackground( "#0078d4" );
-  }
+  const [ newFilter, setNewFilter] = useState({});
+  const [ newSearch, setNewSearch] = useState("");
 
-  if ( folderID === "important" ) {
-    setTitle( "Important tasks" );
-    setBackground( "#0078d4" );
-  }
+  useEffect( () => {
 
-  let folder = [ ...folders.active, ...folders.archived ].find( folder => folder._id === folderID );
-  if ( folder ) {
-    setTitle( folder.name );
-    setBackground( folder.colour );
-  } else {
-    setTitle( "TaskApp" );
-    setBackground( "#0078d4" );
-  }
-
-}, [ folderID, location.pathname, folders ] );
-
-const canEditFolder = useMemo( () => {
-  if ( folderID && !['all', 'important'].includes(folderID) && [ ...folders.active, ...folders.archived ].length > 0 ) {
-    const folder = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID );
-    const user = folder.users.find( user => user._id === userId );
-    return user.admin;
-  }
-}, [ folders, folderID, userId ] );
-
-document.addEventListener( "click", ( evt ) => {
-  const sortMenu = document.getElementById( "sort-menu" );
-  const openSortMenuBtn = document.getElementById( "sort-menu-button" );
-  let targetElement = evt.target; // clicked element
-  do {
-    if ( targetElement == sortMenu ) {
-      // This is a click inside. Do nothing, just return.
-      return;
+    if ( location.pathname === "/folders/archived" ) {
+      setTitle( "Archived Folders" );
+      setBackground( "#0078d4" );
     }
-    if ( targetElement == openSortMenuBtn ) {
-      setOpenSort( !openSort );
-      return;
+
+    if ( !folderID || folderID === "all" ) {
+      setTitle( "TaskApp" );
+      setBackground( "#0078d4" );
     }
-    // Go up the DOM
-    targetElement = targetElement.parentNode;
-  } while ( targetElement );
 
-  // This is a click outside.
-  setOpenSort( false );
-} );
+    if ( folderID === "important" ) {
+      setTitle( "Important tasks" );
+      setBackground( "#0078d4" );
+    }
 
-useEffect( () => {
-  if ( window.innerWidth >= 800 ) {
-    dispatch( setSidebarOpen( true ) );
-  } else {
-    dispatch( setSidebarOpen( false ) );
-  }
-}, [ window.innerWidth ] );
+    let folder = [ ...folders.active, ...folders.archived ].find( folder => folder._id === folderID );
+    if ( folder ) {
+      setTitle( folder.name );
+      setBackground( folder.colour );
+    } else {
+      setTitle( "TaskApp" );
+      setBackground( "#0078d4" );
+    }
 
-const avatar = useMemo( () => {
-  if ( !currentUser || !currentUser.profile.avatar ) {
-    return UserIcon;
-  }
-  return uint8ArrayToImg( currentUser.profile.avatar );
-}, [ currentUser ] );
+  }, [ folderID, location.pathname, folders ] );
 
+  const canEditFolder = useMemo( () => {
+    if ( folderID && !['all', 'important'].includes(folderID) && [ ...folders.active, ...folders.archived ].length > 0 ) {
+      const folder = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID );
+      const user = folder.users.find( user => user._id === userId );
+      return user.admin;
+    }
+  }, [ folders, folderID, userId ] );
+
+  document.addEventListener( "click", ( evt ) => {
+    const sortMenu = document.getElementById( "sort-menu" );
+    const openSortMenuBtn = document.getElementById( "sort-menu-button" );
+    let targetElement = evt.target; // clicked element
+    do {
+      if ( targetElement == sortMenu ) {
+        // This is a click inside. Do nothing, just return.
+        return;
+      }
+      if ( targetElement == openSortMenuBtn ) {
+        setOpenSort( !openSort );
+        return;
+      }
+      // Go up the DOM
+      targetElement = targetElement.parentNode;
+    } while ( targetElement );
+
+    // This is a click outside.
+    setOpenSort( false );
+  } );
+
+  useEffect( () => {
+    if ( window.innerWidth >= 800 ) {
+      dispatch( setSidebarOpen( true ) );
+    } else {
+      dispatch( setSidebarOpen( false ) );
+    }
+  }, [ window.innerWidth ] );
+
+  const avatar = useMemo( () => {
+    if ( !currentUser || !currentUser.profile.avatar ) {
+      return UserIcon;
+    }
+    return uint8ArrayToImg( currentUser.profile.avatar );
+  }, [ currentUser ] );
+
+  const usersForFilter = useMemo(() => {
+    if (folderID ===  "archived"){
+      const userIds = folders.archived.map(folder => folder.users.map(user => user._id)).flat();
+      return users.filter(user => userIds.includes(user._id));
+    }
+    if (['all', 'important'].includes(folderID)){
+      const userIds = folders.active.map(folder => folder.users.map(user => user._id)).flat();
+      const use = users.filter(user => userIds.includes(user._id));
+      return use;
+    }
+    if (folderID){
+      const userIds = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID ).users.map(user => user._id);
+      return users.filter(user => userIds.includes(user._id));
+    }
+    return [];
+  }, [users, folders, folderID]);
 
   return (
     <PageHeader
@@ -238,7 +266,12 @@ const avatar = useMemo( () => {
           searchButton
           onClick={(e) => {
             e.preventDefault();
-            setOpenFilter(!openFilter);
+            const filterState = openFilter;
+            setOpenFilter(!filterState);
+            if (!filterState){
+              setNewFilter({...filter});
+              setNewSearch(search);
+            }
           }}
           >
           <img
@@ -265,33 +298,41 @@ const avatar = useMemo( () => {
                   type="text"
                   name="title"
                   id="title"
-                  placeholder="Title"
-                  value={""}
-                  onChange={(e) => {}}
+                  placeholder="Filter by title"
+                  value={newSearch}
+                  onChange={(e) => {
+                    setNewSearch( e.target.value );
+                  }}
                   />
               </section>
 
-              <section className="inline">
-                <span className="icon-container">
-                  <img
-                    className="label-icon"
-                    htmlFor="folder"
-                    src={FolderIcon}
-                    alt="FolderIcon icon not found"
-                    />
-                </span>
-                <div style={{width: "100%"}}>
-                  <Select
-                    id="folder"
-                    name="folder"
-                    styles={selectStyle}
-                    value={null}
-                    onChange={(e) => {
-                    }}
-                    options={[]}
-                    />
-                </div>
-              </section>
+              {
+                ['all', 'important'].includes(folderID) &&
+                <section className="inline">
+                  <span className="icon-container">
+                    <img
+                      className="label-icon"
+                      htmlFor="folder"
+                      src={FolderIcon}
+                      alt="FolderIcon icon not found"
+                      />
+                  </span>
+                  <div style={{width: "100%"}}>
+                    <Select
+                      id="folder"
+                      name="folder"
+                      placeholder="Filter by folders"
+                      isMulti
+                      styles={selectStyle}
+                      value={newFilter.folders}
+                      onChange={(e) => {
+                        setNewFilter({...newFilter, folders: e})
+                      }}
+                      options={match.path.includes("archive") ? folders.archived : folders.active}
+                      />
+                  </div>
+                </section>
+              }
 
             <section className="inline fit">
               <LinkButton
@@ -299,14 +340,27 @@ const avatar = useMemo( () => {
                 height="fit"
                 onClick={(e) => {
                   e.preventDefault();
+                  setNewFilter({...newFilter, important: !newFilter.important})
                 }}
                 >
+                {
+                  newFilter.important &&
                   <img
                     style={{margin: "0px"}}
                     className="label-icon star"
                     src={FullStarIcon}
                     alt="Full star icon not found"
                     />
+                }
+                {
+                  !newFilter.important &&
+                  <img
+                    style={{margin: "0px"}}
+                    className="label-icon star"
+                    src={EmptyStarIcon}
+                    alt="Empty star icon not found"
+                    />
+                }
                 <span style={{marginLeft: "10px"}}>
                   Important
                 </span>
@@ -327,10 +381,13 @@ const avatar = useMemo( () => {
                   id="assigned"
                   name="assigned"
                   styles={selectStyle}
-                  value={null}
+                  placeholder="Filter by assigned users"
+                  value={newFilter.assigned}
+                  isMulti
                   onChange={(e) => {
+                    setNewFilter({...newFilter, assigned: e});
                   }}
-                  options={[]}
+                  options={usersForFilter}
                   />
               </div>
             </section>
@@ -344,35 +401,186 @@ const avatar = useMemo( () => {
                   alt="Calendar icon not found"
                   />
               </span>
-              <Input
-                type="datetime-local"
+              <Datetime
+                className="full-width"
+                dateFormat={"DD.MM.yyyy"}
+                timeFormat={"HH:mm"}
+                value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin) : null}
                 name="deadline"
                 id="deadline"
-                placeholder="Deadline"
-                value={""}
-                onChange={(e) => {}}
+                inputProps={{
+                placeholder: 'Set deadline',
+                }}
+                onChange={(date) => {
+                  if (typeof date !== "string"){
+                      setNewFilter({...newFilter, deadlineMin: date.unix()});
+                  } else {
+                      setNewFilter({...newFilter, deadlineMin: date});
+                  }
+                }}
+                renderInput={(props) => {
+                    return <Input
+                      {...props}                        value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      />
+                }}
                 />
+                <LinkButton
+                  searchButton
+                  style={{color: "#f3d053", height: "40px", marginRight: "0.6em"}}
+                  height="fit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setNewFilter({...newFilter, deadlineMin: ""});
+                  }}
+                  >
+                    <img
+                      style={{margin: "0px"}}
+                      className="label-icon"
+                      src={CloseIcon}
+                      alt="CloseIcon star icon not found"
+                      />
+                </LinkButton>
+
+                <Datetime
+                  className="full-width"
+                  dateFormat={"DD.MM.yyyy"}
+                  timeFormat={"HH:mm"}
+                  name="deadline"
+                  id="deadline"
+                  inputProps={{
+                  placeholder: 'Set deadline',
+                  }}
+                  onChange={(date) => {
+                    if (typeof date !== "string"){
+                        setNewFilter({...newFilter, deadlineMax: date.unix()});
+                    } else {
+                        setNewFilter({...newFilter, deadlineMax: date});
+                    }
+                  }}
+                  renderInput={(props) => {
+                      return <Input
+                        {...props}
+                        value={newFilter.deadlineMax ? moment.unix(newFilter.deadlineMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                        />
+                  }}
+                  />
+                  <LinkButton
+                    searchButton
+                    style={{color: "#f3d053", height: "40px"}}
+                    height="fit"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setNewFilter({...newFilter, deadlineMax: ""});
+                    }}
+                    >
+                      <img
+                        style={{margin: "0px"}}
+                        className="label-icon"
+                        src={CloseIcon}
+                        alt="CloseIcon star icon not found"
+                        />
+                  </LinkButton>
             </section>
 
             <section className="inline">
               <span className="icon-container" style={{fontSize: "2em", paddingLeft: "8px"}}>
                 *
               </span>
-              <Input
-                type="datetime-local"
+              <Datetime
+                className="full-width"
+                dateFormat={"DD.MM.yyyy"}
+                timeFormat={"HH:mm"}
                 name="dateCreated"
                 id="dateCreated"
-                placeholder="Set created date"
-                value={""}
-                onChange={(e) => {}}
+                inputProps={{
+                placeholder: 'Set created date',
+                }}
+                onChange={(date) => {
+                  if (typeof date !== "string"){
+                      setNewFilter({...newFilter, dateCreatedMin: date.unix()});
+                  } else {
+                      setNewFilter({...newFilter, dateCreatedMin: date});
+                  }
+                }}
+                renderInput={(props) => {
+                    return <Input
+                      {...props}
+                      value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      />
+                }}
                 />
+                <LinkButton
+                  searchButton
+                  style={{color: "#f3d053", height: "40px", marginRight: "0.6em"}}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setNewFilter({...newFilter, dateCreatedMin: ""});
+                  }}
+                  >
+                    <img
+                      style={{margin: "0px"}}
+                      className="label-icon"
+                      src={CloseIcon}
+                      alt="CloseIcon star icon not found"
+                      />
+                </LinkButton>
+
+                <Datetime
+                  className="full-width"
+                  dateFormat={"DD.MM.yyyy"}
+                  timeFormat={"HH:mm"}
+                  name="dateCreated"
+                  id="dateCreated"
+                  inputProps={{
+                  placeholder: 'Set deadline',
+                  }}
+                  onChange={(date) => {
+                    if (typeof date !== "string"){
+                        setNewFilter({...newFilter, dateCreatedMax: date.unix()});
+                    } else {
+                        setNewFilter({...newFilter, dateCreatedMax: date});
+                    }
+                  }}
+                  renderInput={(props) => {
+                      return <Input
+                        {...props}
+                        value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                        />
+                  }}
+                  />
+                  <LinkButton
+                    searchButton
+                    style={{color: "#f3d053", height: "40px"}}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setNewFilter({...newFilter, dateCreatedMax: ""});
+                    }}
+                    >
+                      <img
+                        style={{margin: "0px"}}
+                        className="label-icon"
+                        src={CloseIcon}
+                        alt="CloseIcon star icon not found"
+                        />
+                  </LinkButton>
             </section>
 
             <ButtonRow>
-              <LinkButton>
+              <LinkButton
+                onClick={(e) => {
+                  e.preventDefault();
+                }}
+                >
                 Save filter
               </LinkButton>
-              <FullButton>
+              <FullButton
+                onClick={(e) => {
+                  e.preventDefault();
+                  dispatch(setSearch(newSearch));
+                  dispatch(setFilter({...newFilter}));
+                  setOpenFilter(false);
+                }}
+                >
                 Aply filter
               </FullButton>
             </ButtonRow>
@@ -415,7 +623,7 @@ const avatar = useMemo( () => {
               props.history.push("/settings");
             }}
             >
-            <img className="avatar" src={avatar} alt="assignedAvatar" />
+            <img className={avatar === UserIcon ? "icon" : "avatar"} src={avatar} alt="assignedAvatar" />
           </LinkButton>
         }
 

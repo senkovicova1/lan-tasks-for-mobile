@@ -16,6 +16,8 @@ import {
   Spinner
 } from 'reactstrap';
 
+import Datetime from 'react-datetime';
+
 import {
   updateSimpleAttribute
 } from './tasksHandlers';
@@ -261,6 +263,7 @@ export default function TaskForm( props ) {
 
   return (
     <Form excludeBtn={true}>
+
       {
         onCancel &&
         <CircledButton
@@ -365,18 +368,48 @@ export default function TaskForm( props ) {
             alt="Calendar icon not found"
             />
         </span>
-        <Input
-          type="datetime-local"
-          name="deadline"
-          id="deadline"
-          placeholder="Deadline"
-          value={deadline ? moment.unix(deadline).add((new Date).getTimezoneOffset(), 'minutes').format("yyyy-MM-DD hh:mm").replace(" ", "T") : ""}
-          min={moment.unix().add((new Date).getTimezoneOffset(), 'minutes').format("yyyy-MM-DD hh:mm").replace(" ", "T")}
-          onChange={(e) => {
-            setDeadline(e.target.valueAsNumber/1000);
-            updateSimpleAttribute(taskId, {deadline: e.target.valueAsNumber/1000});
-          }}
-          />
+          <Datetime
+            className="full-width"
+            dateFormat={"DD.MM.yyyy"}
+            value={deadline ? moment.unix(deadline) : ""}
+            timeFormat={"HH:mm"}
+            name="deadline"
+            id="deadline"
+            inputProps={{
+            placeholder: 'Set deadline',
+            }}
+            onChange={(date) => {
+              if (typeof date !== "string"){
+                  setDeadline(date.unix());
+                  updateSimpleAttribute(taskId, {deadline: date.unix()});
+              } else {
+                  setDeadline(date);
+                  updateSimpleAttribute(taskId, {deadline: date});
+              }
+            }}
+            renderInput={(props) => {
+                return <Input
+                  {...props}
+                  />
+            }}
+            />
+            <LinkButton
+              searchButton
+              style={{color: "#f3d053", height: "40px"}}
+              height="fit"
+              onClick={(e) => {
+                e.preventDefault();
+                  setDeadline("");
+                  updateSimpleAttribute(taskId, {deadline: ""});
+              }}
+              >
+                <img
+                  style={{margin: "0px"}}
+                  className="label-icon"
+                  src={CloseIcon}
+                  alt="CloseIcon star icon not found"
+                  />
+            </LinkButton>
       </section>
 
       <section className="inline">
@@ -412,7 +445,7 @@ export default function TaskForm( props ) {
         </span>
         <Textarea
           type="text"
-          placeholder="Description"
+          placeholder="Write description"
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);

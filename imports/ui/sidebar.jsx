@@ -85,7 +85,7 @@ export default function Menu( props ) {
       <NavLink
         key={"all"}
         to="/all/list"
-        className={(!folderID || actualAllMyTasksFolder.value === folderID)  ? "active" : ""}
+        className={((!folderID && !match.path.includes("archive")) || actualAllMyTasksFolder.value === folderID)  ? "active" : ""}
         onClick={() => {
           if (/Mobi|Android/i.test(navigator.userAgent)) {
             dispatch(setSidebarOpen(false));
@@ -103,7 +103,7 @@ export default function Menu( props ) {
       <NavLink
         key={"important"}
         to="/important/list"
-        className={(!folderID || actualImportantTasksFolder.value === folderID)  ? "active" : ""}
+        className={(actualImportantTasksFolder.value === folderID)  ? "active" : ""}
         onClick={() => {
           if (/Mobi|Android/i.test(navigator.userAgent)) {
             dispatch(setSidebarOpen(false));
