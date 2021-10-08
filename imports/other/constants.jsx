@@ -61,6 +61,10 @@ export const sortByOptions = [
     value: "name"
   },
   {
+    label: "Important",
+    value: "important"
+  },
+  {
     label: "Assigned user",
     value: "assigned"
   },

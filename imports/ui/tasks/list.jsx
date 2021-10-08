@@ -171,6 +171,9 @@ const sortedTasks = useMemo( () => {
       if ( sortBy === "date" ) {
         return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
       }
+      if ( sortBy === "important" ) {
+        return t1.important ? 1 * multiplier : ( -1 ) * multiplier;
+      }
       return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
     } );
 }, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );

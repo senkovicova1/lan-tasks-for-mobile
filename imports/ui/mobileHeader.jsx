@@ -192,7 +192,7 @@ export default function MobileHeader( props ) {
       const userIds = folders.archived.map(folder => folder.users.map(user => user._id)).flat();
       return users.filter(user => userIds.includes(user._id));
     }
-    if (['all', 'important'].includes(folderID)){
+    if (!folderID || ['all', 'important'].includes(folderID)){
       const userIds = folders.active.map(folder => folder.users.map(user => user._id)).flat();
       const use = users.filter(user => userIds.includes(user._id));
       return use;
