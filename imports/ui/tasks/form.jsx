@@ -97,13 +97,14 @@ export default function TaskForm( props ) {
     important: taskImportant,
     assigned: taskAssigned,
     description: taskDescription,
+    startDatetime: taskStartDatetime,
+    endDatetime: taskEndDatetime,
     deadline: taskDeadline,
     hours: taskHours,
     folder,
     files: taskFiles,
     title,
     language,
-    onSubmit,
     onCancel,
   } = props;
 
@@ -120,6 +121,8 @@ export default function TaskForm( props ) {
   const [ assigned, setAssigned ] = useState( "" );
   const [ description, setDescription ] = useState( "" );
   const [ deadline, setDeadline ] = useState( "" );
+  const [ startDatetime, setStartDatetime ] = useState( "" );
+  const [ endDatetime, setEndDatetime ] = useState( "" );
   const [ hours, setHours ] = useState( "" );
 
   const [ newSubtaskName, setNewSubtaskName ] = useState( "" );
@@ -165,10 +168,23 @@ export default function TaskForm( props ) {
       setDescription( "" );
     }
 
-    if ( taskDeadline ) {
-      setDeadline( taskDeadline );
+    if ( taskStartDatetime ) {
+      setStartDatetime( taskStartDatetime );
+    } else {
+      setStartDatetime( "" );
+    }
+
+    if ( !taskEndDatetime && taskDeadline ) {
+      setEndDatetime( taskDeadline );
+      setDeadline( "" );
     } else {
       setDeadline( "" );
+    }
+
+    if ( taskEndDatetime ) {
+      setEndDatetime( taskEndDatetime );
+    } else {
+      setEndDatetime( "" );
     }
 
     if ( taskHours ) {
@@ -183,7 +199,7 @@ export default function TaskForm( props ) {
       setFiles( [] );
     }
 
-  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskHours, taskFiles, dbUsers, userId ] );
+  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
 
   const subtasks = useMemo( () => {
     return allSubtasks.filter( subtask => subtask.task === taskId );
@@ -248,7 +264,7 @@ export default function TaskForm( props ) {
   const txHeight = 40;
   const tx = document.getElementsByTagName( "textarea" );
   for ( let i = 0; i < tx.length; i++ ) {
-    if ( tx[ i ].value == '' || tx[ i ].scrollHeight < 76 ) {
+    if ( tx[ i ].value == '' || (tx[i].id === "task-title" && tx[ i ].scrollHeight < 76) || (tx[i].id !== "task-title" && tx[ i ].scrollHeight < 51) ) {
       tx[ i ].setAttribute( "style", "height:" + txHeight + "px;overflow-y:hidden;" );
     } else {
       tx[ i ].setAttribute( "style", "height:" + ( tx[ i ].scrollHeight ) + "px;overflow-y:hidden;" );
@@ -280,7 +296,7 @@ export default function TaskForm( props ) {
 
       <section className="inline" style={{marginTop: "0.3em"}}>
         <TitleCheckbox
-          id={`task-checked`}
+          id="task-checked"
           type="checkbox"
           checked={closed}
           onChange={() => {
@@ -291,6 +307,7 @@ export default function TaskForm( props ) {
           />
         <TitleInput
           type="text"
+          id="task-title"
           placeholder="Name"
           value={name}
           onChange={(e) => {
@@ -369,47 +386,148 @@ export default function TaskForm( props ) {
             />
         </span>
           <Datetime
-            className="full-width"
+            className="full-width m-r-03"
             dateFormat={"DD.MM.yyyy"}
-            value={deadline ? moment.unix(deadline) : ""}
-            timeFormat={"HH:mm"}
-            name="deadline"
-            id="deadline"
+            value={startDatetime ? moment.unix(startDatetime) : ""}
+            timeFormat={false}
+            name="startDate"
+            id="startDate"
             inputProps={{
-            placeholder: 'Set deadline',
+              placeholder: 'Set date',
             }}
             onChange={(date) => {
               if (typeof date !== "string"){
-                  setDeadline(date.unix());
-                  updateSimpleAttribute(taskId, {deadline: date.unix()});
+                  setStartDatetime(date.unix());
+                  updateSimpleAttribute(taskId, {startDatetime: date.unix()});
               } else {
-                  setDeadline(date);
-                  updateSimpleAttribute(taskId, {deadline: date});
+                  setStartDatetime(date);
+                  updateSimpleAttribute(taskId, {startDatetime: date});
               }
             }}
             renderInput={(props) => {
                 return <Input
                   {...props}
+                   value={startDatetime ? props.value : ''}
                   />
             }}
             />
+            <Datetime
+              className="full-width m-r-03"
+              dateFormat={false}
+              value={startDatetime ? moment.unix(startDatetime) : ""}
+              timeFormat={"HH:mm"}
+              name="startTime"
+              id="startTime"
+              inputProps={{
+              placeholder: 'Set time',
+              }}
+              onChange={(date) => {
+                if (typeof date !== "string"){
+                    setStartDatetime(date.unix());
+                    updateSimpleAttribute(taskId, {startDatetime: date.unix()});
+                } else {
+                    setStartDatetime(date);
+                    updateSimpleAttribute(taskId, {startDatetime: date});
+                }
+              }}
+              renderInput={(props) => {
+                return <Input
+                  {...props}
+                   value={startDatetime ? props.value : ''}
+                  />
+              }}
+              />
             <LinkButton
-              searchButton
-              style={{color: "#f3d053", height: "40px"}}
+              style={{height: "40px", marginRight: "0.6em"}}
               height="fit"
               onClick={(e) => {
                 e.preventDefault();
-                  setDeadline("");
-                  updateSimpleAttribute(taskId, {deadline: ""});
+                setStartDatetime("");
+                updateSimpleAttribute(taskId, {startDatetime: ""});
               }}
               >
                 <img
                   style={{margin: "0px"}}
-                  className="label-icon"
+                  className="icon"
                   src={CloseIcon}
                   alt="CloseIcon star icon not found"
                   />
             </LinkButton>
+            <span className="icon-container">
+              End
+            </span>
+              <Datetime
+                className="full-width m-r-03"
+                dateFormat={"DD.MM.yyyy"}
+                value={endDatetime ? moment.unix(endDatetime) : ""}
+                timeFormat={false}
+                name="endDate"
+                id="endDate"
+                inputProps={{
+                placeholder: 'Set date',
+                }}
+                onChange={(date) => {
+                  if (typeof date !== "string"){
+                      setEndDatetime(date.unix());
+                      updateSimpleAttribute(taskId, {endDatetime: date.unix()});
+                  } else {
+                      setEndDatetime(date);
+                      updateSimpleAttribute(taskId, {endDatetime: date});
+                  }
+                }}
+                renderInput={(props) => {
+                    return <Input
+                      {...props}
+                       value={endDatetime ? props.value : ''}
+                      />
+                }}
+                />
+                <Datetime
+                  className="full-width m-r-03"
+                  dateFormat={false}
+                  value={endDatetime ? moment.unix(endDatetime) : ""}
+                  timeFormat={"HH:mm"}
+                  name="endTime"
+                  id="endTime"
+                  inputProps={{
+                    placeholder: 'Set time',
+                  }}
+                  onChange={(date) => {
+                    if (typeof date !== "string"){
+                        setEndDatetime(date.unix());
+                        updateSimpleAttribute(taskId, {endDatetime: date.unix()});
+                    } else {
+                        setEndDatetime(date);
+                        updateSimpleAttribute(taskId, {endDatetime: date});
+                    }
+                  }}
+                  renderInput={(props) => {
+                      return <Input
+                        {...props}
+                         value={endDatetime ? props.value : ''}
+                        />
+                  }}
+                  />
+                <LinkButton
+                  style={{ height: "40px"}}
+                  height="fit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setEndDatetime("");
+                    if (deadline) {
+                      setDeadline(null);
+                      updateSimpleAttribute(taskId, {deadline: null});
+                    }
+                    updateSimpleAttribute(taskId, {endDatetime: ""});
+                  }}
+                  >
+                    <img
+                      style={{margin: "0px"}}
+                      className="icon"
+                      src={CloseIcon}
+                      alt="CloseIcon star icon not found"
+                      />
+                </LinkButton>
       </section>
 
       <section className="inline">

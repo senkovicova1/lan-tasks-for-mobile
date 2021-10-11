@@ -473,6 +473,10 @@ export const Form = styled.form `
     width: -webkit-fill-available;
   }
 
+   .m-r-03{
+     margin-right: 0.3em;
+   }
+
   section{
     margin: 0em 0em 1.5em 0em;
     padding: ${(props) => props.excludeBtn ? "0em 0.7em" : "0px"};

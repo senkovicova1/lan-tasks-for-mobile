@@ -36,26 +36,11 @@ export default function EditTaskContainer( props ) {
     return user.profile.language;
   }, [ user ] );
 
-  const onEditTask = ( name, important, assigned, deadline, hours, description, subtasks, comments, files ) => {
-    editTask( task._id, name, important, assigned, deadline, hours, description, subtasks, comments, files );
-    setParentChosenTask( {
-      _id: task._id,
-      name,
-      important,
-      assigned,
-      deadline,
-      hours,
-      description,
-      subtasks,
-      comments,
-      files
-    } );
-    close();
-  }
-
   const task = useMemo( () => {
     return tasks.length > 0 ? tasks.find( task => task._id === taskId ) : {};
   }, [ taskId, tasks ] );
+
+  console.log("EDIT");
 
   return (
     <Form
@@ -63,7 +48,6 @@ export default function EditTaskContainer( props ) {
       title={translations[language].editTask}
       match={props.match}
       setParentChosenTask={setParentChosenTask}
-      onSubmit={onEditTask}
       language={language}
       onCancel={close}
       />

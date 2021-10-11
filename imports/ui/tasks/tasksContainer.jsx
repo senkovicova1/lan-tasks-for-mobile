@@ -12,7 +12,6 @@ import {
 } from 'meteor/react-meteor-data';
 
 import TasksList from '/imports/ui/tasks/list';
-import AddTask from '/imports/ui/tasks/addContainer';
 import EditTask from '/imports/ui/tasks/editContainer';
 import Loader from '/imports/ui/other/loadingScreen';
 
