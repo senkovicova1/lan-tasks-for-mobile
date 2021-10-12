@@ -48,6 +48,10 @@ export const importantTasksFolder = (language) => {
   return ({label: translations[language].importantFolder, value: "important"});
 }
 
+export const calendarView = (language) => {
+  return ({label: translations[language].calendarView, value: "calendar"});
+}
+
 export const archivedFolder = (language) => {
   return ({label: translations[language].archivedFolders, value: "archived"});
 }

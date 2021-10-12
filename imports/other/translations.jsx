@@ -36,6 +36,7 @@ export const translations = {
     'sendComment': 'Send',
     'files': 'Files',
 
+    'calendarView': 'Calendar',
     'archived': 'Archived',
     'users': 'Users',
     'colour': 'Colour',
@@ -78,6 +79,7 @@ export const translations = {
     'sendComment': 'Poslať',
     'files': 'Súbory',
 
+    'calendarView': 'Kalendár',
     'archived': 'Archivovaný',
     'users': 'Používatelia',
     'colour': 'Farba',

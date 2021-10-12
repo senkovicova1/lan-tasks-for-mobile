@@ -35,8 +35,9 @@ import {
 } from './commentsHandlers';
 
 import {
-  FullStarIcon,
   EmptyStarIcon,
+  FullStarIcon,
+  FolderIcon,
   PlusIcon,
   CloseIcon,
   SendIcon,
@@ -46,7 +47,7 @@ import {
   ClockIcon,
   CalendarIcon,
   PaperClipIcon,
-  TextIcon
+  TextIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -68,7 +69,9 @@ import {
   LinkButton,
   CircledButton,
   CommentContainer,
-  FileContainer
+  FileContainer,
+  FullButton,
+  ButtonCol
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -97,14 +100,16 @@ export default function TaskForm( props ) {
     important: taskImportant,
     assigned: taskAssigned,
     description: taskDescription,
+    allDay: taskAllDay,
     startDatetime: taskStartDatetime,
     endDatetime: taskEndDatetime,
     deadline: taskDeadline,
     hours: taskHours,
-    folder,
+    folder: taskFolder,
     files: taskFiles,
     title,
     language,
+    addNewTask,
     onCancel,
   } = props;
 
@@ -114,17 +119,21 @@ export default function TaskForm( props ) {
   const dbUsers = useSelector( ( state ) => state.users.value );
   const allSubtasks = useSelector( ( state ) => state.subtasks.value );
   const allComments = useSelector( ( state ) => state.comments.value );
+  const folders = useSelector( ( state ) => state.folders.value ).active;
 
   const [ name, setName ] = useState( "" );
   const [ important, setImportant ] = useState( false );
+  const [ folder, setFolder ] = useState( null );
   const [ closed, setClosed ] = useState( false );
-  const [ assigned, setAssigned ] = useState( "" );
+  const [ assigned, setAssigned ] = useState( [] );
   const [ description, setDescription ] = useState( "" );
   const [ deadline, setDeadline ] = useState( "" );
+  const [ allDay, setAllDay ] = useState( false );
   const [ startDatetime, setStartDatetime ] = useState( "" );
   const [ endDatetime, setEndDatetime ] = useState( "" );
   const [ hours, setHours ] = useState( "" );
 
+  const [ addedSubtasks, setAddedSubtasks ] = useState( [] );
   const [ newSubtaskName, setNewSubtaskName ] = useState( "" );
   const [ openNewSubtask, setOpenNewSubtask ] = useState( false );
 
@@ -159,13 +168,19 @@ export default function TaskForm( props ) {
     if ( taskAssigned ) {
       setAssigned( taskAssigned );
     } else {
-      setAssigned( dbUsers.find( user => user._id === userId ) );
+      setAssigned( [dbUsers.find( user => user._id === userId )] );
     }
 
     if ( taskDescription ) {
       setDescription( taskDescription );
     } else {
       setDescription( "" );
+    }
+
+    if ( taskAllDay ) {
+      setAllDay( taskAllDay );
+    } else {
+      setAllDay( false );
     }
 
     if ( taskStartDatetime ) {
@@ -199,7 +214,7 @@ export default function TaskForm( props ) {
       setFiles( [] );
     }
 
-  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
+  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
 
   const subtasks = useMemo( () => {
     return allSubtasks.filter( subtask => subtask.task === taskId );
@@ -214,8 +229,8 @@ export default function TaskForm( props ) {
   }, [ taskId, allComments ] );
 
   const displayedSubtasks = useMemo( () => {
-    return subtasks.filter( subtask => subtask.change !== DELETED ).sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 );
-  }, [ subtasks ] );
+    return addedSubtasks.length > 0 ? addedSubtasks.sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 ) : subtasks.filter( subtask => subtask.change !== DELETED ).sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 );
+  }, [ subtasks, addedSubtasks ] );
 
   const displayedComments = useMemo( () => {
     return comments.filter( comment => comment.change !== DELETED ).map( comment => {
@@ -234,6 +249,15 @@ export default function TaskForm( props ) {
   }, [ comments, dbUsers ] );
 
   const usersWithRights = useMemo( () => {
+    if ( taskFolder ) {
+      return taskFolder.users.map( user => {
+        let newUser = {
+          ...dbUsers.find( u => u._id === user._id ),
+          ...user
+        };
+        return newUser;
+      } );
+    }
     if ( folder ) {
       return folder.users.map( user => {
         let newUser = {
@@ -244,17 +268,24 @@ export default function TaskForm( props ) {
       } );
     }
     return [];
-  }, [ folder, dbUsers ] );
+  }, [ taskFolder, folder, dbUsers ] );
 
   document.onkeydown = function( e ) {
     e = e || window.event;
     if ( e.which === 13 || e.keyCode === 13 ) {
       if ( openNewSubtask ) {
-        addNewSubtask( newSubtaskName, false, taskId, moment().unix() );
+        if (!addNewTask){
+          addNewSubtask( newSubtaskName, false, taskId, moment().unix() );
+        } else{
+          setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
+        }
         setNewSubtaskName( "" );
         setOpenNewSubtask( false );
       } else {
         subtasks.forEach( ( subtask, i ) => {
+          document.getElementById( `subtask_name ${subtask._id}` ).blur();
+        } );
+        addedSubtasks.forEach( ( subtask, i ) => {
           document.getElementById( `subtask_name ${subtask._id}` ).blur();
         } );
       }
@@ -302,7 +333,9 @@ export default function TaskForm( props ) {
           onChange={() => {
             const newClosed = !closed;
             setClosed(newClosed);
-            updateSimpleAttribute(taskId, {closed: newClosed});
+            if (!addNewTask){
+              updateSimpleAttribute(taskId, {closed: newClosed});
+            }
           }}
           />
         <TitleInput
@@ -312,7 +345,11 @@ export default function TaskForm( props ) {
           value={name}
           onChange={(e) => {
             setName(e.target.value);
-            updateSimpleAttribute(taskId, {name: e.target.value});
+            if ( !addNewTask ) {
+              updateSimpleAttribute( taskId, {
+                name: e.target.value
+              } );
+            }
           }}
           />
       </section>
@@ -325,7 +362,9 @@ export default function TaskForm( props ) {
             e.preventDefault();
             const newImportant = !important;
             setImportant(newImportant);
+            if ( !addNewTask ) {
             updateSimpleAttribute(taskId, {important: newImportant});
+          }
           }}
           >
           {
@@ -352,6 +391,32 @@ export default function TaskForm( props ) {
         </LinkButton>
       </section>
 
+      {
+        addNewTask &&
+      <section className="inline">
+        <span className="icon-container">
+          <img
+            className="label-icon"
+            htmlFor="assigned"
+            src={FolderIcon}
+            alt="FolderIcon icon not found"
+            />
+        </span>
+        <div style={{width: "100%"}}>
+          <Select
+            id="folder"
+            name="folder"
+            styles={selectStyle}
+            value={folder}
+            onChange={(e) => {
+              setFolder(e);
+            }}
+            options={folders}
+            />
+        </div>
+      </section>
+    }
+
       <section className="inline">
         <span className="icon-container">
           <img
@@ -366,10 +431,13 @@ export default function TaskForm( props ) {
             id="assigned"
             name="assigned"
             styles={selectStyle}
+            isMulti
             value={assigned}
             onChange={(e) => {
               setAssigned(e);
-              updateSimpleAttribute(taskId, {assigned: e.value});
+              if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {assigned: e.map(user => user._id)});
+            }
             }}
             options={usersWithRights}
             />
@@ -397,11 +465,22 @@ export default function TaskForm( props ) {
             }}
             onChange={(date) => {
               if (typeof date !== "string"){
+                  const newYear = date.year();
+                  const newMonth = date.month();
+                  const newDay = date.date();
+                  const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
                   setStartDatetime(date.unix());
-                  updateSimpleAttribute(taskId, {startDatetime: date.unix()});
+                  setEndDatetime(newEndDatetime.unix());
+
+                  if ( !addNewTask ) {
+                    updateSimpleAttribute(taskId, {startDatetime: date.unix(), endDatetime: newEndDatetime.unix()});
+                  }
               } else {
                   setStartDatetime(date);
-                  updateSimpleAttribute(taskId, {startDatetime: date});
+
+                  if ( !addNewTask ) {
+                    updateSimpleAttribute(taskId, {startDatetime: date, endDatetime: date});
+                  }
               }
             }}
             renderInput={(props) => {
@@ -411,6 +490,27 @@ export default function TaskForm( props ) {
                   />
             }}
             />
+            <LinkButton
+              style={{height: "40px", marginRight: "0.6em"}}
+              height="fit"
+              onClick={(e) => {
+                e.preventDefault();
+                setStartDatetime("");
+                setStartDatetime("");
+                if ( !addNewTask ) {
+                  updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
+                }
+              }}
+              >
+                <img
+                  style={{margin: "0px"}}
+                  className="icon"
+                  src={CloseIcon}
+                  alt="CloseIcon star icon not found"
+                  />
+            </LinkButton>
+          {
+            !allDay &&
             <Datetime
               className="full-width m-r-03"
               dateFormat={false}
@@ -424,10 +524,14 @@ export default function TaskForm( props ) {
               onChange={(date) => {
                 if (typeof date !== "string"){
                     setStartDatetime(date.unix());
-                    updateSimpleAttribute(taskId, {startDatetime: date.unix()});
+                    if ( !addNewTask ) {
+                      updateSimpleAttribute(taskId, {startDatetime: date.unix()});
+                    }
                 } else {
                     setStartDatetime(date);
-                    updateSimpleAttribute(taskId, {startDatetime: date});
+                    if ( !addNewTask ) {
+                      updateSimpleAttribute(taskId, {startDatetime: date});
+                    }
                 }
               }}
               renderInput={(props) => {
@@ -437,13 +541,23 @@ export default function TaskForm( props ) {
                   />
               }}
               />
+          }
+          {
+            !allDay &&
             <LinkButton
               style={{height: "40px", marginRight: "0.6em"}}
               height="fit"
               onClick={(e) => {
                 e.preventDefault();
-                setStartDatetime("");
-                updateSimpleAttribute(taskId, {startDatetime: ""});
+                const newHour = 0;
+                const newMinute = 0;
+                const newSecond = 0;
+                const newStartDatetime = moment(startDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
+                setStartDatetime(newStartDatetime.unix());
+
+                if ( !addNewTask ) {
+                  updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
+                }
               }}
               >
                 <img
@@ -453,9 +567,77 @@ export default function TaskForm( props ) {
                   alt="CloseIcon star icon not found"
                   />
             </LinkButton>
-            <span className="icon-container">
-              End
+          }
+          {
+            !allDay &&
+              <span className="icon-container" style={{marginRight: "0.3em"}}>
+              -
             </span>
+          }
+            {
+              !allDay &&
+              <Datetime
+                className="full-width m-r-03"
+                dateFormat={false}
+                value={endDatetime ? moment.unix(endDatetime) : ""}
+                timeFormat={"HH:mm"}
+                name="endTime"
+                id="endTime"
+                inputProps={{
+                  placeholder: 'Set time',
+                }}
+                onChange={(date) => {
+                  if (typeof date !== "string"){
+                      const newHour = date.hour();
+                      const newMinute = date.minute();
+                      const newSecond = date.second();
+                      const newEndDatetime = moment(endDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
+                      setEndDatetime(date.unix());
+                      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
+                      }
+                  } else {
+                      setEndDatetime(date);
+                      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: date});
+                      }
+                  }
+                }}
+                renderInput={(props) => {
+                    return <Input
+                      {...props}
+                      value={endDatetime ? props.value : ''}
+                      />
+                }}
+                />
+            }
+            {
+              !allDay &&
+              <LinkButton
+                style={{height: "40px", marginRight: "0.6em"}}
+                height="fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const newHour = 0;
+                  const newMinute = 0;
+                  const newSecond = 0;
+                  const newEndDatetime = moment(endDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
+                  setEndDatetime(newEndDatetime.unix());
+                  if ( !addNewTask ) {
+                    updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
+                  }
+                }}
+                >
+                  <img
+                    style={{margin: "0px"}}
+                    className="icon"
+                    src={CloseIcon}
+                    alt="CloseIcon star icon not found"
+                    />
+              </LinkButton>
+            }
+            {
+              allDay &&
               <Datetime
                 className="full-width m-r-03"
                 dateFormat={"DD.MM.yyyy"}
@@ -469,10 +651,14 @@ export default function TaskForm( props ) {
                 onChange={(date) => {
                   if (typeof date !== "string"){
                       setEndDatetime(date.unix());
-                      updateSimpleAttribute(taskId, {endDatetime: date.unix()});
+                      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: date.unix()});
+                      }
                   } else {
                       setEndDatetime(date);
-                      updateSimpleAttribute(taskId, {endDatetime: date});
+                      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: date});
+                      }
                   }
                 }}
                 renderInput={(props) => {
@@ -482,52 +668,59 @@ export default function TaskForm( props ) {
                       />
                 }}
                 />
-                <Datetime
-                  className="full-width m-r-03"
-                  dateFormat={false}
-                  value={endDatetime ? moment.unix(endDatetime) : ""}
-                  timeFormat={"HH:mm"}
-                  name="endTime"
-                  id="endTime"
-                  inputProps={{
-                    placeholder: 'Set time',
-                  }}
-                  onChange={(date) => {
-                    if (typeof date !== "string"){
-                        setEndDatetime(date.unix());
-                        updateSimpleAttribute(taskId, {endDatetime: date.unix()});
-                    } else {
-                        setEndDatetime(date);
-                        updateSimpleAttribute(taskId, {endDatetime: date});
-                    }
-                  }}
-                  renderInput={(props) => {
-                      return <Input
-                        {...props}
-                         value={endDatetime ? props.value : ''}
-                        />
-                  }}
-                  />
-                <LinkButton
-                  style={{ height: "40px"}}
-                  height="fit"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setEndDatetime("");
-                    if (deadline) {
-                      setDeadline(null);
-                      updateSimpleAttribute(taskId, {deadline: null});
-                    }
-                    updateSimpleAttribute(taskId, {endDatetime: ""});
-                  }}
-                  >
-                    <img
-                      style={{margin: "0px"}}
-                      className="icon"
-                      src={CloseIcon}
-                      alt="CloseIcon star icon not found"
-                      />
-                </LinkButton>
+            }
+            {
+              allDay &&
+              <LinkButton
+                style={{height: "40px", marginRight: "0.6em"}}
+                height="fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEndDatetime(startDatetime);
+                  if ( !addNewTask ) {
+                    updateSimpleAttribute(taskId, {endDatetime: startDatetime});
+                  }
+                }}
+                >
+                  <img
+                    style={{margin: "0px"}}
+                    className="icon"
+                    src={CloseIcon}
+                    alt="CloseIcon star icon not found"
+                    />
+              </LinkButton>
+            }
+
+      </section>
+
+      <section>
+        <Input
+          id='taskAllDay'
+          type="checkbox"
+          style={{width: "1.5em", marginLeft: "3px"}}
+          checked={allDay}
+          onChange={() =>  {
+            const newAllDay = !allDay;
+            setAllDay(newAllDay);
+
+            if (!newAllDay){
+              const newYear = moment(startDatetime*1000).year();
+              const newMonth = moment(startDatetime*1000).month();
+              const newDay = moment(startDatetime*1000).date();
+              const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
+              setEndDatetime(newEndDatetime.unix());
+              if ( !addNewTask ) {
+                updateSimpleAttribute(taskId, {allDay: newAllDay, endDatetime: newEndDatetime.unix()});
+              }
+            } else if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {allDay: newAllDay});
+            }
+
+          }}
+          />
+        <span style={{marginLeft: "10px"}}>
+            All day event
+          </span>
       </section>
 
       <section className="inline">
@@ -547,7 +740,9 @@ export default function TaskForm( props ) {
           value={hours}
           onChange={(e) => {
             setHours(e.target.value);
-            updateSimpleAttribute(taskId, {hours: e.target.value});
+            if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {hours: e.target.value});
+            }
           }}
           />
       </section>
@@ -567,7 +762,9 @@ export default function TaskForm( props ) {
           value={description}
           onChange={(e) => {
             setDescription(e.target.value);
-            updateSimpleAttribute(taskId, {description: e.target.value});
+            if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {description: e.target.value});
+            }
           }}
           />
       </section>
@@ -589,7 +786,9 @@ export default function TaskForm( props ) {
                 <LinkButton
                   onClick={(e) => {
                     e.preventDefault();
-                    updateSimpleAttribute(taskId, {files: files.filter(f => f.dateCreated !== file.dateCreated)});
+                    if ( !addNewTask ) {
+                      updateSimpleAttribute(taskId, {files: files.filter(f => f.dateCreated !== file.dateCreated)});
+                    }
                   }}
                   className="connected-btn"
                   >
@@ -623,7 +822,11 @@ export default function TaskForm( props ) {
                   data: reader.result
                 };
                 setShowSpinner(false);
-                updateSimpleAttribute(taskId, {files: [...files, newFile]});
+                if ( !addNewTask ) {
+                  updateSimpleAttribute(taskId, {files: [...files, newFile]});
+                } else {
+                  setFiles([...files, newFile]);
+                }
               };
               reader.readAsDataURL(file);
             }}
@@ -711,7 +914,11 @@ export default function TaskForm( props ) {
               <LinkButton
                 onClick={(e) => {
                   e.preventDefault();
-                  addNewSubtask(newSubtaskName, false, taskId, moment().unix());
+                  if (!addNewTask){
+                    addNewSubtask( newSubtaskName, false, taskId, moment().unix() );
+                  } else{
+                    setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
+                  }
                   setNewSubtaskName("");
                   setOpenNewSubtask(false);
                 }}
@@ -728,141 +935,215 @@ export default function TaskForm( props ) {
         </List>
       </section>
 
-      <section className="comments">
-        <HiddenTextarea
-          type="text"
-          id="comments"
-          name="comments"
-          placeholder="Write a comment"
-          value={newCommentBody}
-          onChange={(e) => setNewCommentBody(e.target.value)}
-          />
-        <ButtonRow>
-          {newCommentBody.length > 0 &&
-            <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
+      {
+        !addNewTask &&
+        <section className="comments">
+          <HiddenTextarea
+            type="text"
+            id="comments"
+            name="comments"
+            placeholder="Write a comment"
+            value={newCommentBody}
+            onChange={(e) => setNewCommentBody(e.target.value)}
+            />
+          <ButtonRow>
+            {newCommentBody.length > 0 &&
+              <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
+            }
+            <LinkButton
+              colour=""
+              style={{marginLeft: "auto", marginRight: "0px"}}
+              disabled={newCommentBody.length === 0}
+              onClick={(e) => {
+                e.preventDefault();
+                addNewComment(userId, taskId, moment().unix(), newCommentBody);
+                setNewCommentBody("");
+              }}
+              >
+              <img
+                className="icon"
+                style={{width: "1.6em", margin: "0em"}}
+                src={SendIcon}
+                alt="Send icon not found"
+                />
+              {translations[language].sendComment}
+            </LinkButton>
+          </ButtonRow>
+
+          {
+            displayedComments.length > 0 &&
+            displayedComments.map(comment => (
+              <CommentContainer key={comment._id ? comment._id : comment.dateCreated }>
+                <div>
+                  {
+                    comment.author &&
+                    comment.author.avatar &&
+                    <img className="avatar" src={comment.author.img} alt="" />
+                  }
+                  {
+                    comment.author &&
+                    !comment.author.avatar &&
+                    <img className="avatar" className="" src={UserIcon} alt="" />
+                  }
+                  <label className="name">
+                    {`${comment.author.name} ${comment.author.surname}`}
+                  </label>
+                  <span className="dateCreated">{moment.unix(comment.dateCreated).add((new Date).getTimezoneOffset(), 'minutes').format("DD.MM.yyyy hh:mm")}</span>
+                  {
+                    comment.author._id === userId &&
+                    <LinkButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setEditedComment(comment._id ? comment._id : comment.dateCreated);
+                      }}
+                      >
+                      <img
+                        className="icon"
+                        style={{width: "1em", marginLeft: "0.3em"}}
+                        src={PencilIcon}
+                        alt="Pencil icon not found"
+                        />
+                    </LinkButton>
+                  }
+                  {
+                    comment.author._id === userId &&
+                    <LinkButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        removeComment(comment._id);
+                      }}
+                      >
+                      <img
+                        className="icon"
+                        style={{width: "1em", marginLeft: "0.3em"}}
+                        src={DeleteIcon}
+                        alt="Delete icon not found"
+                        />
+                    </LinkButton>
+                  }
+                </div>
+                {
+                  editedComment !== comment._id &&
+                  editedComment !== comment.dateCreated &&
+                  <p className="body">{comment.body}</p>
+                }
+                {
+                  (editedComment === comment._id || editedComment === comment.dateCreated) &&
+                  <Textarea
+                    type="text"
+                    id="comments"
+                    name="comments"
+                    placeholder="Comment"
+                    value={editedCommentBody.length > 0 ? editedCommentBody : comment.body}
+                    onChange={(e) => {
+                      setEditedCommentBody(e.target.value);
+                    }}
+                    />
+                }
+                {
+                  (editedComment === comment._id || editedComment === comment.dateCreated) &&
+                  <ButtonRow>
+                    {
+                      editedCommentBody &&
+                      <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
+                    }
+                    <LinkButton
+                      colour=""
+                      style={{marginLeft: "auto", marginRight: "0px"}}
+                      disabled={editedCommentBody.length === 0}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        editComment(comment._id, comment.author._id, comment.task, comment.dateCreated, editedCommentBody);
+                        setEditedComment(null);
+                        setEditedCommentBody("");
+                      }}
+                      >
+                      {translations[language].save}
+                      <img
+                        className="icon"
+                        style={{width: "1em", marginLeft: "0.3em"}}
+                        src={SendIcon}
+                        alt="Send icon not found"
+                        />
+                    </LinkButton>
+                  </ButtonRow>
+                }
+              </CommentContainer>
+            ))
           }
-          <LinkButton
+        </section>
+      }
+      {
+        addNewTask &&
+        <ButtonCol>
+          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); onCancel();}}>{translations[language].cancel}</FullButton>
+          <FullButton
             colour=""
-            style={{marginLeft: "auto", marginRight: "0px"}}
-            disabled={newCommentBody.length === 0}
+            disabled={name.length === 0 || !folder}
             onClick={(e) => {
               e.preventDefault();
-              addNewComment(userId, taskId, moment().unix(), newCommentBody);
-              setNewCommentBody("");
+              addNewTask(
+                name,
+                important,
+                assigned.map(user => user._id),
+                startDatetime,
+                endDatetime,
+                hours,
+                description,
+                subtasks,
+                comments,
+                files,
+                folder._id,
+                moment().unix()
+              );
             }}
             >
-            <img
-              className="icon"
-              style={{width: "1.6em", margin: "0em"}}
-              src={SendIcon}
-              alt="Send icon not found"
-              />
-            {translations[language].sendComment}
-          </LinkButton>
-        </ButtonRow>
-
-        {
-          displayedComments.length > 0 &&
-          displayedComments.map(comment => (
-            <CommentContainer key={comment._id ? comment._id : comment.dateCreated }>
-              <div>
-                {
-                  comment.author &&
-                  comment.author.avatar &&
-                  <img className="avatar" src={comment.author.img} alt="" />
-                }
-                {
-                  comment.author &&
-                  !comment.author.avatar &&
-                  <img className="avatar" className="" src={UserIcon} alt="" />
-                }
-                <label className="name">
-                  {`${comment.author.name} ${comment.author.surname}`}
-                </label>
-                <span className="dateCreated">{moment.unix(comment.dateCreated).add((new Date).getTimezoneOffset(), 'minutes').format("DD.MM.yyyy hh:mm")}</span>
-                {
-                  comment.author._id === userId &&
-                  <LinkButton
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setEditedComment(comment._id ? comment._id : comment.dateCreated);
-                    }}
-                    >
-                    <img
-                      className="icon"
-                      style={{width: "1em", marginLeft: "0.3em"}}
-                      src={PencilIcon}
-                      alt="Pencil icon not found"
-                      />
-                  </LinkButton>
-                }
-                {
-                  comment.author._id === userId &&
-                  <LinkButton
-                    onClick={(e) => {
-                      e.preventDefault();
-                      removeComment(comment._id);
-                    }}
-                    >
-                    <img
-                      className="icon"
-                      style={{width: "1em", marginLeft: "0.3em"}}
-                      src={DeleteIcon}
-                      alt="Delete icon not found"
-                      />
-                  </LinkButton>
-                }
-              </div>
-              {
-                editedComment !== comment._id &&
-                editedComment !== comment.dateCreated &&
-                <p className="body">{comment.body}</p>
-              }
-              {
-                (editedComment === comment._id || editedComment === comment.dateCreated) &&
-                <Textarea
-                  type="text"
-                  id="comments"
-                  name="comments"
-                  placeholder="Comment"
-                  value={editedCommentBody.length > 0 ? editedCommentBody : comment.body}
-                  onChange={(e) => {
-                    setEditedCommentBody(e.target.value);
-                  }}
-                  />
-              }
-              {
-                (editedComment === comment._id || editedComment === comment.dateCreated) &&
-                <ButtonRow>
-                  {
-                    editedCommentBody &&
-                    <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
-                  }
-                  <LinkButton
-                    colour=""
-                    style={{marginLeft: "auto", marginRight: "0px"}}
-                    disabled={editedCommentBody.length === 0}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      editComment(comment._id, comment.author._id, comment.task, comment.dateCreated, editedCommentBody);
-                      setEditedComment(null);
-                      setEditedCommentBody("");
-                    }}
-                    >
-                    {translations[language].save}
-                    <img
-                      className="icon"
-                      style={{width: "1em", marginLeft: "0.3em"}}
-                      src={SendIcon}
-                      alt="Send icon not found"
-                      />
-                  </LinkButton>
-                </ButtonRow>
-              }
-            </CommentContainer>
-          ))
-        }
-      </section>
+            {translations[language].save}
+          </FullButton>
+        </ButtonCol>
+      }
     </Form>
   );
 };
+
+/*
+
+  <LinkButton
+    style={{height: "40px", marginRight: "0.6em"}}
+    height="fit"
+    onClick={(e) => {
+      e.preventDefault();
+      setStartDatetime("");
+      updateSimpleAttribute(taskId, {startDatetime: ""});
+    }}
+    >
+      <img
+        style={{margin: "0px"}}
+        className="icon"
+        src={CloseIcon}
+        alt="CloseIcon star icon not found"
+        />
+  </LinkButton>
+
+<LinkButton
+  style={{ height: "40px"}}
+  height="fit"
+  onClick={(e) => {
+    e.preventDefault();
+    setEndDatetime("");
+    if (deadline) {
+      setDeadline(null);
+      updateSimpleAttribute(taskId, {deadline: null});
+    }
+    updateSimpleAttribute(taskId, {endDatetime: ""});
+  }}
+  >
+    <img
+      style={{margin: "0px"}}
+      className="icon"
+      src={CloseIcon}
+      alt="CloseIcon star icon not found"
+      />
+</LinkButton>
+
+*/

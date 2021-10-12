@@ -131,7 +131,7 @@ const removedTasks = useMemo( () => {
 const addQuickTask = () => {
   addTask(
     newTaskName,
-    userId,
+    [userId],
     folderID,
     moment().unix(),
     () => {
@@ -143,7 +143,15 @@ const addQuickTask = () => {
 }
 
 const filteredTasks = useMemo( () => {
-  return tasks.filter( task => !task.removedDate && ( task.folder._id === folder.value || (folder.value === "important" && task.important) || ( "all" === folder.value && task.assigned && task.assigned._id === userId ) ) );
+  return tasks.filter( task => !task.removedDate &&
+    ( task.folder._id === folder.value ||
+      (folder.value === "important" && task.important) ||
+      (
+         "all" === folder.value &&
+        task.assigned.some(assigned => assigned._id === userId)
+       )
+    )
+  );
 }, [ tasks, folder, userId ] );
 
 const searchedTasks = useMemo( () => {
@@ -155,7 +163,7 @@ const tasksWithAdvancedFilters = useMemo( () => {
   const filteredByFolders = ["all", "important"].includes(folderID) ? searchedTasks.filter( task => filter.folders.length === 0 || folderIds.includes(task.folder._id)) : searchedTasks;
   const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
   const assignedIds = filter.assigned.map(user => user._id);
-  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || assignedIds.includes(task.assigned._id));
+  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(user => assignedIds.includes(user._id) ) );
   const filteredByDeadlines = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => task.deadline && (!filter.deadlineMin || filter.deadlineMin <= task.deadline) && (!filter.deadlineMax || task.deadline <= filter.deadlineMax)) : filteredByAssigned;
   const filteredByDateCreated = filteredByDeadlines.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
   return filteredByDateCreated;
@@ -166,7 +174,7 @@ const sortedTasks = useMemo( () => {
   return tasksWithAdvancedFilters
     .sort( ( t1, t2 ) => {
       if ( sortBy === "assigned" ) {
-        return t1.assigned.label.toLowerCase() < t2.assigned.label.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
+        return t1.assigned.map(assigned => assigned.label).join(" ").toLowerCase() < t2.assigned.map(assigned => assigned.label).join(" ").toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
       }
       if ( sortBy === "date" ) {
         return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
@@ -466,14 +474,9 @@ document.onkeydown = function( e ) {
               {task.name}
             </span>
             {
-              task.assigned &&
-              task.assigned.img &&
-              <img className="avatar" src={task.assigned.img} alt="" title={task.assigned.label}/>
-            }
-            {
-              task.assigned &&
-              !task.assigned.img &&
-              <img className="usericon" src={UserIcon} alt="" title={task.assigned.label}/>
+              task.assigned.map(assigned => (
+                <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
+              ))
             }
             <LinkButton
               onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}

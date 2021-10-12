@@ -40,6 +40,35 @@ export const addTask = ( name, assigned, folder, dateCreated, onSuccess, onFail 
   } );
 }
 
+export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, dateCreated ) => {
+  let data = {
+    name,
+    important,
+    assigned,
+    startDatetime,
+    endDatetime,
+    hours,
+    description,
+    files,
+    closed: false,
+    folder,
+    dateCreated
+  };
+  TasksCollection.insert({
+      ...data
+  }, (error, _id) => {
+    if (error){
+      console.log(error);
+    } else {
+      const addedSubtasks = subtasks.filter( subtask => subtask.change === ADDED );
+
+      addedSubtasks.forEach( ( subtask, i ) => {
+        addNewSubtask( subtask.name, subtask.closed, _id, subtask.dateCreated );
+      } );
+    }
+  } );
+}
+
 export const editTask = ( _id, name, important, assigned, deadline, hours, description, subtasks, comments, files ) => {
   let data = {
     name,

@@ -62,6 +62,7 @@ import {
 import Header from './header';
 import Login from './login';
 import TaskContainer from './tasks/tasksContainer';
+import Calendar from '/imports/ui/tasks/calendar';
 import FolderList from './folders/folderList';
 import FolderEdit from './folders/editFolderContainer';
 import FolderAdd from './folders/addFolderContainer';
@@ -72,7 +73,8 @@ import {
 } from "/imports/other/styles/icons";
 
 import {
-  Content
+  Content,
+  InnerContent
 } from '/imports/other/styles/styledComponents';
 
 import {
@@ -140,23 +142,31 @@ export default function MainPage( props ) {
   useEffect( () => {
     if ( folders.length > 0 && users.length > 0 ) {
       let newTasks = tasks.map( task => {
-        if ( task.assigned ) {
-          const newAssigned = users.find( user => user._id === task.assigned );
+        if ( (typeof task.assigned === "array" && task.assigned.length > 0) || task.assigned ) {
+          const newAssigned = Array.isArray(task.assigned) ? users.filter( user => task.assigned.includes(user._id) ) : [users.find( user => user._id === task.assigned )];
           return {
             ...task,
             folder: folders.find( folder => folder._id === task.folder ),
-            assigned: {
-              _id: newAssigned ? newAssigned._id : "-1",
-              ...(newAssigned ? newAssigned.profile : {}),
-              label: newAssigned ? `${newAssigned.profile.name} ${newAssigned.profile.surname}` : "No assigned",
-              value: newAssigned ? newAssigned._id : "-1",
-              img: newAssigned && newAssigned.profile.avatar ? uint8ArrayToImg( newAssigned.profile.avatar ) : UserIcon
-            },
+            assigned: newAssigned.length > 0 ? newAssigned.map(user => ({
+              _id: user._id,
+              ...user.profile,
+              label: `${user.profile.name} ${user.profile.surname}`,
+              value: user._id,
+              img: user.profile.avatar ? uint8ArrayToImg( user.profile.avatar ) : UserIcon
+            })).sort((a1,a2) => a1.label.toLowerCase() > a2.label.toLowerCase() ? 1 : -1) : [
+              {
+                _id: "-1",
+                label: "No assigned",
+                value: "-1",
+                img: UserIcon
+              }
+            ],
           };
         }
         return {
           ...task,
           folder: folders.find( folder => folder._id === task.folder ),
+          assigned: [],
         }
       } );
       dispatch( setTasks( newTasks ) );
@@ -197,14 +207,13 @@ export default function MainPage( props ) {
       <BrowserRouter>
         <Route
           exact
-          path={["/", "/login", "/settings", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
+          path={["/", "/login", "/settings", "/calendar", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
           render={(props) => (
             <Header
               {...props}
               />
           )}
           />
-
         {
           !currentUser &&
           <Content withSidebar={false}>
@@ -213,11 +222,15 @@ export default function MainPage( props ) {
         }
         {
           currentUser &&
-          <Content
-            withSidebar={sidebarOpen}
-            columns={layout === COLUMNS}
-            >
-            <div style={{height: "100%", position: "relative"}}>
+            <Content
+              withSidebar={sidebarOpen}
+              columns={layout === COLUMNS}
+              >
+            <Route exact path={"/calendar"} component={Calendar} />
+
+            <InnerContent
+              withSidebar={sidebarOpen}
+              >
 
               <Route exact path={"/folders/add"} component={FolderAdd} />
               <Route exact path={"/:folderID/edit"} component={FolderEdit} />
@@ -241,7 +254,7 @@ export default function MainPage( props ) {
                   <EditUserContainer {...props} user={currentUser} />
                 )}
                 />
-            </div>
+          </InnerContent>
           </Content>
         }
       </BrowserRouter>

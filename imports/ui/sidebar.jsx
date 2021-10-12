@@ -26,11 +26,12 @@ import {
 } from '/imports/redux/metadataSlice';
 
 import {
+  ArchiveIcon,
+  CalendarIcon,
   ListIcon,
   FolderIcon,
-  ArchiveIcon,
   PlusIcon,
-  EmptyStarIcon
+  EmptyStarIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -47,7 +48,8 @@ import {
 import {
   allMyTasksFolder,
   importantTasksFolder,
-  archivedFolder
+  archivedFolder,
+  calendarView
 } from "/imports/other/constants";
 
 import {
@@ -75,6 +77,9 @@ export default function Menu( props ) {
   }, [ currentUser.profile.language ] );
   const actualImportantTasksFolder = useMemo( () => {
     return importantTasksFolder( currentUser.profile.language );
+  }, [ currentUser.profile.language ] );
+  const actualCalendarView = useMemo( () => {
+    return calendarView( currentUser.profile.language );
   }, [ currentUser.profile.language ] );
   const actualArchivedFolder = useMemo( () => {
     return archivedFolder( currentUser.profile.language );
@@ -117,6 +122,24 @@ export default function Menu( props ) {
           />
         {actualImportantTasksFolder.label}
       </NavLink>
+
+        <NavLink
+          key={"calendar"}
+          to="/calendar"
+          className={actualCalendarView.value === folderID  ? "active" : ""}
+          onClick={() => {
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+              dispatch(setSidebarOpen(false));
+            }
+          }}
+          >
+          <img
+            className="icon"
+            src={CalendarIcon}
+            alt="CalendarIcon icon not found"
+            />
+          {actualCalendarView.label}
+        </NavLink>
 
       {
         folders.map(folder => (

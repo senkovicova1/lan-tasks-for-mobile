@@ -187,31 +187,29 @@ export const Content = styled.main `
     width: 100%;
   }
 
-  @media all and (min-width: 800px) and (max-width: 1299px){
-    padding-left: calc(50vw - 400px);
-    padding-right: calc(50vw - 400px);
+  @media all and (min-width: 800px){
+    padding-left: ${(props) => props.withSidebar ? `${sidebarWidthWeb}` : "30px"};
+    padding-right: 0px;
+  }
+`;
 
-    ${(props) =>
-      props.columns &&
-      `
-        padding-left: ${props.withSidebar ? `${sidebarWidthWeb}` : "0px"};
-        padding-right: 0px;
-      `
-    }
+
+export const InnerContent = styled.main `
+  display: block;
+
+  @media all and (max-width: 799px), @media handheld {
+    width: 100%;
   }
 
-  @media all and (min-width: 1300px) {
-    padding-left: calc(50vw - 400px);
-    padding-right: calc(50vw - 400px);
-
-    ${(props) =>
-      props.columns &&
-      `
-        padding-left: ${props.withSidebar ? `${sidebarWidthWeb}` : "0px"};
-        padding-right: 0px;
-      `
-    }
+  @media all and (min-width: 800px) {
+    padding-left: ${(props) => props.withSidebar ? `calc(50vw - ${sidebarWidthWeb} - 400px)` : "0px"};
+    padding-right: ${(props) => props.withSidebar ? `calc(50vw - 400px)` : "0px"};
   }
+`;
+
+export const CalendarContainer = styled.div`
+  padding: 30px;
+  height: -webkit-fill-available;
 `;
 
 export const ButtonRow = styled.section `

@@ -7,6 +7,9 @@ import {
 } from '/imports/other/styles/styledComponents';
 
 import "react-datetime/css/react-datetime.css";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
+
 
 export const App = () => (
   <MainPage>
