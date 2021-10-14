@@ -24,13 +24,14 @@ import {
   DELETED
 } from '/imports/other/constants';
 
-export const addTask = ( name, assigned, folder, dateCreated, onSuccess, onFail ) => {
+export const addTask = ( name, assigned, folder, dateCreated, container, onSuccess, onFail ) => {
   TasksCollection.insert( {
     name,
     assigned,
     folder,
     dateCreated,
-    closed: false
+    closed: false,
+    container
   }, ( error, _id ) => {
     if ( error ) {
       onFail( error );
@@ -40,7 +41,7 @@ export const addTask = ( name, assigned, folder, dateCreated, onSuccess, onFail 
   } );
 }
 
-export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, dateCreated ) => {
+export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, container, dateCreated ) => {
   let data = {
     name,
     important,
@@ -52,6 +53,7 @@ export const addFullTask = ( name, important, assigned, startDatetime, endDateti
     files,
     closed: false,
     folder,
+    container,
     dateCreated
   };
   TasksCollection.insert({

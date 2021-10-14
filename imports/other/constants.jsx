@@ -58,6 +58,8 @@ export const archivedFolder = (language) => {
 
 export const PLAIN = 0;
 export const COLUMNS = 1;
+export const CALENDAR = 2;
+export const DND = 3;
 
 export const sortByOptions = [
   {

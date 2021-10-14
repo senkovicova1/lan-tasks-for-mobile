@@ -23,14 +23,12 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+
 import {
   Modal,
   ModalBody
 } from 'reactstrap';
-
-import {
-  updateSimpleAttribute
-} from './tasksHandlers';
 
 import {
   removeSubtask
@@ -41,10 +39,15 @@ import {
 } from './commentsHandlers';
 
 import {
+  editContianers
+} from './containersHandlers';
+
+import {
   addTask,
   closeTask,
   removeTask,
-  restoreLatestTask
+  restoreLatestTask,
+  updateSimpleAttribute
 } from './tasksHandlers';
 
 import AddTask from './addContainer';
@@ -75,11 +78,13 @@ import {
 
 import {
   AppliedFilter,
-  CalendarContainer,
+  DndContainer,
   LinkButton,
   ItemCard,
+  HiddenInput,
   Input,
-  ItemContainer
+  ItemContainer,
+  InlineInput
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -94,7 +99,7 @@ import {
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
-export default function CalendarList( props ) {
+export default function DND( props ) {
 
   const dispatch = useDispatch();
 
@@ -112,11 +117,14 @@ const {
 
 const {
   search,
-  filter
+  filter,
+  sortBy,
+  sortDirection,
 } = useSelector( ( state ) => state.metadata.value );
 
-const [ selectedInterval, setSelectedInterval ] = useState(null);
 const [ showClosed, setShowClosed ] = useState( false );
+const [ newContainerName, setNewContainerName ] = useState( "" );
+const [ openNewTask, setOpenNewTask ] = useState( [] );
 
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
@@ -129,12 +137,33 @@ const tasks = useSelector( ( state ) => state.tasks.value );
 const subtasks = useSelector( ( state ) => state.subtasks.value );
 const comments = useSelector( ( state ) => state.comments.value );
 
+const containers = useMemo( () => {
+  if ( folder.containers && folder.containers.length > 0) {
+    return [{_id: 0, label: "New"}, ...folder.containers];
+  }
+  return [{_id: 0, label: "New"}];
+}, [ folder ] );
+
 const removedTasks = useMemo( () => {
   if ( folder._id ) {
     return tasks.filter( t => t.folder._id === folder._id && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
   }
   return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
 }, [ tasks, folder._id ] );
+
+const addQuickTask = (containerId) => {
+  addTask(
+    openNewTask.find(t => t.container === containerId).name,
+    [userId],
+    folderID,
+    moment().unix(),
+    containerId,
+    () => {
+      setOpenNewTask([...openNewTask.filter(open => open.container !== containerId)]);
+    },
+    () => console.log( error )
+  );
+}
 
 const filteredTasks = useMemo( () => {
   return tasks.filter( task => !task.removedDate &&
@@ -163,28 +192,47 @@ const tasksWithAdvancedFilters = useMemo( () => {
   return filteredByDateCreated;
 }, [ filter, searchedTasks ] );
 
-const activeTasks = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map(task => ({...task, startDatetime: new Date(task.startDatetime*1000), endDatetime: new Date(task.endDatetime*1000), tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`}));
-}, [ tasksWithAdvancedFilters, showClosed ] );
-
-const activeTasksWithoutDatetimes = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => !task.startDatetime && !task.closed );
-}, [ tasksWithAdvancedFilters ] );
-
-const inactiveTasksWithoutDatetimes = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => !task.startDatetime && task.closed );
-}, [ tasksWithAdvancedFilters ] );
-
-document.onkeydown = function( e ) {
-  e = e || window.event;
-  switch ( e.which || e.keyCode ) {
-    case 13:
-      if ( newTaskName.length > 0 ) {
-        addQuickTask();
+const sortedTasks = useMemo( () => {
+  const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
+  return tasksWithAdvancedFilters
+    .sort( ( t1, t2 ) => {
+      if ( sortBy === "assigned" ) {
+        return t1.assigned.map(assigned => assigned.label).join(" ").toLowerCase() < t2.assigned.map(assigned => assigned.label).join(" ").toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
       }
-      break;
-  }
-};
+      if ( sortBy === "date" ) {
+        return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
+      }
+      if ( sortBy === "important" ) {
+        return t1.important ? 1 * multiplier : ( -1 ) * multiplier;
+      }
+      return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
+    } );
+}, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );
+
+  const groupBy = (arr, key) => {
+    const initialValue = {};
+    return arr.reduce((acc, cval) => {
+      const myAttribute = cval[key];
+      acc[myAttribute] = [...(acc[myAttribute] || []), cval]
+      return acc;
+    }, initialValue);
+  };
+
+  const tasksByContainer = useMemo( () => {
+    return groupBy(sortedTasks, 'container')
+  }, [ sortedTasks ] );
+
+  const activeTasks = useMemo( () => {
+    let result = {};
+    containers.forEach((container, i) => {
+      if (container._id === 0){
+        result[container._id] = tasksByContainer.undefined.filter( task => !task.closed);
+      } else {
+        result[container._id] = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => !task.closed) : [];
+      }
+    });
+    return result;
+  }, [ tasksByContainer, showClosed, containers ] );
 
   const numberOfFilters = useMemo(() => {
     return ((filter.folders.length > 0) ? 1 : 0) +
@@ -196,18 +244,14 @@ document.onkeydown = function( e ) {
               (filter.dateCreatedMax ? 1 : 0);
   }, [filter]);
 
-  const onEventResize = (data) => {
-    const { start, end, event } = data;
-    updateSimpleAttribute(event._id, {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000});
-  };
-
-  const onEventDrop = (data) => {
-    const { start, end, event } = data;
-    updateSimpleAttribute(event._id, {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000});
-  };
+  const handleOnDragEnd = (result) => {
+    if (!result.destination) return;
+    const { draggableId, destination } = result;
+    updateSimpleAttribute(draggableId, {container: parseInt(destination.droppableId)});
+  }
 
   return (
-    <CalendarContainer>
+    <DndContainer>
       {
         numberOfFilters > 0 &&
       <AppliedFilter style={{padding: "0px"}}>
@@ -360,15 +404,207 @@ document.onkeydown = function( e ) {
       </AppliedFilter>
     }
 
-  <div style={{display: "flex", width: "100%"}}>
-    <div className="task-list">
+    <div style={{display: "flex"}}>
+      <DragDropContext
+        onDragEnd={handleOnDragEnd}
+        >
+        {
+          containers.map(container => (
+            <Droppable droppableId={container._id + ""}>
+              {(provided) => (
+                <ul {...provided.droppableProps} ref={provided.innerRef}>
+                  <HiddenInput
+                    style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em"}}
+                    className="thin-placeholder truly-invisible"
+                    id={`header-${container.label}-${container._id}`}
+                    placeholder="Add new container"
+                    disabled={container._id === 0}
+                    type="text"
+                    value={container.label}
+                    onChange={(e) => {
+                      if (container._id != 0){
+                        editContianers(folder.containers.map(c => {
+                        if (c._id !== container._id){
+                          return c;
+                        }
+                        return ({
+                          _id: c._id,
+                          label: e.target.value,
+                        })
+                      }), folder._id);
+                    }
+                  }}
+                    />
+                  <ItemCard>
+                    {
+                      folder._id &&
+                      !openNewTask.find(t => t.container === container._id) &&
+                      <InlineInput  style={{padding: "0px"}}>
+                        <LinkButton style={{marginLeft: "0px"}} onClick={(e) => {e.preventDefault(); setOpenNewTask([...openNewTask, {container: container._id, name: ""} ]);}}>
+                          <img
+                            className="icon"
+                            style={{marginLeft: "2px", marginRight: "0.8em"}}
+                            src={PlusIcon}
+                            alt="Plus icon not found"
+                            />
+                          Task
+                        </LinkButton>
+                      </InlineInput>
+                    }
+
+                    {
+                      folder._id &&
+                      openNewTask.find(t => t.container === container._id) &&
+                      <InlineInput style={{padding: "0px", display: "flex"}}>
+                        <input
+                          id={`add-task`}
+                          type="text"
+                          placeholder="New task"
+                          value={openNewTask.find(t => t.container === container._id).name}
+                          onChange={(e) => setOpenNewTask([...openNewTask.map(open =>{
+                            if (open.container !== container._id){
+                              return open;
+                            }
+                            return {...open, name: e.target.value};
+                          })])}
+                          />
+                        <LinkButton
+                          onClick={(e) => {e.preventDefault(); setOpenNewTask([...openNewTask.filter(open => open.container !== container._id)]);}}
+                          className="connected-btn"
+                          >
+                          <img
+                            className="icon"
+                            src={CloseIcon}
+                            alt="Close icon not found"
+                            />
+                        </LinkButton>
+
+                        {
+                          openNewTask.find(t => t.container === container._id).name.length > 0 &&
+                          <LinkButton
+                            onClick={(e) => {
+                              e.preventDefault();
+                              addQuickTask(container._id === 0 ? undefined : container._id);
+                            }}
+                            className="connected-btn"
+                            >
+                            <img
+                              className="icon"
+                              src={SendIcon}
+                              alt="Send icon not found"
+                              />
+                          </LinkButton>
+                        }
+                      </InlineInput>
+                    }
+                  </ItemCard>
+
+                  {
+                    activeTasks[container._id].map((task, index) => (
+                      <Draggable key={task._id} draggableId={task._id} index={index}>
+                        {(provided) => (
+                      <ItemCard ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                        <div className="info-bar">
+                          <Input
+                            id={`task_name ${task._id}`}
+                            type="checkbox"
+                            checked={task.closed}
+                            onChange={() => closeTask(task)}
+                            />
+                          {
+                            task.important &&
+                            <img
+                              className="icon star"
+                              src={FullStarIcon}
+                              alt="Full star icon not found"
+                              />
+                          }
+                          {
+                            !task.important &&
+                            <img
+                              className="icon star"
+                              src={EmptyStarIcon}
+                              alt="Empty star icon not found"
+                              />
+                          }
+                          {
+                            task.assigned.map(assigned => (
+                              <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
+                            ))
+                          }
+                          <LinkButton
+                            onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+                            >
+                            <img
+                              className="icon"
+                              src={CloseIcon}
+                              alt="Close icon not found"
+                              />
+                          </LinkButton>
+                        </div>
+                        <div>
+                          <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+                            {task.name}
+                          </span>
+                        </div>
+                      </ItemCard>
+                    )}
+                    </Draggable>
+                    ))
+                  }
+                  {provided.placeholder}
+                </ul>
+              )}
+            </Droppable>
+          ))
+        }
+      </DragDropContext>
       {
-        activeTasksWithoutDatetimes.length === 0 &&
-        <span className="message">You have no open tasks.</span>
-      }
+        folder._id &&
+      <div className="new-container-form">
+        <HiddenInput
+          style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200"}}
+          className="thin-placeholder"
+          id={"newContainer"}
+          placeholder="Add new container"
+          type="text"
+          value={newContainerName}
+          onChange={(e) => setNewContainerName(e.target.value)}
+          />
+        {
+          newContainerName &&
+          <LinkButton
+            onClick={(e) => {e.preventDefault(); editContianers(folder.containers ? [...folder.containers, {_id: folder.containers.length + 1, label: newContainerName}] : [{_id: 1, label: newContainerName}], folder._id); setNewContainerName("")}}
+            >
+            <img
+              className="icon"
+              src={PlusIcon}
+              alt="PlusIcon icon not found"
+              />
+          </LinkButton>
+        }
+      </div>
+    }
+    </div>
+
+    {
+      chosenTask &&
+      <Modal isOpen={true}>
+        <ModalBody>
+          <EditTask {...props} taskId={chosenTask} close={() => setParentChosenTask(null)}/>
+        </ModalBody>
+      </Modal>
+    }
+
+    </DndContainer>
+  );
+};
+
+/*
+
       {
-        activeTasksWithoutDatetimes.length > 0 &&
-        activeTasksWithoutDatetimes.map(task => (
+        activeTasks.length > 0 &&
+        activeTasks.map(task => (
           <ItemCard>
             <div className="info-bar">
               <Input
@@ -456,13 +692,13 @@ document.onkeydown = function( e ) {
 
       {
         showClosed &&
-        inactiveTasksWithoutDatetimes.length === 0 &&
+        [].length === 0 &&
         <span className="message">You have no closed tasks.</span>
       }
       {
         showClosed &&
-        inactiveTasksWithoutDatetimes.length > 0 &&
-        inactiveTasksWithoutDatetimes.map(task => (
+        [].length > 0 &&
+        [].map(task => (
           <ItemCard>
             <div className="info-bar">
               <Input
@@ -510,56 +746,5 @@ document.onkeydown = function( e ) {
           </ItemCard>
         ))
       }
-    </div>
-    <DnDCalendar
-      selectable
-      localizer={localizer}
-      events={activeTasks}
-      allDayAccessor="allDay"
-      startAccessor="startDatetime"
-      endAccessor="endDatetime"
-      titleAccessor="name"
-      tooltipAccessor="tooltip"
-      resourceAccessor="name"
-      style={{ height: "auto", minHeight: "500px", maxHeight: "1000px", width: "80%" }}
-      defaultDate={moment().toDate()}
-      defaultView="month"
-      onSelectEvent={(data) => {
-      }}
-      onSelecting={(data) => {
-      }}
-      onSelectSlot={(data) => {
-        setSelectedInterval(data);
-      }}
-      onEventDrop={onEventDrop}
-      resizable
-      onEventResize={onEventResize}
-    />
-</div>
-
-    {
-      selectedInterval &&
-      <Modal isOpen={true}>
-        <ModalBody>
-          <AddTask
-            {...props}
-            startDatetime={selectedInterval.start.getTime() / 1000}
-            endDatetime={selectedInterval.end.getTime() / 1000}
-            close={() => setSelectedInterval(null)}
-            />
-        </ModalBody>
-      </Modal>
-    }
-
-    {
-      chosenTask &&
-      <Modal isOpen={true}>
-        <ModalBody>
-          <EditTask {...props} taskId={chosenTask} close={() => setParentChosenTask(null)}/>
-        </ModalBody>
-      </Modal>
-    }
-
-    </CalendarContainer>
-  );
-};
+      </div>
+*/

@@ -12,11 +12,15 @@ import {
 } from 'meteor/react-meteor-data';
 
 import TasksList from '/imports/ui/tasks/list';
+import Calendar from '/imports/ui/tasks/calendar';
+import Dnd from '/imports/ui/tasks/dnd';
 import EditTask from '/imports/ui/tasks/editContainer';
 import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   PLAIN,
+  CALENDAR,
+  DND,
   allMyTasksFolder,
   importantTasksFolder
 } from "/imports/other/constants";
@@ -64,6 +68,29 @@ export default function TasksContainer( props ) {
   if ( !folder ) {
     return <Loader />;
   }
+
+  if ( layout === CALENDAR ) {
+    return (
+      <Calendar
+          {...props}
+          setParentChosenTask={setChosenTask}
+          chosenTask={chosenTask}
+          folder={folder}
+          />
+    );
+  }
+
+  if ( layout === DND ) {
+    return (
+      <Dnd
+          {...props}
+          setParentChosenTask={setChosenTask}
+          chosenTask={chosenTask}
+          folder={folder}
+          />
+    );
+  }
+
 
   if ( window.innerWidth <= 820 || layout === PLAIN ) {
     return (

@@ -181,6 +181,7 @@ export const SearchSection = styled.section `
 export const Content = styled.main `
   display: block;
   overflow-y: auto;
+  overflow-x: hidden;
   height: calc(100vh - 50px);
 
   @media all and (max-width: 799px), @media handheld {
@@ -210,6 +211,45 @@ export const InnerContent = styled.main `
 export const CalendarContainer = styled.div`
   padding: 30px;
   height: -webkit-fill-available;
+
+  .task-list{
+    width: 20%;
+    padding-right: 30px;
+  }
+`;
+
+export const DndContainer = styled.div`
+  padding: 30px;
+  height: -webkit-fill-available;
+  overflow-x: auto;
+
+  ul{
+    width: 400px;
+    padding: 0em 2em 0em 0em;
+  }
+
+  .thin-placeholder{
+    height: fit-content !important;
+    ::placeholder{
+      color: black;
+    }
+  }
+
+  .new-container-form{
+      display: flex;
+      width: 400px;
+  }
+  .new-container-form input{
+    margin: 0px;
+  }
+.new-container-form input:focus, input.truly-invisible:focus{
+  background-color: transparent !important;
+}
+
+  .new-container-form img {
+    width: 1.5em;
+    height: 1.5em;
+  }
 `;
 
 export const ButtonRow = styled.section `
@@ -461,6 +501,51 @@ export const ItemContainer = styled.section `
     width: 2em;
     height: 2em;
   }
+`;
+
+export const ItemCard = styled.section`
+  background-color: white;
+  margin-bottom: 1em;
+  box-shadow: 0px 1px 10px slategrey;
+  padding: 0.6em;
+
+  &:hover{
+    cursor: pointer;
+  }
+
+  .info-bar{
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .star, input[type=checkbox]{
+    margin-right: 0.6em;
+  }
+
+    input[type=checkbox]{
+      width: 1.5em !important;
+      height: 1.5em !important;
+    }
+
+    &> span:not(.colour) {
+      margin-right: auto;
+      padding: 10px;
+      overflow-wrap: anywhere;
+      width: calc(100% - 6em);
+    }
+
+    button{
+      margin-left: auto;
+    }
+
+    .usericon{
+      width: 32px;
+      height: 32px;
+      border-radius: 50px;
+      margin-right: 0.6em;
+      filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
+    }
 `;
 
 export const Form = styled.form `

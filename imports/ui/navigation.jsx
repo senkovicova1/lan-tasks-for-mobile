@@ -62,7 +62,6 @@ import {
 import Header from './header';
 import Login from './login';
 import TaskContainer from './tasks/tasksContainer';
-import Calendar from '/imports/ui/tasks/calendar';
 import FolderList from './folders/folderList';
 import FolderEdit from './folders/editFolderContainer';
 import FolderAdd from './folders/addFolderContainer';
@@ -78,7 +77,10 @@ import {
 } from '/imports/other/styles/styledComponents';
 
 import {
-  COLUMNS
+  PLAIN,
+  COLUMNS,
+  CALENDAR,
+  DND
 } from "/imports/other/constants";
 
 import {
@@ -142,12 +144,12 @@ export default function MainPage( props ) {
   useEffect( () => {
     if ( folders.length > 0 && users.length > 0 ) {
       let newTasks = tasks.map( task => {
-        if ( (typeof task.assigned === "array" && task.assigned.length > 0) || task.assigned ) {
+        if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
           const newAssigned = Array.isArray(task.assigned) ? users.filter( user => task.assigned.includes(user._id) ) : [users.find( user => user._id === task.assigned )];
           return {
             ...task,
             folder: folders.find( folder => folder._id === task.folder ),
-            assigned: newAssigned.length > 0 ? newAssigned.map(user => ({
+            assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.map(user => ({
               _id: user._id,
               ...user.profile,
               label: `${user.profile.name} ${user.profile.surname}`,
@@ -202,6 +204,8 @@ export default function MainPage( props ) {
     }
   }, [ comments ] );
 
+  console.log(layout);
+
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
@@ -226,7 +230,33 @@ export default function MainPage( props ) {
               withSidebar={sidebarOpen}
               columns={layout === COLUMNS}
               >
-            <Route exact path={"/calendar"} component={Calendar} />
+
+            {
+              layout === CALENDAR &&
+              <Route
+                exact
+                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                component={TaskContainer}
+                />
+            }
+
+            {
+              layout === COLUMNS &&
+              <Route
+                exact
+                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                component={TaskContainer}
+                />
+            }
+
+            {
+                layout === DND &&
+                <Route
+                  exact
+                  path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                  component={TaskContainer}
+                  />
+              }
 
             <InnerContent
               withSidebar={sidebarOpen}
@@ -241,11 +271,14 @@ export default function MainPage( props ) {
                 component={FolderList}
                 />
 
-              <Route
-                exact
-                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
-                component={TaskContainer}
-                />
+              {
+                layout === PLAIN &&
+                <Route
+                  exact
+                  path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                  component={TaskContainer}
+                  />
+              }
 
               <Route
                 exact

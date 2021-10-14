@@ -106,6 +106,7 @@ export default function TaskForm( props ) {
     deadline: taskDeadline,
     hours: taskHours,
     folder: taskFolder,
+    container: taskContainer,
     files: taskFiles,
     title,
     language,
@@ -124,6 +125,7 @@ export default function TaskForm( props ) {
   const [ name, setName ] = useState( "" );
   const [ important, setImportant ] = useState( false );
   const [ folder, setFolder ] = useState( null );
+  const [ container, setContainer ] = useState( null );
   const [ closed, setClosed ] = useState( false );
   const [ assigned, setAssigned ] = useState( [] );
   const [ description, setDescription ] = useState( "" );
@@ -151,6 +153,19 @@ export default function TaskForm( props ) {
       setName( taskName );
     } else {
       setName( "" );
+    }
+
+    if ( taskFolder ) {
+      setFolder( taskFolder );
+
+      if ( taskContainer ) {
+        const container = taskFolder.containers ? taskFolder.containers.find(container => container._id === taskContainer) : null;
+        setContainer( container ? {...container, value: container._id} : null );
+      } else {
+        setContainer( null );
+      }
+    } else {
+      setFolder( null );
     }
 
     if ( taskImportant ) {
@@ -214,11 +229,18 @@ export default function TaskForm( props ) {
       setFiles( [] );
     }
 
-  }, [ taskName, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
+  }, [ taskName, taskFolder, taskContainer, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
 
   const subtasks = useMemo( () => {
     return allSubtasks.filter( subtask => subtask.task === taskId );
   }, [ taskId, allSubtasks ] );
+
+  const containers = useMemo( () => {
+    if (folder){
+      return folder.containers.length > 0 ? [{value: 0, _id: 0, label: "New"}, ...folder.containers.map(container => ({...container, vlaue: container._id}))] : [{value: 0, _id: 0, label: "New"}];
+    }
+    return [{value: 0, _id: 0, label: "New"}];
+  }, [ taskId, folder ] );
 
   useEffect( () => {
     let newComments = allComments.filter( comment => comment.task === taskId ).map( comment => ( {
@@ -249,15 +271,6 @@ export default function TaskForm( props ) {
   }, [ comments, dbUsers ] );
 
   const usersWithRights = useMemo( () => {
-    if ( taskFolder ) {
-      return taskFolder.users.map( user => {
-        let newUser = {
-          ...dbUsers.find( u => u._id === user._id ),
-          ...user
-        };
-        return newUser;
-      } );
-    }
     if ( folder ) {
       return folder.users.map( user => {
         let newUser = {
@@ -268,7 +281,7 @@ export default function TaskForm( props ) {
       } );
     }
     return [];
-  }, [ taskFolder, folder, dbUsers ] );
+  }, [ folder, dbUsers ] );
 
   document.onkeydown = function( e ) {
     e = e || window.event;
@@ -416,6 +429,32 @@ export default function TaskForm( props ) {
         </div>
       </section>
     }
+    
+    <section className="inline">
+      <span className="icon-container">
+        <img
+          className="label-icon"
+          htmlFor="container"
+          src={FolderIcon}
+          alt="FolderIcon icon not found"
+          />
+      </span>
+      <div style={{width: "100%"}}>
+        <Select
+          id="container"
+          name="container"
+          styles={selectStyle}
+          value={container ? container : {value: 0, _id: 0, label: "New"}}
+          onChange={(e) => {
+            setContainer(e);
+            if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {container: e._id !== 0 ? e._id : undefined});
+            }
+          }}
+          options={containers}
+          />
+      </div>
+    </section>
 
       <section className="inline">
         <span className="icon-container">
@@ -1094,6 +1133,7 @@ export default function TaskForm( props ) {
                 comments,
                 files,
                 folder._id,
+                container._id,
                 moment().unix()
               );
             }}

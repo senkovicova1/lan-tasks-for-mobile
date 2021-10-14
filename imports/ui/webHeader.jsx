@@ -71,6 +71,8 @@ import {
 import {
   PLAIN,
   COLUMNS,
+  CALENDAR,
+  DND,
   sortByOptions,
   sortDirectionOptions,
   allMyTasksFolder,
@@ -199,7 +201,7 @@ export default function WebHeader( props ) {
       const use = users.filter(user => userIds.includes(user._id));
       return use;
     }
-    if (folderID){
+    if (folderID && [ ...folders.active, ...folders.archived ].length > 0){
       const userIds = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID ).users.map(user => user._id);
       return users.filter(user => userIds.includes(user._id));
     }
@@ -675,12 +677,7 @@ export default function WebHeader( props ) {
       {
         openSort &&
         <Sort id="sort-menu" name="sort-menu">
-          {
-            window.innerWidth >=800 &&
             <h3>Layout</h3>
-          }
-          {
-            window.innerWidth >=800 &&
             <span>
               <input
                 id="plain-layout"
@@ -694,11 +691,8 @@ export default function WebHeader( props ) {
                   }
                 }}
                 />
-              <label htmlFor="plain-layout">Basic</label>
+              <label htmlFor="plain-layout">List</label>
             </span>
-          }
-          {
-            window.innerWidth >=800 &&
             <span>
               <input
                 id="columns-layout"
@@ -714,7 +708,36 @@ export default function WebHeader( props ) {
                 />
               <label htmlFor="columns-layout">Columns</label>
             </span>
-          }
+            <span>
+              <input
+                id="calendar-layout"
+                name="calendar-layout"
+                type="checkbox"
+                checked={layout === CALENDAR}
+                onChange={() => {
+                  dispatch(setLayout(CALENDAR));
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    setOpenSort(!openSort);
+                  }
+                }}
+                />
+              <label htmlFor="calendar-layout">Calendar</label>
+            </span>
+            <span>
+              <input
+                id="dnd-layout"
+                name="dnd-layout"
+                type="checkbox"
+                checked={layout === DND}
+                onChange={() => {
+                  dispatch(setLayout(DND));
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    setOpenSort(!openSort);
+                  }
+                }}
+                />
+              <label htmlFor="dnd-layout">Planner</label>
+            </span>
           <h3>Sort by</h3>
           {
             sortByOptions

@@ -70,7 +70,6 @@ import {
   LinkButton,
   Input,
   InlineInput,
-  FloatingButton,
   AppliedFilter
 } from "/imports/other/styles/styledComponents";
 
@@ -134,6 +133,7 @@ const addQuickTask = () => {
     [userId],
     folderID,
     moment().unix(),
+    null,
     () => {
       setNewTaskName( "" );
       setOpenNewTask( false );
@@ -565,14 +565,9 @@ document.onkeydown = function( e ) {
               {task.name}
             </span>
             {
-              task.assigned &&
-              task.assigned.img &&
-              <img className="avatar" src={task.assigned.img} alt="" title={task.assigned.label}/>
-            }
-            {
-              task.assigned &&
-              !task.assigned.img &&
-              <img className="usericon" src={UserIcon} alt="" title={task.assigned.label}/>
+              task.assigned.map(assigned => (
+                <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
+              ))
             }
             <LinkButton
               onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}

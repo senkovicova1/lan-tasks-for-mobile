@@ -27,7 +27,6 @@ import {
 
 import {
   ArchiveIcon,
-  CalendarIcon,
   ListIcon,
   FolderIcon,
   PlusIcon,
@@ -122,24 +121,6 @@ export default function Menu( props ) {
           />
         {actualImportantTasksFolder.label}
       </NavLink>
-
-        <NavLink
-          key={"calendar"}
-          to="/calendar"
-          className={actualCalendarView.value === folderID  ? "active" : ""}
-          onClick={() => {
-            if (/Mobi|Android/i.test(navigator.userAgent)) {
-              dispatch(setSidebarOpen(false));
-            }
-          }}
-          >
-          <img
-            className="icon"
-            src={CalendarIcon}
-            alt="CalendarIcon icon not found"
-            />
-          {actualCalendarView.label}
-        </NavLink>
 
       {
         folders.map(folder => (
