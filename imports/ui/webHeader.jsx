@@ -23,6 +23,15 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import {
+  Modal,
+  ModalBody
+} from 'reactstrap';
+
+import {
+  addFilter
+} from '/imports/ui/users/filtersHandlers';
+
 import Menu from './sidebar';
 
 import {
@@ -65,7 +74,8 @@ import {
   Sort,
   Filter,
   Form,
-  ButtonRow
+  ButtonRow,
+  ButtonCol
 } from '/imports/other/styles/styledComponents';
 
 import {
@@ -109,6 +119,7 @@ export default function WebHeader( props ) {
 
   const folders = useSelector( ( state ) => state.folders.value );
   const users = useSelector( ( state ) => state.users.value );
+  const filters = useSelector( ( state ) => state.filters.value );
 
   const [ title, setTitle ] = useState( "TaskApp" );
   const [ background, setBackground ] = useState( "#0078d4" );
@@ -116,8 +127,10 @@ export default function WebHeader( props ) {
   const [ openFilter, setOpenFilter ] = useState( false );
   const [ openSearch, setOpenSearch ] = useState( true );
 
-  const [ newFilter, setNewFilter] = useState({});
+  const [ newFilter, setNewFilter] = useState();
   const [ newSearch, setNewSearch] = useState("");
+  const [ newFIlterName, setNewFilterName] = useState("");
+  const [ saveFilter, setSaveFilter] = useState(false);
 
   useEffect( () => {
 
@@ -207,6 +220,16 @@ export default function WebHeader( props ) {
     }
     return [];
   }, [users, folders, folderID]);
+
+  const filterOptions = useMemo(() => {
+    return filters.map(filter => ({
+      ...filter,
+      assigned: users && users.length > 0 ? filter.assigned.map(user => users.find(u => u._id === user)) : [],
+      folders: folders && [...folders.active, ...folders.archived ].length > 0 && filter.folders ? filter.folders.map(f1 => [...folders.active, ...folders.archived ].find(f2 => f2._id === f1)) : [],
+      label: filter.name,
+      value: filter._id
+    }))
+  }, [users, folders, filters]);
 
   return (
     <PageHeader
@@ -398,7 +421,7 @@ export default function WebHeader( props ) {
               <span className="icon-container">
                 <img
                   className="label-icon"
-                  htmlFor="deadline"
+                  htmlFor="datetimeMin"
                   src={CalendarIcon}
                   alt="Calendar icon not found"
                   />
@@ -407,22 +430,23 @@ export default function WebHeader( props ) {
                 className="full-width"
                 dateFormat={"DD.MM.yyyy"}
                 timeFormat={"HH:mm"}
-                value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin) : null}
-                name="deadline"
-                id="deadline"
+                value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin) : null}
+                name="datetimeMin"
+                id="datetimeMin"
                 inputProps={{
-                placeholder: 'Set deadline',
+                placeholder: 'Set datetime',
                 }}
                 onChange={(date) => {
                   if (typeof date !== "string"){
-                      setNewFilter({...newFilter, deadlineMin: date.unix()});
+                      setNewFilter({...newFilter, datetimeMin: date.unix()});
                   } else {
-                      setNewFilter({...newFilter, deadlineMin: date});
+                      setNewFilter({...newFilter, datetimeMin: date});
                   }
                 }}
                 renderInput={(props) => {
                     return <Input
-                      {...props}                        value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      {...props}
+                      value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
                       />
                 }}
                 />
@@ -432,7 +456,7 @@ export default function WebHeader( props ) {
                   height="fit"
                   onClick={(e) => {
                     e.preventDefault();
-                    setNewFilter({...newFilter, deadlineMin: ""});
+                    setNewFilter({...newFilter, datetimeMin: ""});
                   }}
                   >
                     <img
@@ -447,22 +471,22 @@ export default function WebHeader( props ) {
                   className="full-width"
                   dateFormat={"DD.MM.yyyy"}
                   timeFormat={"HH:mm"}
-                  name="deadline"
-                  id="deadline"
+                  name="datetimeMax"
+                  id="datetimeMax"
                   inputProps={{
-                  placeholder: 'Set deadline',
+                  placeholder: 'Set datetime',
                   }}
                   onChange={(date) => {
                     if (typeof date !== "string"){
-                        setNewFilter({...newFilter, deadlineMax: date.unix()});
+                        setNewFilter({...newFilter, datetimeMax: date.unix()});
                     } else {
-                        setNewFilter({...newFilter, deadlineMax: date});
+                        setNewFilter({...newFilter, datetimeMax: date});
                     }
                   }}
                   renderInput={(props) => {
                       return <Input
                         {...props}
-                        value={newFilter.deadlineMax ? moment.unix(newFilter.deadlineMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                        value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
                         />
                   }}
                   />
@@ -472,7 +496,7 @@ export default function WebHeader( props ) {
                     height="fit"
                     onClick={(e) => {
                       e.preventDefault();
-                      setNewFilter({...newFilter, deadlineMax: ""});
+                      setNewFilter({...newFilter, datetimeMax: ""});
                     }}
                     >
                       <img
@@ -482,6 +506,30 @@ export default function WebHeader( props ) {
                         alt="CloseIcon star icon not found"
                         />
                   </LinkButton>
+            </section>
+
+            <section className="inline">
+              <span className="icon-container">
+                <img
+                  className="label-icon"
+                  htmlFor="filter"
+                  src={FilterIcon}
+                  alt="FilterIcon icon not found"
+                  />
+              </span>
+              <div style={{width: "100%"}}>
+                <Select
+                  id="filter"
+                  name="filter"
+                  placeholder="Select filter"
+                  styles={selectStyle}
+                  value={newFilter && newFilter._id ? newFilter : null}
+                  onChange={(e) => {
+                    setNewFilter(e);
+                  }}
+                  options={filterOptions}
+                  />
+              </div>
             </section>
 
             <section className="inline">
@@ -534,7 +582,7 @@ export default function WebHeader( props ) {
                   name="dateCreated"
                   id="dateCreated"
                   inputProps={{
-                  placeholder: 'Set deadline',
+                  placeholder: 'Set created date',
                   }}
                   onChange={(date) => {
                     if (typeof date !== "string"){
@@ -571,6 +619,7 @@ export default function WebHeader( props ) {
               <LinkButton
                 onClick={(e) => {
                   e.preventDefault();
+                  setSaveFilter(true);
                 }}
                 >
                 Save filter
@@ -677,7 +726,12 @@ export default function WebHeader( props ) {
       {
         openSort &&
         <Sort id="sort-menu" name="sort-menu">
+          {
+            (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
             <h3>Layout</h3>
+          }
+            {
+              (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
             <span>
               <input
                 id="plain-layout"
@@ -693,6 +747,9 @@ export default function WebHeader( props ) {
                 />
               <label htmlFor="plain-layout">List</label>
             </span>
+          }
+            {
+              (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
             <span>
               <input
                 id="columns-layout"
@@ -708,6 +765,9 @@ export default function WebHeader( props ) {
                 />
               <label htmlFor="columns-layout">Columns</label>
             </span>
+          }
+            {
+              (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
             <span>
               <input
                 id="calendar-layout"
@@ -723,6 +783,9 @@ export default function WebHeader( props ) {
                 />
               <label htmlFor="calendar-layout">Calendar</label>
             </span>
+          }
+            {
+              (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
             <span>
               <input
                 id="dnd-layout"
@@ -738,7 +801,23 @@ export default function WebHeader( props ) {
                 />
               <label htmlFor="dnd-layout">Planner</label>
             </span>
+          }
           <h3>Sort by</h3>
+            <span key={"customOrder"}>
+              <input
+                id={"customOrder"}
+                name={"customOrder"}
+                type="checkbox"
+                checked={sortBy === "customOrder"}
+                onChange={() => {
+                  dispatch(setSortBy("customOrder"));
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    setOpenSort(!openSort);
+                  }
+                }}
+                />
+              <label htmlFor={"customOrder"}>Custom order</label>
+            </span>
           {
             sortByOptions
             .flatMap(x => sortDirectionOptions.map(y => ({
@@ -768,6 +847,58 @@ export default function WebHeader( props ) {
           }
         </Sort>
       }
+
+      {
+        saveFilter &&
+      <Modal isOpen={true}>
+        <ModalBody>
+          <Form>
+          <h2>Add filter</h2>
+            <section className="inline">
+              <span className="icon-container">
+                Name
+              </span>
+              <Input
+              id="filterName"
+              name="filterName"
+              type="text"
+              onChange={(e) =>  {
+                setNewFilterName(e.target.value);
+              }}
+              />
+          </section>
+          <ButtonCol>
+            <FullButton colour="grey" onClick={(e) => {e.preventDefault(); setSaveFilter(false);}}>Cancel</FullButton>
+            <FullButton
+              colour=""
+              disabled={newFIlterName.length === 0}
+              onClick={(e) => {
+                e.preventDefault();
+                addFilter(
+                  newFIlterName,
+                  userId,
+                  newSearch,
+                  newFilter.folders.map(folder => folder._id),
+                  newFilter.important,
+                  newFilter.assigned.map(a => a._id),
+                  newFilter.datetimeMin,
+                  newFilter.datetimeMax,
+                  newFilter.dateCreatedMin,
+                  newFilter.dateCreatedMax,
+                  () => {setSaveFilter(false);
+                  dispatch(setFilter({...newFilter}));
+                  setOpenFilter(false);},
+                  (error) => {console.log(error)}
+                );
+              }}
+              >
+              Save
+            </FullButton>
+          </ButtonCol>
+        </Form>
+        </ModalBody>
+      </Modal>
+    }
 
     </PageHeader>
   );

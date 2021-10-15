@@ -356,6 +356,7 @@ export default function TaskForm( props ) {
           id="task-title"
           placeholder="Name"
           value={name}
+          disabled={closed}
           onChange={(e) => {
             setName(e.target.value);
             if ( !addNewTask ) {
@@ -371,6 +372,7 @@ export default function TaskForm( props ) {
         <LinkButton
           style={{color: "#f3d053"}}
           height="fit"
+          disabled={closed}
           onClick={(e) => {
             e.preventDefault();
             const newImportant = !important;
@@ -419,6 +421,7 @@ export default function TaskForm( props ) {
           <Select
             id="folder"
             name="folder"
+            isDisabled={closed}
             styles={selectStyle}
             value={folder}
             onChange={(e) => {
@@ -429,7 +432,7 @@ export default function TaskForm( props ) {
         </div>
       </section>
     }
-    
+
     <section className="inline">
       <span className="icon-container">
         <img
@@ -444,11 +447,12 @@ export default function TaskForm( props ) {
           id="container"
           name="container"
           styles={selectStyle}
+          isDisabled={closed}
           value={container ? container : {value: 0, _id: 0, label: "New"}}
           onChange={(e) => {
             setContainer(e);
             if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {container: e._id !== 0 ? e._id : undefined});
+              updateSimpleAttribute(taskId, {container: e._id});
             }
           }}
           options={containers}
@@ -472,6 +476,7 @@ export default function TaskForm( props ) {
             styles={selectStyle}
             isMulti
             value={assigned}
+            isDisabled={closed}
             onChange={(e) => {
               setAssigned(e);
               if ( !addNewTask ) {
@@ -525,13 +530,15 @@ export default function TaskForm( props ) {
             renderInput={(props) => {
                 return <Input
                   {...props}
-                   value={startDatetime ? props.value : ''}
+                  disabled={closed}
+                  value={startDatetime ? props.value : ''}
                   />
             }}
             />
             <LinkButton
               style={{height: "40px", marginRight: "0.6em"}}
               height="fit"
+              disabled={closed}
               onClick={(e) => {
                 e.preventDefault();
                 setStartDatetime("");
@@ -576,6 +583,7 @@ export default function TaskForm( props ) {
               renderInput={(props) => {
                 return <Input
                   {...props}
+                  disabled={closed}
                    value={startDatetime ? props.value : ''}
                   />
               }}
@@ -586,6 +594,7 @@ export default function TaskForm( props ) {
             <LinkButton
               style={{height: "40px", marginRight: "0.6em"}}
               height="fit"
+              disabled={closed}
               onClick={(e) => {
                 e.preventDefault();
                 const newHour = 0;
@@ -645,6 +654,7 @@ export default function TaskForm( props ) {
                 renderInput={(props) => {
                     return <Input
                       {...props}
+                      disabled={closed}
                       value={endDatetime ? props.value : ''}
                       />
                 }}
@@ -655,6 +665,7 @@ export default function TaskForm( props ) {
               <LinkButton
                 style={{height: "40px", marginRight: "0.6em"}}
                 height="fit"
+                disabled={closed}
                 onClick={(e) => {
                   e.preventDefault();
                   const newHour = 0;
@@ -703,6 +714,7 @@ export default function TaskForm( props ) {
                 renderInput={(props) => {
                     return <Input
                       {...props}
+                      disabled={closed}
                        value={endDatetime ? props.value : ''}
                       />
                 }}
@@ -713,6 +725,7 @@ export default function TaskForm( props ) {
               <LinkButton
                 style={{height: "40px", marginRight: "0.6em"}}
                 height="fit"
+                disabled={closed}
                 onClick={(e) => {
                   e.preventDefault();
                   setEndDatetime(startDatetime);
@@ -738,6 +751,7 @@ export default function TaskForm( props ) {
           type="checkbox"
           style={{width: "1.5em", marginLeft: "3px"}}
           checked={allDay}
+          disabled={closed}
           onChange={() =>  {
             const newAllDay = !allDay;
             setAllDay(newAllDay);
@@ -777,6 +791,7 @@ export default function TaskForm( props ) {
           id="hours"
           placeholder="Hours"
           value={hours}
+          disabled={closed}
           onChange={(e) => {
             setHours(e.target.value);
             if ( !addNewTask ) {
@@ -799,6 +814,7 @@ export default function TaskForm( props ) {
           type="text"
           placeholder="Write description"
           value={description}
+          disabled={closed}
           onChange={(e) => {
             setDescription(e.target.value);
             if ( !addNewTask ) {
@@ -823,6 +839,7 @@ export default function TaskForm( props ) {
               <FileContainer key={file.dateCreated}>
                 <a href={file.data} download={file.name}>{file.name}</a>
                 <LinkButton
+                  disabled={closed}
                   onClick={(e) => {
                     e.preventDefault();
                     if ( !addNewTask ) {
@@ -848,6 +865,7 @@ export default function TaskForm( props ) {
             id="files"
             name="files"
             type="file"
+            disabled={closed}
             onChange={(e) =>  {
               e.persist();
               var file = e.target.files[0];
@@ -887,17 +905,20 @@ export default function TaskForm( props ) {
                 <Input
                   id={`subtask_closed ${subtask._id}`}
                   type="checkbox"
+                  disabled={closed}
                   checked={subtask.closed}
                   onChange={() =>  editSubtask(subtask._id, subtask.name, !subtask.closed, subtask.task, subtask.dateCreated)}
                   />
                 <HiddenInput
                   id={`subtask_name ${subtask._id}`}
                   type="text"
+                  disabled={closed}
                   value={subtask.name}
                   onChange={(e) => editSubtask(subtask._id, e.target.value, subtask.closed, subtask.task, subtask.dateCreated)}
                   />
 
                 <LinkButton
+                disabled={closed}
                   onClick={(e) => {
                     e.preventDefault();
                     removeSubtask(subtask._id);
@@ -915,7 +936,10 @@ export default function TaskForm( props ) {
           {
             !openNewSubtask &&
             <InlineInput style={{padding: "0px"}}>
-              <LinkButton onClick={(e) => {e.preventDefault(); setOpenNewSubtask(true);}}>
+              <LinkButton
+              disabled={closed}
+                 onClick={(e) => {e.preventDefault(); setOpenNewSubtask(true);}}
+                 >
                 <img
                   className="icon"
                   style={{marginLeft: "0px", marginRight: "0.8em", height: "1.3em"}}
@@ -936,10 +960,12 @@ export default function TaskForm( props ) {
                 id={`add-task`}
                 type="text"
                 placeholder="New task"
+                disabled={closed}
                 value={newSubtaskName}
                 onChange={(e) => setNewSubtaskName(e.target.value)}
                 />
               <LinkButton
+                disabled={closed}
                 onClick={(e) => {e.preventDefault(); setOpenNewSubtask(false);}}
                 className="connected-btn"
                 >
@@ -951,6 +977,7 @@ export default function TaskForm( props ) {
               </LinkButton>
 
               <LinkButton
+                disabled={closed}
                 onClick={(e) => {
                   e.preventDefault();
                   if (!addNewTask){
@@ -979,6 +1006,7 @@ export default function TaskForm( props ) {
         <section className="comments">
           <HiddenTextarea
             type="text"
+            disabled={closed}
             id="comments"
             name="comments"
             placeholder="Write a comment"
@@ -987,12 +1015,21 @@ export default function TaskForm( props ) {
             />
           <ButtonRow>
             {newCommentBody.length > 0 &&
-              <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
+              <LinkButton
+                colour="grey"
+                disabled={closed}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setNewCommentBody("")
+                }}
+                >
+                {translations[language].eraseBody}
+              </LinkButton>
             }
             <LinkButton
               colour=""
               style={{marginLeft: "auto", marginRight: "0px"}}
-              disabled={newCommentBody.length === 0}
+              disabled={newCommentBody.length === 0 || closed}
               onClick={(e) => {
                 e.preventDefault();
                 addNewComment(userId, taskId, moment().unix(), newCommentBody);
@@ -1031,6 +1068,7 @@ export default function TaskForm( props ) {
                   {
                     comment.author._id === userId &&
                     <LinkButton
+                    disabled={closed}
                       onClick={(e) => {
                         e.preventDefault();
                         setEditedComment(comment._id ? comment._id : comment.dateCreated);
@@ -1047,6 +1085,7 @@ export default function TaskForm( props ) {
                   {
                     comment.author._id === userId &&
                     <LinkButton
+                    disabled={closed}
                       onClick={(e) => {
                         e.preventDefault();
                         removeComment(comment._id);
@@ -1073,6 +1112,7 @@ export default function TaskForm( props ) {
                     id="comments"
                     name="comments"
                     placeholder="Comment"
+                    disabled={closed}
                     value={editedCommentBody.length > 0 ? editedCommentBody : comment.body}
                     onChange={(e) => {
                       setEditedCommentBody(e.target.value);
@@ -1084,7 +1124,16 @@ export default function TaskForm( props ) {
                   <ButtonRow>
                     {
                       editedCommentBody &&
-                      <LinkButton colour="grey" onClick={(e) => {e.preventDefault(); setNewCommentBody("")}}>{translations[language].eraseBody}</LinkButton>
+                      <LinkButton
+                        colour="grey"
+                        disabled={closed}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setNewCommentBody("")
+                        }}
+                        >
+                        {translations[language].eraseBody}
+                      </LinkButton>
                     }
                     <LinkButton
                       colour=""
@@ -1133,7 +1182,7 @@ export default function TaskForm( props ) {
                 comments,
                 files,
                 folder._id,
-                container._id,
+                e._id,
                 moment().unix()
               );
             }}
@@ -1145,45 +1194,3 @@ export default function TaskForm( props ) {
     </Form>
   );
 };
-
-/*
-
-  <LinkButton
-    style={{height: "40px", marginRight: "0.6em"}}
-    height="fit"
-    onClick={(e) => {
-      e.preventDefault();
-      setStartDatetime("");
-      updateSimpleAttribute(taskId, {startDatetime: ""});
-    }}
-    >
-      <img
-        style={{margin: "0px"}}
-        className="icon"
-        src={CloseIcon}
-        alt="CloseIcon star icon not found"
-        />
-  </LinkButton>
-
-<LinkButton
-  style={{ height: "40px"}}
-  height="fit"
-  onClick={(e) => {
-    e.preventDefault();
-    setEndDatetime("");
-    if (deadline) {
-      setDeadline(null);
-      updateSimpleAttribute(taskId, {deadline: null});
-    }
-    updateSimpleAttribute(taskId, {endDatetime: ""});
-  }}
-  >
-    <img
-      style={{margin: "0px"}}
-      className="icon"
-      src={CloseIcon}
-      alt="CloseIcon star icon not found"
-      />
-</LinkButton>
-
-*/

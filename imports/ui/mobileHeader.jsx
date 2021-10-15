@@ -62,12 +62,15 @@ import {
   TitleControl,
   Filter,
   Form,
-  ButtonRow
+  ButtonRow,
+  Sort
 } from '/imports/other/styles/styledComponents';
 
 import {
-  COLUMNS,
   PLAIN,
+  COLUMNS,
+  CALENDAR,
+  DND,
   sortByOptions,
   sortDirectionOptions,
   allMyTasksFolder,
@@ -197,7 +200,7 @@ export default function MobileHeader( props ) {
       const use = users.filter(user => userIds.includes(user._id));
       return use;
     }
-    if (folderID){
+    if (folderID && [ ...folders.active, ...folders.archived ].length > 0){
       const userIds = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID ).users.map(user => user._id);
       return users.filter(user => userIds.includes(user._id));
     }
@@ -701,6 +704,21 @@ export default function MobileHeader( props ) {
         openSort &&
         <Sort id="sort-menu" name="sort-menu">
           <h3>Sort by</h3>
+            <span key={"customOrder"}>
+              <input
+                id={"customOrder"}
+                name={"customOrder"}
+                type="checkbox"
+                checked={sortBy === "customOrder"}
+                onChange={() => {
+                  dispatch(setSortBy("customOrder"));
+                  if (/Mobi|Android/i.test(navigator.userAgent)) {
+                    setOpenSort(!openSort);
+                  }
+                }}
+                />
+              <label htmlFor={"customOrder"}>Custom order</label>
+            </span>
           {
             sortByOptions
             .flatMap(x => sortDirectionOptions.map(y => ({

@@ -678,6 +678,10 @@ export const Form = styled.form `
     }
   }
 
+  input:disabled{
+    background-color: transparent !important;
+  }
+
   .color-picker label{
       display: block;
   }
@@ -742,6 +746,10 @@ export const TitleInput = styled.textarea `
   &[type=checkbox]{
     width: 1em;
   }
+
+  &:disabled{
+      background-color: transparent !important;
+    }
 `;
 
 export const TitleCheckbox = styled.input `
@@ -781,6 +789,10 @@ export const Input = styled.input `
   &[type=checkbox]{
       vertical-align: middle;
   }
+
+    &:disabled{
+        background-color: transparent !important;
+      }
 `;
 
 export const InlineInput = styled.div `
@@ -793,6 +805,10 @@ export const InlineInput = styled.div `
     border: none;
     width: fill-available;
     height: 2.5em !important;
+  }
+
+  input:disabled{
+    background-color: transparent !important;
   }
 
   img{
@@ -817,6 +833,10 @@ export const HiddenInput = styled.input `
     background-color: white !important;
     border: 0px solid #d6d6d6;
   }
+
+  &:disabled{
+      background-color: transparent !important;
+    }
 `;
 
 export const Textarea = styled.textarea `
@@ -829,6 +849,10 @@ export const Textarea = styled.textarea `
   &:focus{
     border: 1px solid ${basicBlueColour} !important;
   }
+
+  &:disabled{
+      background-color: transparent !important;
+    }
 `;
 
 export const HiddenTextarea = styled.textarea `
@@ -849,6 +873,10 @@ export const HiddenTextarea = styled.textarea `
     border: 0px solid #d6d6d6;
     height: 4em !important;
   }
+
+  &:disabled{
+      background-color: transparent !important;
+    }
 `;
 
 export const Sort = styled.div`

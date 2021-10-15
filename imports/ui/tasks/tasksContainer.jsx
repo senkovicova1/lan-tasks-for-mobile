@@ -68,6 +68,17 @@ export default function TasksContainer( props ) {
   if ( !folder ) {
     return <Loader />;
   }
+  
+  if ( window.innerWidth <= 820 || layout === PLAIN ) {
+    return (
+      <TasksList
+          {...props}
+          setParentChosenTask={setChosenTask}
+          chosenTask={chosenTask}
+          folder={folder}
+          />
+    );
+  }
 
   if ( layout === CALENDAR ) {
     return (
@@ -83,18 +94,6 @@ export default function TasksContainer( props ) {
   if ( layout === DND ) {
     return (
       <Dnd
-          {...props}
-          setParentChosenTask={setChosenTask}
-          chosenTask={chosenTask}
-          folder={folder}
-          />
-    );
-  }
-
-
-  if ( window.innerWidth <= 820 || layout === PLAIN ) {
-    return (
-      <TasksList
           {...props}
           setParentChosenTask={setChosenTask}
           chosenTask={chosenTask}

@@ -11,6 +11,9 @@ import {
   SubtasksCollection
 } from '/imports/api/subtasksCollection';
 import {
+  FiltersCollection
+} from '/imports/api/filtersCollection';
+import {
   CommentsCollection
 } from '/imports/api/commentsCollection';
 import {

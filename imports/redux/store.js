@@ -6,6 +6,7 @@ import usersReducer from './usersSlice';
 import tasksReducer from './tasksSlice';
 import subtasksReducer from './subtasksSlice';
 import commentsReducer from './commentsSlice';
+import filtersReducer from './filtersSlice';
 import metadataReducer from './metadataSlice';
 
 export default configureStore( {
@@ -16,5 +17,6 @@ export default configureStore( {
     subtasks: subtasksReducer,
     comments: commentsReducer,
     metadata: metadataReducer,
+    filters: filtersReducer,
   },
 } )

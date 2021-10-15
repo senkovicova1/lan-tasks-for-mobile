@@ -22,8 +22,8 @@ export const metadataSlice = createSlice( {
       filter: {
         folders: [],
         important: false,
-        deadlineMin: "",
-        deadlineMax: "",
+        datetimeMin: "",
+        datetimeMax: "",
         assigned: [],
         dateCreatedMin: "",
         dateCreatedMax: "",

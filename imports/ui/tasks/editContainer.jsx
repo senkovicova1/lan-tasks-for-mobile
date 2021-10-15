@@ -40,8 +40,6 @@ export default function EditTaskContainer( props ) {
     return tasks.length > 0 ? tasks.find( task => task._id === taskId ) : {};
   }, [ taskId, tasks ] );
 
-  console.log(task);
-
   return (
     <Form
       {...task}

@@ -158,8 +158,21 @@ const tasksWithAdvancedFilters = useMemo( () => {
   const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
   const assignedIds = filter.assigned.map(user => user._id);
   const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(assigned => assignedIds.includes(assigned._id)));
-  const filteredByDeadlines = filteredByAssigned;
-  const filteredByDateCreated = filteredByDeadlines.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
+  const filteredByDatetimes = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => {
+    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
+    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
+    if (!task.startDatetime && !task.endDatetime){
+      return false;
+    }
+    if (task.startDatetime && !task.endDatetime){
+      return task.startDatetime <= actualDatetimeMax;
+    }
+    if (!task.startDatetime && task.endDatetime){
+      return actualDatetimeMin <= task.endDatetime;
+    }
+    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
+  } ) : filteredByAssigned;
+  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
   return filteredByDateCreated;
 }, [ filter, searchedTasks ] );
 

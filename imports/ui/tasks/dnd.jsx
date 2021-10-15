@@ -187,8 +187,21 @@ const tasksWithAdvancedFilters = useMemo( () => {
   const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
   const assignedIds = filter.assigned.map(user => user._id);
   const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(assigned => assignedIds.includes(assigned._id)));
-  const filteredByDeadlines = filteredByAssigned;
-  const filteredByDateCreated = filteredByDeadlines.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
+  const filteredByDatetimes = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => {
+    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
+    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
+    if (!task.startDatetime && !task.endDatetime){
+      return false;
+    }
+    if (task.startDatetime && !task.endDatetime){
+      return task.startDatetime <= actualDatetimeMax;
+    }
+    if (!task.startDatetime && task.endDatetime){
+      return actualDatetimeMin <= task.endDatetime;
+    }
+    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
+  } ) : filteredByAssigned;
+  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
   return filteredByDateCreated;
 }, [ filter, searchedTasks ] );
 
@@ -204,6 +217,18 @@ const sortedTasks = useMemo( () => {
       }
       if ( sortBy === "important" ) {
         return t1.important ? 1 * multiplier : ( -1 ) * multiplier;
+      }
+      if ( sortBy === "customOrder" ) {
+        if (!t1.order && !t2.order){
+          return 0;
+        }
+        if (t1.order && !t2.order){
+          return ( -1 ) * multiplier;
+        }
+        if (!t1.order && t2.order){
+          return 1 * multiplier;
+        }
+        return t1.order < t2.order ?  1 * multiplier : ( -1 ) * multiplier;
       }
       return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
     } );
@@ -225,11 +250,7 @@ const sortedTasks = useMemo( () => {
   const activeTasks = useMemo( () => {
     let result = {};
     containers.forEach((container, i) => {
-      if (container._id === 0){
-        result[container._id] = tasksByContainer.undefined.filter( task => !task.closed);
-      } else {
         result[container._id] = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => !task.closed) : [];
-      }
     });
     return result;
   }, [ tasksByContainer, showClosed, containers ] );
@@ -246,8 +267,28 @@ const sortedTasks = useMemo( () => {
 
   const handleOnDragEnd = (result) => {
     if (!result.destination) return;
-    const { draggableId, destination } = result;
-    updateSimpleAttribute(draggableId, {container: parseInt(destination.droppableId)});
+    const { draggableId, destination, source } = result;
+    if (destination.droppableId === source.droppableId){
+      let newTasks = activeTasks[parseInt(destination.droppableId)];
+      const movedTask = newTasks[source.index];
+      newTasks = newTasks.filter((_, index) => index !== source.index);
+      newTasks.splice(destination.index, 0, movedTask);
+      newTasks.forEach((task, i) => {
+        updateSimpleAttribute(task._id, {order: i});
+      });
+    } else {
+      let newSourceTasks = activeTasks[parseInt(source.droppableId)];
+      let newDestinationTasks = activeTasks[parseInt(destination.droppableId)];
+      const movedTask = newSourceTasks[source.index];
+      newSourceTasks = newSourceTasks.filter((_, index) => index !== source.index);
+      newDestinationTasks.splice(destination.index, 0, movedTask);
+      newSourceTasks.forEach((task, i) => {
+        updateSimpleAttribute(task._id, {order: i});
+      });
+      newDestinationTasks.forEach((task, i) => {
+        updateSimpleAttribute(task._id, {container: parseInt(destination.droppableId), order: i});
+      });
+    }
   }
 
   return (

@@ -34,6 +34,10 @@ import {
 } from '/imports/api/tasksCollection';
 
 import {
+  FiltersCollection
+} from '/imports/api/filtersCollection';
+
+import {
   setComments
 } from '/imports/redux/commentsSlice';
 
@@ -54,6 +58,10 @@ import {
 import {
   setTasks
 } from '/imports/redux/tasksSlice';
+
+import {
+  setFilters
+} from '/imports/redux/filtersSlice';
 
 import {
   setUsers
@@ -149,6 +157,7 @@ export default function MainPage( props ) {
           return {
             ...task,
             folder: folders.find( folder => folder._id === task.folder ),
+            container: task.container ? task.container : 0,
             assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.map(user => ({
               _id: user._id,
               ...user.profile,
@@ -168,6 +177,7 @@ export default function MainPage( props ) {
         return {
           ...task,
           folder: folders.find( folder => folder._id === task.folder ),
+          container: task.container ? task.container : 0,
           assigned: [],
         }
       } );
@@ -204,7 +214,14 @@ export default function MainPage( props ) {
     }
   }, [ comments ] );
 
-  console.log(layout);
+  const filters = useTracker( () => FiltersCollection.find( {
+    user: userId
+  } ).fetch() );
+  useEffect( () => {
+    dispatch( setFilters( filters ) );
+  }, [ filters ] );
+
+  console.log(filters);
 
   return (
     <div style={{height: "100vh"}}>

@@ -1,10 +1,10 @@
 export const selectStyle = {
-  control: ( base, state ) => ( {
+  control: ( base, {isFocused, isDisabled} ) => ( {
     ...base,
     minHeight: 30,
     height: "2.5em",
-    backgroundColor: 'white',
-    border: state.isFocused ? "0px solid #0078d4 !important" : "0px solid #d6d6d6",
+    backgroundColor: isDisabled ? "transparent" : 'white',
+    border: isFocused ? "0px solid #0078d4 !important" : "0px solid #d6d6d6",
     borderRadius: 0,
     width: "100%",
   } ),

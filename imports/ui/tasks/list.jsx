@@ -164,13 +164,52 @@ const tasksWithAdvancedFilters = useMemo( () => {
   const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
   const assignedIds = filter.assigned.map(user => user._id);
   const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(user => assignedIds.includes(user._id) ) );
-  const filteredByDeadlines = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => task.deadline && (!filter.deadlineMin || filter.deadlineMin <= task.deadline) && (!filter.deadlineMax || task.deadline <= filter.deadlineMax)) : filteredByAssigned;
-  const filteredByDateCreated = filteredByDeadlines.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
+  const filteredByDatetimes = (filter.datetimeMin || filter.datetimeMax) ? filteredByAssigned.filter(task => {
+    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
+    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
+    if (!task.startDatetime && !task.endDatetime){
+      return false;
+    }
+    if (task.startDatetime && !task.endDatetime){
+      return task.startDatetime <= actualDatetimeMax;
+    }
+    if (!task.startDatetime && task.endDatetime){
+      return actualDatetimeMin <= task.endDatetime;
+    }
+    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
+  } ) : filteredByAssigned;
+  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
   return filteredByDateCreated;
 }, [ filter, searchedTasks, folderID ] );
 
+const groupBy = (arr, key) => {
+  const initialValue = {};
+  return arr.reduce((acc, cval) => {
+    const myAttribute = cval[key];
+    acc[myAttribute] = [...(acc[myAttribute] || []), cval]
+    return acc;
+  }, initialValue);
+};
+
 const sortedTasks = useMemo( () => {
   const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
+  if ( sortBy === "customOrder" ) {
+      let newSorted = groupBy(tasksWithAdvancedFilters, 'container');
+      return Object.keys(newSorted).map(key => {
+        return newSorted[key].sort((t1, t2) => {
+          if (!t1.order && !t2.order){
+            return 0;
+          }
+          if (t1.order && !t2.order){
+            return ( -1 ) * multiplier;
+          }
+          if (!t1.order && t2.order){
+            return 1 * multiplier;
+          }
+          return t1.order < t2.order ?  1 * multiplier : ( -1 ) * multiplier;
+        })
+      }).flat();
+  }
   return tasksWithAdvancedFilters
     .sort( ( t1, t2 ) => {
       if ( sortBy === "assigned" ) {
@@ -212,8 +251,8 @@ document.onkeydown = function( e ) {
     return ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
               (filter.important ? 1 : 0) +
               (filter.assigned.length > 0 ? 1 : 0) +
-              (filter.deadlineMin ? 1 : 0) +
-              (filter.deadlineMax ? 1 : 0) +
+              (filter.datetimeMin ? 1 : 0) +
+              (filter.datetimeMax ? 1 : 0) +
               (filter.dateCreatedMin ? 1 : 0) +
               (filter.dateCreatedMax ? 1 : 0);
   }, [filter]);
@@ -300,7 +339,7 @@ document.onkeydown = function( e ) {
           </section>
         }
         {
-          (filter.deadlineMin || filter.deadlineMax)  &&
+          (filter.datetimeMin || filter.datetimeMax)  &&
           <section className="filter">
             <div className="filter-container">
             <img
@@ -308,11 +347,11 @@ document.onkeydown = function( e ) {
               src={CalendarIcon}
               alt="CalendarIcon icon not found"
               />
-            <label>{`${filter.deadlineMin ? moment.unix(filter.deadlineMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.deadlineMax ? moment.unix(filter.deadlineMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
+            <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
               <LinkButton
                 onClick={(e) => {
                   e.preventDefault();
-                  dispatch(setFilter({...filter, deadlineMin: "", deadlineMax: ""}));
+                  dispatch(setFilter({...filter, datetimeMin: "", datetimeMax: ""}));
                 }}
                 >
                 <img
@@ -359,8 +398,8 @@ document.onkeydown = function( e ) {
               dispatch(setFilter({
                 folders: [],
                 important: false,
-                deadlineMin: "",
-                deadlineMax: "",
+                datetimeMin: "",
+                datetimeMax: "",
                 assigned: [],
                 dateCreatedMin: "",
                 dateCreatedMax: "",
@@ -561,7 +600,7 @@ document.onkeydown = function( e ) {
                 alt="Empty star icon not found"
                 />
             }
-            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task)}>
+            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
               {task.name}
             </span>
             {
