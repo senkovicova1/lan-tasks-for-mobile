@@ -616,7 +616,6 @@ export default function MobileHeader( props ) {
             <FullButton
               onClick={(e) => {
                 e.preventDefault();
-                console.log(newFilter);
                 dispatch(setFilter(newFilter));
                 setOpenFilter(false);
               }}

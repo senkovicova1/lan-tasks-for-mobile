@@ -221,14 +221,12 @@ export default function MainPage( props ) {
     dispatch( setFilters( filters ) );
   }, [ filters ] );
 
-  console.log(filters);
-
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
         <Route
           exact
-          path={["/", "/login", "/settings", "/calendar", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID"]}
+          path={["/", "/login", "/settings", "/calendar", "/:folderID/edit", "/folders/add", "/:folderID/list", "/folders/archived", "/folders/archived/:folderID", "/filters/:filterID/list"]}
           render={(props) => (
             <Header
               {...props}
@@ -252,7 +250,7 @@ export default function MainPage( props ) {
               layout === CALENDAR &&
               <Route
                 exact
-                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 component={TaskContainer}
                 />
             }
@@ -261,7 +259,7 @@ export default function MainPage( props ) {
               layout === COLUMNS &&
               <Route
                 exact
-                path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 component={TaskContainer}
                 />
             }
@@ -270,7 +268,7 @@ export default function MainPage( props ) {
                 layout === DND &&
                 <Route
                   exact
-                  path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                  path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   component={TaskContainer}
                   />
               }
@@ -292,7 +290,7 @@ export default function MainPage( props ) {
                 layout === PLAIN &&
                 <Route
                   exact
-                  path={["/", "/:folderID/list", "/folders/archived/:folderID"]}
+                  path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   component={TaskContainer}
                   />
               }

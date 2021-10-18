@@ -237,7 +237,7 @@ export default function TaskForm( props ) {
 
   const containers = useMemo( () => {
     if (folder){
-      return folder.containers.length > 0 ? [{value: 0, _id: 0, label: "New"}, ...folder.containers.map(container => ({...container, vlaue: container._id}))] : [{value: 0, _id: 0, label: "New"}];
+      return folder.containers && folder.containers.length > 0 ? [{value: 0, _id: 0, label: "New"}, ...folder.containers.map(container => ({...container, vlaue: container._id}))] : [{value: 0, _id: 0, label: "New"}];
     }
     return [{value: 0, _id: 0, label: "New"}];
   }, [ taskId, folder ] );

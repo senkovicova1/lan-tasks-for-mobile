@@ -1092,6 +1092,7 @@ export const AppliedFilter = styled.section`
   .filter{
     background-color: ${lightBlueColour};
     margin-right: 1em;
+    margin-bottom: 0.3em;
     display: inline-block;
     height: 2em;
   }

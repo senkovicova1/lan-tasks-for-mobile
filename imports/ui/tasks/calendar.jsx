@@ -51,7 +51,8 @@ import AddTask from './addContainer';
 import EditTask from './editContainer';
 
 import {
-  setFilter
+  setFilter,
+  setSearch
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -102,6 +103,8 @@ export default function CalendarList( props ) {
   match,
   history,
   folder,
+  tasksWithAdvancedFilters,
+  removedTasks,
   setParentChosenTask,
   chosenTask
 } = props;
@@ -124,57 +127,6 @@ const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
 
-const dbUsers = useSelector( ( state ) => state.users.value );
-const tasks = useSelector( ( state ) => state.tasks.value );
-const subtasks = useSelector( ( state ) => state.subtasks.value );
-const comments = useSelector( ( state ) => state.comments.value );
-
-const removedTasks = useMemo( () => {
-  if ( folder._id ) {
-    return tasks.filter( t => t.folder._id === folder._id && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-  }
-  return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-}, [ tasks, folder._id ] );
-
-const filteredTasks = useMemo( () => {
-  return tasks.filter( task => !task.removedDate &&
-    ( task.folder._id === folder.value ||
-      (folder.value === "important" && task.important) ||
-      (
-         "all" === folder.value &&
-        task.assigned.some(assigned => assigned._id === userId)
-       )
-    )
-  );
-}, [ tasks, folder, userId ] );
-
-const searchedTasks = useMemo( () => {
-  return filteredTasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
-}, [ search, filteredTasks ] );
-
-const tasksWithAdvancedFilters = useMemo( () => {
-  const folderIds = filter.folders.map(folder => folder._id);
-  const filteredByFolders = searchedTasks.filter( task => filter.folders.length === 0 || folderIds.includes(task.folder._id));
-  const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
-  const assignedIds = filter.assigned.map(user => user._id);
-  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(assigned => assignedIds.includes(assigned._id)));
-  const filteredByDatetimes = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => {
-    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
-    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
-    if (!task.startDatetime && !task.endDatetime){
-      return false;
-    }
-    if (task.startDatetime && !task.endDatetime){
-      return task.startDatetime <= actualDatetimeMax;
-    }
-    if (!task.startDatetime && task.endDatetime){
-      return actualDatetimeMin <= task.endDatetime;
-    }
-    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
-  } ) : filteredByAssigned;
-  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
-  return filteredByDateCreated;
-}, [ filter, searchedTasks ] );
 
 const activeTasks = useMemo( () => {
   return tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map(task => ({...task, startDatetime: new Date(task.startDatetime*1000), endDatetime: new Date(task.endDatetime*1000), tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`}));
@@ -356,6 +308,7 @@ document.onkeydown = function( e ) {
           <LinkButton
             onClick={(e) => {
               e.preventDefault();
+              dispatch(setSearch(""));
               dispatch(setFilter({
                 folders: [],
                 important: false,

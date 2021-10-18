@@ -54,7 +54,8 @@ import AddTask from './addContainer';
 import EditTask from './editContainer';
 
 import {
-  setFilter
+  setFilter,
+  setSearch
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -107,6 +108,7 @@ export default function DND( props ) {
   match,
   history,
   folder,
+  sortedTasks,
   setParentChosenTask,
   chosenTask
 } = props;
@@ -132,24 +134,12 @@ const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
 
-const dbUsers = useSelector( ( state ) => state.users.value );
-const tasks = useSelector( ( state ) => state.tasks.value );
-const subtasks = useSelector( ( state ) => state.subtasks.value );
-const comments = useSelector( ( state ) => state.comments.value );
-
 const containers = useMemo( () => {
   if ( folder.containers && folder.containers.length > 0) {
     return [{_id: 0, label: "New"}, ...folder.containers];
   }
   return [{_id: 0, label: "New"}];
 }, [ folder ] );
-
-const removedTasks = useMemo( () => {
-  if ( folder._id ) {
-    return tasks.filter( t => t.folder._id === folder._id && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-  }
-  return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-}, [ tasks, folder._id ] );
 
 const addQuickTask = (containerId) => {
   addTask(
@@ -165,75 +155,6 @@ const addQuickTask = (containerId) => {
   );
 }
 
-const filteredTasks = useMemo( () => {
-  return tasks.filter( task => !task.removedDate &&
-    ( task.folder._id === folder.value ||
-      (folder.value === "important" && task.important) ||
-      (
-         "all" === folder.value &&
-        task.assigned.some(assigned => assigned._id === userId)
-       )
-    )
-  );
-}, [ tasks, folder, userId ] );
-
-const searchedTasks = useMemo( () => {
-  return filteredTasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
-}, [ search, filteredTasks ] );
-
-const tasksWithAdvancedFilters = useMemo( () => {
-  const folderIds = filter.folders.map(folder => folder._id);
-  const filteredByFolders = searchedTasks.filter( task => filter.folders.length === 0 || folderIds.includes(task.folder._id));
-  const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
-  const assignedIds = filter.assigned.map(user => user._id);
-  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(assigned => assignedIds.includes(assigned._id)));
-  const filteredByDatetimes = (filter.deadlineMin || filter.deadlineMax) ? filteredByAssigned.filter(task => {
-    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
-    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
-    if (!task.startDatetime && !task.endDatetime){
-      return false;
-    }
-    if (task.startDatetime && !task.endDatetime){
-      return task.startDatetime <= actualDatetimeMax;
-    }
-    if (!task.startDatetime && task.endDatetime){
-      return actualDatetimeMin <= task.endDatetime;
-    }
-    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
-  } ) : filteredByAssigned;
-  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
-  return filteredByDateCreated;
-}, [ filter, searchedTasks ] );
-
-const sortedTasks = useMemo( () => {
-  const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
-  return tasksWithAdvancedFilters
-    .sort( ( t1, t2 ) => {
-      if ( sortBy === "assigned" ) {
-        return t1.assigned.map(assigned => assigned.label).join(" ").toLowerCase() < t2.assigned.map(assigned => assigned.label).join(" ").toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      if ( sortBy === "date" ) {
-        return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      if ( sortBy === "important" ) {
-        return t1.important ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      if ( sortBy === "customOrder" ) {
-        if (!t1.order && !t2.order){
-          return 0;
-        }
-        if (t1.order && !t2.order){
-          return ( -1 ) * multiplier;
-        }
-        if (!t1.order && t2.order){
-          return 1 * multiplier;
-        }
-        return t1.order < t2.order ?  1 * multiplier : ( -1 ) * multiplier;
-      }
-      return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
-    } );
-}, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );
-
   const groupBy = (arr, key) => {
     const initialValue = {};
     return arr.reduce((acc, cval) => {
@@ -242,7 +163,7 @@ const sortedTasks = useMemo( () => {
       return acc;
     }, initialValue);
   };
-
+  
   const tasksByContainer = useMemo( () => {
     return groupBy(sortedTasks, 'container')
   }, [ sortedTasks ] );
@@ -428,6 +349,7 @@ const sortedTasks = useMemo( () => {
           <LinkButton
             onClick={(e) => {
               e.preventDefault();
+              dispatch(setSearch(""));
               dispatch(setFilter({
                 folders: [],
                 important: false,
@@ -525,7 +447,7 @@ const sortedTasks = useMemo( () => {
                           <LinkButton
                             onClick={(e) => {
                               e.preventDefault();
-                              addQuickTask(container._id === 0 ? undefined : container._id);
+                              addQuickTask(container._id);
                             }}
                             className="connected-btn"
                             >

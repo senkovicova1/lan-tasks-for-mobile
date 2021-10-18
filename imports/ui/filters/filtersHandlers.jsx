@@ -4,12 +4,12 @@ import {
   FiltersCollection
 } from '/imports/api/filtersCollection';
 
-export const addFilter = ( name, user, title, folder, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, onSuccess, onFail ) => {
+export const addFilter = ( name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, onSuccess, onFail ) => {
   FiltersCollection.insert( {
     name,
     user,
     title,
-    folder,
+    folders,
     important,
     assigned,
     datetimeMin,
@@ -25,12 +25,12 @@ export const addFilter = ( name, user, title, folder, important, assigned, datet
   } );
 }
 
-export const editFilter = ( _id, name, user, title, folder, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax ) => {
+export const editFilter = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, onSuccess, onFail ) => {
   let data = {
     name,
     user,
     title,
-    folder,
+    folders,
     important,
     assigned,
     datetimeMin,
@@ -42,6 +42,12 @@ export const editFilter = ( _id, name, user, title, folder, important, assigned,
     $set: {
       ...data
     }
+  }, (error) => {
+    if ( error ) {
+      onFail( error );
+    } else {
+      onSuccess();
+    }    
   } );
 }
 

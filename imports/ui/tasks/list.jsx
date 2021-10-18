@@ -42,7 +42,8 @@ import {
 import EditTask from './editContainer';
 
 import {
-  setFilter
+  setFilter,
+  setSearch
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -90,6 +91,9 @@ export default function TaskList( props ) {
   match,
   history,
   folder,
+  closedTasks,
+  activeTasks,
+  removedTasks,
   setParentChosenTask,
   chosenTask
 } = props;
@@ -103,9 +107,6 @@ const {
 } = match.params;
 const {
   layout,
-  search,
-  sortBy,
-  sortDirection,
   filter
 } = useSelector( ( state ) => state.metadata.value );
 
@@ -114,18 +115,6 @@ const user = useTracker( () => Meteor.user() );
 const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
-
-const dbUsers = useSelector( ( state ) => state.users.value );
-const tasks = useSelector( ( state ) => state.tasks.value );
-const subtasks = useSelector( ( state ) => state.subtasks.value );
-const comments = useSelector( ( state ) => state.comments.value );
-
-const removedTasks = useMemo( () => {
-  if ( folder._id ) {
-    return tasks.filter( t => t.folder._id === folder._id && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-  }
-  return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-}, [ tasks, folder._id ] );
 
 const addQuickTask = () => {
   addTask(
@@ -141,100 +130,6 @@ const addQuickTask = () => {
     () => console.log( error )
   );
 }
-
-const filteredTasks = useMemo( () => {
-  return tasks.filter( task => !task.removedDate &&
-    ( task.folder._id === folder.value ||
-      (folder.value === "important" && task.important) ||
-      (
-         "all" === folder.value &&
-        task.assigned.some(assigned => assigned._id === userId)
-       )
-    )
-  );
-}, [ tasks, folder, userId ] );
-
-const searchedTasks = useMemo( () => {
-  return filteredTasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
-}, [ search, filteredTasks ] );
-
-const tasksWithAdvancedFilters = useMemo( () => {
-  const folderIds = filter.folders.map(folder => folder._id);
-  const filteredByFolders = ["all", "important"].includes(folderID) ? searchedTasks.filter( task => filter.folders.length === 0 || folderIds.includes(task.folder._id)) : searchedTasks;
-  const filteredByImportant = filteredByFolders.filter(task => !filter.important || task.important);
-  const assignedIds = filter.assigned.map(user => user._id);
-  const filteredByAssigned = filteredByImportant.filter(task => filter.assigned.length === 0 || task.assigned.some(user => assignedIds.includes(user._id) ) );
-  const filteredByDatetimes = (filter.datetimeMin || filter.datetimeMax) ? filteredByAssigned.filter(task => {
-    const actualDatetimeMin = filter.datetimeMin ? filter.datetimeMin : 0;
-    const actualDatetimeMax = filter.datetimeMax ? filter.datetimeMax : 8640000000000000;
-    if (!task.startDatetime && !task.endDatetime){
-      return false;
-    }
-    if (task.startDatetime && !task.endDatetime){
-      return task.startDatetime <= actualDatetimeMax;
-    }
-    if (!task.startDatetime && task.endDatetime){
-      return actualDatetimeMin <= task.endDatetime;
-    }
-    return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
-  } ) : filteredByAssigned;
-  const filteredByDateCreated = filteredByDatetimes.filter(task => (!filter.dateCreatedMin || filter.dateCreatedMin <= task.dateCreated) && (!filter.dateCreatedMax || task.dateCreated <= filter.dateCreatedMax));
-  return filteredByDateCreated;
-}, [ filter, searchedTasks, folderID ] );
-
-const groupBy = (arr, key) => {
-  const initialValue = {};
-  return arr.reduce((acc, cval) => {
-    const myAttribute = cval[key];
-    acc[myAttribute] = [...(acc[myAttribute] || []), cval]
-    return acc;
-  }, initialValue);
-};
-
-const sortedTasks = useMemo( () => {
-  const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
-  if ( sortBy === "customOrder" ) {
-      let newSorted = groupBy(tasksWithAdvancedFilters, 'container');
-      return Object.keys(newSorted).map(key => {
-        return newSorted[key].sort((t1, t2) => {
-          if (!t1.order && !t2.order){
-            return 0;
-          }
-          if (t1.order && !t2.order){
-            return ( -1 ) * multiplier;
-          }
-          if (!t1.order && t2.order){
-            return 1 * multiplier;
-          }
-          return t1.order < t2.order ?  1 * multiplier : ( -1 ) * multiplier;
-        })
-      }).flat();
-  }
-  return tasksWithAdvancedFilters
-    .sort( ( t1, t2 ) => {
-      if ( sortBy === "assigned" ) {
-        return t1.assigned.map(assigned => assigned.label).join(" ").toLowerCase() < t2.assigned.map(assigned => assigned.label).join(" ").toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      if ( sortBy === "date" ) {
-        return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      if ( sortBy === "important" ) {
-        return t1.important ? 1 * multiplier : ( -1 ) * multiplier;
-      }
-      return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
-    } );
-}, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );
-
-const activeTasks = useMemo( () => {
-  return sortedTasks.filter( task => !task.closed );
-}, [ sortedTasks, sortBy, sortDirection ] );
-
-const closedTasks = useMemo( () => {
-  if ( showClosed ) {
-    return sortedTasks.filter( task => task.closed );
-  }
-  return [];
-}, [ sortedTasks, showClosed, sortBy, sortDirection ] );
 
 document.onkeydown = function( e ) {
   e = e || window.event;
@@ -395,6 +290,7 @@ document.onkeydown = function( e ) {
           <LinkButton
             onClick={(e) => {
               e.preventDefault();
+              dispatch(setSearch(""));
               dispatch(setFilter({
                 folders: [],
                 important: false,
@@ -428,6 +324,7 @@ document.onkeydown = function( e ) {
       }
 
       {
+        folder &&
         folder._id &&
         !match.path.includes("archived") &&
         !openNewTask &&
@@ -445,6 +342,7 @@ document.onkeydown = function( e ) {
       }
 
       {
+        folder &&
         folder._id &&
         openNewTask &&
         <InlineInput>

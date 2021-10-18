@@ -28,11 +28,9 @@ import {
   ModalBody
 } from 'reactstrap';
 
-import {
-  addFilter
-} from '/imports/ui/users/filtersHandlers';
-
 import Menu from './sidebar';
+import AddFilter from '/imports/ui/filters/addContainer';
+import EditFilter from '/imports/ui/filters/editContainer';
 
 import {
   setFolder,
@@ -129,8 +127,8 @@ export default function WebHeader( props ) {
 
   const [ newFilter, setNewFilter] = useState();
   const [ newSearch, setNewSearch] = useState("");
-  const [ newFIlterName, setNewFilterName] = useState("");
   const [ saveFilter, setSaveFilter] = useState(false);
+  const [ editFilter, setEditFilter] = useState(false);
 
   useEffect( () => {
 
@@ -526,10 +524,25 @@ export default function WebHeader( props ) {
                   value={newFilter && newFilter._id ? newFilter : null}
                   onChange={(e) => {
                     setNewFilter(e);
+                    setNewSearch(e.title);
                   }}
                   options={filterOptions}
                   />
               </div>
+                  <LinkButton
+                    font="white"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditFilter(true);
+                    }}
+                    >
+                    <img
+                      className="icon"
+                      style={{margin: "0px"}}
+                      src={SettingsIcon}
+                      alt="Settings icon not found"
+                      />
+                  </LinkButton>
             </section>
 
             <section className="inline">
@@ -632,7 +645,7 @@ export default function WebHeader( props ) {
                   setOpenFilter(false);
                 }}
                 >
-                Aply filter
+                Apply filter
               </FullButton>
             </ButtonRow>
 
@@ -786,6 +799,8 @@ export default function WebHeader( props ) {
           }
             {
               (window.innerWidth > 820 || !/Mobi|Android/i.test(navigator.userAgent)) &&
+              !location.pathname.includes('all') &&
+              !location.pathname.includes('important') &&
             <span>
               <input
                 id="dnd-layout"
@@ -850,55 +865,23 @@ export default function WebHeader( props ) {
 
       {
         saveFilter &&
-      <Modal isOpen={true}>
-        <ModalBody>
-          <Form>
-          <h2>Add filter</h2>
-            <section className="inline">
-              <span className="icon-container">
-                Name
-              </span>
-              <Input
-              id="filterName"
-              name="filterName"
-              type="text"
-              onChange={(e) =>  {
-                setNewFilterName(e.target.value);
-              }}
-              />
-          </section>
-          <ButtonCol>
-            <FullButton colour="grey" onClick={(e) => {e.preventDefault(); setSaveFilter(false);}}>Cancel</FullButton>
-            <FullButton
-              colour=""
-              disabled={newFIlterName.length === 0}
-              onClick={(e) => {
-                e.preventDefault();
-                addFilter(
-                  newFIlterName,
-                  userId,
-                  newSearch,
-                  newFilter.folders.map(folder => folder._id),
-                  newFilter.important,
-                  newFilter.assigned.map(a => a._id),
-                  newFilter.datetimeMin,
-                  newFilter.datetimeMax,
-                  newFilter.dateCreatedMin,
-                  newFilter.dateCreatedMax,
-                  () => {setSaveFilter(false);
-                  dispatch(setFilter({...newFilter}));
-                  setOpenFilter(false);},
-                  (error) => {console.log(error)}
-                );
-              }}
-              >
-              Save
-            </FullButton>
-          </ButtonCol>
-        </Form>
-        </ModalBody>
-      </Modal>
-    }
+        <AddFilter
+          title={newSearch}
+          {...newFilter}
+          setSaveFilter={setSaveFilter}
+          setOpenFilter={setOpenFilter}
+          />
+      }
+
+      {
+        editFilter &&
+        <EditFilter
+          {...props}
+          filterId={newFilter._id}
+          setEditFilter={setEditFilter}
+          setOpenFilter={setOpenFilter}
+          />
+      }
 
     </PageHeader>
   );

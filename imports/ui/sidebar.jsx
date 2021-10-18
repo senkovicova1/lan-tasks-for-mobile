@@ -21,8 +21,13 @@ import moment from 'moment';
 
 import Select from 'react-select';
 
+import EditFilter from '/imports/ui/filters/editContainer';
+
 import {
-  setSidebarOpen
+  setSidebarOpen,
+  setLayout,
+  setFilter,
+  setSearch,
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -30,7 +35,14 @@ import {
   ListIcon,
   FolderIcon,
   PlusIcon,
+  SettingsIcon,
+  UserIcon,
+  MenuIcon2,
+  FilterIcon,
+  FullStarIcon,
   EmptyStarIcon,
+  ClockIcon,
+  CalendarIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -45,6 +57,8 @@ import {
 } from "/imports/other/styles/styledComponents";
 
 import {
+  PLAIN,
+  DND,
   allMyTasksFolder,
   importantTasksFolder,
   archivedFolder,
@@ -65,11 +79,21 @@ export default function Menu( props ) {
   } = props;
 
   const {
-    folderID
+    folderID,
+    filterID
   } = match.params;
-  const folders = useSelector( ( state ) => state.folders.value ).active;
-  const currentUser = useTracker( () => Meteor.user() );
+
+  const {
+    layout,
+    search,
+  } = useSelector( ( state ) => state.metadata.value );
+
   const userId = Meteor.userId();
+  const currentUser = useTracker( () => Meteor.user() );
+
+  const folders = useSelector( ( state ) => state.folders.value );
+  const users = useSelector( ( state ) => state.users.value );
+  const dbFilters = useSelector( ( state ) => state.filters.value );
 
   const actualAllMyTasksFolder = useMemo( () => {
     return allMyTasksFolder( currentUser.profile.language );
@@ -84,14 +108,28 @@ export default function Menu( props ) {
     return archivedFolder( currentUser.profile.language );
   }, [ currentUser.profile.language ] );
 
+  const filters = useMemo(() => {
+    return dbFilters.map(filter => ({
+      ...filter,
+      assigned: users && users.length > 0 ? filter.assigned.map(user => users.find(u => u._id === user)) : [],
+      folders: folders && [...folders.active, ...folders.archived ].length > 0 && filter.folders ? filter.folders.map(f1 => [...folders.active, ...folders.archived ].find(f2 => f2._id === f1)) : [],
+      label: filter.name,
+      value: filter._id
+    }))
+  }, [users, folders, dbFilters]);
+
   return (
     <Sidebar>
       <NavLink
         key={"all"}
         to="/all/list"
-        className={((!folderID && !match.path.includes("archive")) || actualAllMyTasksFolder.value === folderID)  ? "active" : ""}
+        className={((!folderID && !match.path.includes("archive") && !filterID) || actualAllMyTasksFolder.value === folderID)  ? "active" : ""}
         onClick={() => {
+          if (layout === DND){
+            dispatch(setLayout(PLAIN));
+          }
           if (/Mobi|Android/i.test(navigator.userAgent)) {
+            dispatch(setSidebarOpen(false));
             dispatch(setSidebarOpen(false));
           }
         }}
@@ -109,6 +147,9 @@ export default function Menu( props ) {
         to="/important/list"
         className={(actualImportantTasksFolder.value === folderID)  ? "active" : ""}
         onClick={() => {
+          if (layout === DND){
+            dispatch(setLayout(PLAIN));
+          }
           if (/Mobi|Android/i.test(navigator.userAgent)) {
             dispatch(setSidebarOpen(false));
           }
@@ -123,7 +164,32 @@ export default function Menu( props ) {
       </NavLink>
 
       {
-        folders.map(folder => (
+        filters.map(filter => (
+          <NavLink
+            key={filter._id}
+            className={filter._id === filterID ? "active" : ""}
+            to={`/filters/${filter._id}/list`}
+            onClick={() => {
+              if (layout === DND){
+                dispatch(setLayout(PLAIN));
+              }
+              if (/Mobi|Android/i.test(navigator.userAgent)) {
+                dispatch(setSidebarOpen(false));
+              }
+            }}
+            >
+            <img
+              className="icon"
+              src={FilterIcon}
+              alt="FilterIcon icon not found"
+              />
+            <span>{filter.label}</span>
+          </NavLink>
+        ))
+      }
+
+      {
+        folders.active.map(folder => (
           <NavLink
             key={folder._id}
             className={folder._id === folderID ? "active" : ""}

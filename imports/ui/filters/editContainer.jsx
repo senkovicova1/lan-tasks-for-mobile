@@ -1,0 +1,117 @@
+import React, {
+  useState,
+  useMemo
+}  from 'react';
+import {
+  Meteor
+} from 'meteor/meteor';
+
+import {
+  useDispatch,
+  useSelector
+} from 'react-redux';
+
+import {
+  Modal,
+  ModalBody
+} from 'reactstrap';
+
+import Loader from "/imports/ui/other/loadingScreen";
+
+import {
+  setSearch,
+  setFilter
+} from '/imports/redux/metadataSlice';
+
+import {
+  editFilter,
+  removeFilter
+} from '/imports/ui/filters/filtersHandlers';
+
+import FilterForm from './form';
+
+export default function EditFilterContainer( props ) {
+
+  const dispatch = useDispatch();
+
+  const {
+    match,
+    location,
+    filterId,
+    setEditFilter,
+    setOpenFilter,
+  } = props;
+
+  const userId = Meteor.userId();
+  const filters = useSelector( ( state ) => state.filters.value );
+
+  const submit = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) => {
+    editFilter(_id, name, user, title, folders.map(folder => folder._id), important, assigned.map(a => a._id), datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, () => {
+        setEditFilter(false);
+        dispatch(setFilter({
+          _id,
+          name,
+          user,
+          title,
+          folders,
+          important,
+          assigned,
+          datetimeMin,
+          datetimeMax,
+          dateCreatedMin,
+          dateCreatedMax,
+          value: _id,
+          label: name,
+        }));
+        dispatch(setSearch(title));
+        setOpenFilter(false);
+      },
+      (error) => {console.log(error)}
+    )
+  }
+
+  const remove = () => {
+    if ( window.confirm( "Are you sure you want to permanently remove this filter?" ) ) {
+      removeFilter(filterId);
+      setEditFilter(false);
+      dispatch(setFilter({
+        folders: [],
+        important: false,
+        datetimeMin: "",
+        datetimeMax: "",
+        assigned: [],
+        dateCreatedMin: "",
+        dateCreatedMax: "",
+      }));
+      dispatch(setSearch(""));
+      setOpenFilter(false);
+    }
+  }
+
+  const cancel = () => {
+    setEditFilter(false);
+  }
+
+  const filter = useMemo(() => {
+    return filters.find(filter => filter._id === filterId);
+  }, [filterId, filters]);
+
+  if (!filter){
+    <Loader />
+  }
+
+  return (
+    <Modal isOpen={true}>
+      <ModalBody>
+        <FilterForm
+          {...props}
+          filterId={filterId}
+          filter={filter}
+          submit={submit}
+          cancel={cancel}
+          remove={remove}
+          />
+      </ModalBody>
+    </Modal>
+  );
+};
