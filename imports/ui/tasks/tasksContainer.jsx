@@ -105,8 +105,9 @@ export default function TasksContainer( props ) {
     }
     if (sidebarFilter){
       const notRemovedTasks = tasks.filter( task => !task.removedDate);
+      const filteredByTitle = notRemovedTasks.filter( task => !sidebarFilter.title || task.name.toLowerCase().includes(sidebarFilter.title.toLowerCase()));
       const folderIds = sidebarFilter.folders;
-      const filteredByFolders = notRemovedTasks.filter( task => sidebarFilter.folders.length === 0 || folderIds.includes(task.folder._id));
+      const filteredByFolders = filteredByTitle.filter( task => sidebarFilter.folders.length === 0 || folderIds.includes(task.folder._id));
       const filteredByImportant = filteredByFolders.filter(task => !sidebarFilter.important || task.important);
       const assignedIds = sidebarFilter.assigned;
       const filteredByAssigned = filteredByImportant.filter(task => sidebarFilter.assigned.length === 0 || task.assigned.some(user => assignedIds.includes(user._id) ) );

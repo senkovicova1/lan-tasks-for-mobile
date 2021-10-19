@@ -111,7 +111,7 @@ export const PageHeader = styled.header `
     }
   }
 
-  button:last-of-type{
+  button:not(.left):last-of-type{
     margin: 0px !important;
   }
 
@@ -578,10 +578,15 @@ export const Form = styled.form `
     margin: 0em !important;
   }
 
-  h1{
+  h1, h2{
     font-size: 1.5em;
     font-weight: 400;
   }
+
+     h3{
+      font-size: 1.5em;
+      font-weight: 200;
+    }
 
   hr{
     margin: 0em 0em 1em 0em;
@@ -602,6 +607,15 @@ export const Form = styled.form `
   .label-icon{
     width: 2em;
     height: 1.3em;
+  }
+
+  .datetime-span{
+    display: flex;
+    width: 100%;
+    background: white;
+    padding: 0px 7px;
+    align-items: center;
+    cursor: pointer;
   }
 
   input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {
@@ -928,6 +942,23 @@ export const Filter = styled.div`
     height: 1.3em;
     width: 1.3em;
   }
+`;
+
+
+export const DatetimePicker = styled.div`
+  position: absolute;
+  z-index: 999;
+  background-color: #f6f6f6;
+  box-shadow: 0px 0px 7px 0px slategrey;
+  top: 0px;
+  @media all and (max-width: 799px), @media handheld {
+    width: 100%;
+  }
+  @media all and (min-width: 800px){
+    width: -webkit-fill-available;
+  }
+  padding: 2em 0em;
+
 `;
 
 export const GroupButton = styled.button `

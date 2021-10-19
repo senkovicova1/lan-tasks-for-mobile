@@ -71,7 +71,8 @@ import {
   CommentContainer,
   FileContainer,
   FullButton,
-  ButtonCol
+  ButtonCol,
+  DatetimePicker
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -133,6 +134,9 @@ export default function TaskForm( props ) {
   const [ allDay, setAllDay ] = useState( false );
   const [ startDatetime, setStartDatetime ] = useState( "" );
   const [ endDatetime, setEndDatetime ] = useState( "" );
+  const [ possibleStartDatetime, setPossibleStartDatetime ] = useState( "" );
+  const [ possibleEndDatetime, setPossibleEndDatetime ] = useState( "" );
+  const [ openDatetime, setOpenDatetime ] = useState( false );
   const [ hours, setHours ] = useState( "" );
 
   const [ addedSubtasks, setAddedSubtasks ] = useState( [] );
@@ -231,6 +235,19 @@ export default function TaskForm( props ) {
 
   }, [ taskName, taskFolder, taskContainer, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
 
+  useEffect(() => {
+    if (startDatetime){
+      setPossibleStartDatetime(startDatetime);
+    }
+    if (endDatetime){
+      setPossibleEndDatetime(endDatetime);
+    }
+    if (!startDatetime) {
+      setPossibleStartDatetime(moment().add(1, 'days').unix());
+      setPossibleEndDatetime(moment().add(1, 'days').add(30, 'minutes').unix());
+    }
+  }, [openDatetime]);
+
   const subtasks = useMemo( () => {
     return allSubtasks.filter( subtask => subtask.task === taskId );
   }, [ taskId, allSubtasks ] );
@@ -282,6 +299,16 @@ export default function TaskForm( props ) {
     }
     return [];
   }, [ folder, dbUsers ] );
+
+  const hoursAndMinutes = () => {
+    let options = [];
+    for (var h = 0; h < 24; h++) {
+      for (var m = 0; m < 59; m = m+15) {
+        options.push({label: `${h}:${m}`, value: `${h}:${m}`, hours: h, minutes: m});
+      }
+    }
+    return options;
+  };
 
   document.onkeydown = function( e ) {
     e = e || window.event;
@@ -488,6 +515,8 @@ export default function TaskForm( props ) {
         </div>
       </section>
 
+      {
+        !openDatetime &&
       <section className="inline">
         <span className="icon-container">
           <img
@@ -497,284 +526,367 @@ export default function TaskForm( props ) {
             alt="Calendar icon not found"
             />
         </span>
-          <Datetime
-            className="full-width m-r-03"
-            dateFormat={"DD.MM.yyyy"}
-            value={startDatetime ? moment.unix(startDatetime) : ""}
-            timeFormat={false}
-            name="startDate"
-            id="startDate"
-            inputProps={{
-              placeholder: 'Set date',
-            }}
-            onChange={(date) => {
-              if (typeof date !== "string"){
-                  const newYear = date.year();
-                  const newMonth = date.month();
-                  const newDay = date.date();
-                  const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
-                  setStartDatetime(date.unix());
-                  setEndDatetime(newEndDatetime.unix());
-
-                  if ( !addNewTask ) {
-                    updateSimpleAttribute(taskId, {startDatetime: date.unix(), endDatetime: newEndDatetime.unix()});
-                  }
-              } else {
-                  setStartDatetime(date);
-
-                  if ( !addNewTask ) {
-                    updateSimpleAttribute(taskId, {startDatetime: date, endDatetime: date});
-                  }
-              }
-            }}
-            renderInput={(props) => {
-                return <Input
-                  {...props}
-                  disabled={closed}
-                  value={startDatetime ? props.value : ''}
-                  />
-            }}
-            />
-            <LinkButton
-              style={{height: "40px", marginRight: "0.6em"}}
-              height="fit"
-              disabled={closed}
-              onClick={(e) => {
-                e.preventDefault();
-                setStartDatetime("");
-                setStartDatetime("");
-                if ( !addNewTask ) {
-                  updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
-                }
-              }}
-              >
-                <img
-                  style={{margin: "0px"}}
-                  className="icon"
-                  src={CloseIcon}
-                  alt="CloseIcon star icon not found"
-                  />
-            </LinkButton>
+        <span
+          className="datetime-span"
+          onClick={() => setOpenDatetime(true)}
+          >
+        <span>
           {
+            !startDatetime &&
+            !endDatetime &&
+            "Set scheduled"
+          }
+          {
+            (startDatetime || endDatetime) &&
             !allDay &&
-            <Datetime
-              className="full-width m-r-03"
-              dateFormat={false}
-              value={startDatetime ? moment.unix(startDatetime) : ""}
-              timeFormat={"HH:mm"}
-              name="startTime"
-              id="startTime"
-              inputProps={{
-              placeholder: 'Set time',
-              }}
-              onChange={(date) => {
-                if (typeof date !== "string"){
-                    setStartDatetime(date.unix());
-                    if ( !addNewTask ) {
-                      updateSimpleAttribute(taskId, {startDatetime: date.unix()});
-                    }
-                } else {
-                    setStartDatetime(date);
-                    if ( !addNewTask ) {
-                      updateSimpleAttribute(taskId, {startDatetime: date});
-                    }
-                }
-              }}
-              renderInput={(props) => {
-                return <Input
-                  {...props}
+            `${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}`
+          }
+          {
+            (startDatetime || endDatetime) &&
+            allDay &&
+            `${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}`
+          }
+        </span>
+        <LinkButton
+          style={{height: "40px", marginLeft: "auto"}}
+          className="left"
+          height="fit"
+          disabled={closed}
+          onClick={(e) => {
+            e.preventDefault();
+            setStartDatetime("");
+            setStartDatetime("");
+            if ( !addNewTask ) {
+              updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
+            }
+          }}
+          >
+            <img
+              style={{margin: "0px"}}
+              className="icon"
+              src={CloseIcon}
+              alt="CloseIcon star icon not found"
+              />
+        </LinkButton>
+      </span>
+      </section>
+    }
+
+        {
+          openDatetime &&
+          <div style={{position: "relative"}}>
+          <DatetimePicker>
+            <section>
+            <h3>Set scheduled</h3>
+          </section>
+          <section className="inline">
+              {
+                allDay &&
+                <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
+                From:
+                </span>
+              }
+                  {
+                    !allDay &&
+                    <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
+                    Date:
+                    </span>
+                  }
+              <Datetime
+                className="full-width"
+                dateFormat={"DD.MM.yyyy"}
+                value={possibleStartDatetime ? moment.unix(possibleStartDatetime) : possibleStartDatetime}
+                timeFormat={false}
+                name="startDate"
+                id="startDate"
+                inputProps={{
+                  placeholder: 'Set date',
+                }}
+                onChange={(date) => {
+                  if (typeof date !== "string"){
+                      const newYear = date.year();
+                      const newMonth = date.month();
+                      const newDay = date.date();
+                      const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
+                      setPossibleStartDatetime(date.unix());
+                      setPossibleEndDatetime(newEndDatetime.unix());
+
+                  /*    if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {startDatetime: date.unix(), endDatetime: newEndDatetime.unix()});
+                      }*/
+                  } else {
+                      setPossibleStartDatetime(date);
+
+                /*      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {startDatetime: date, endDatetime: date});
+                      }*/
+                  }
+                }}
+                renderInput={(props) => {
+                    return <Input
+                      {...props}
+                      disabled={closed}
+                      value={possibleStartDatetime ? props.value : ''}
+                      />
+                }}
+                />
+                <LinkButton
+                  style={{height: "40px", marginRight: "0.6em", marginLeft: "0.6em"}}
+                  height="fit"
                   disabled={closed}
-                   value={startDatetime ? props.value : ''}
-                  />
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setPossibleStartDatetime("");
+            /*        if ( !addNewTask ) {
+                      updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
+                    }*/
+                  }}
+                  >
+                    <img
+                      style={{margin: "0px"}}
+                      className="icon"
+                      src={CloseIcon}
+                      alt="CloseIcon star icon not found"
+                      />
+                </LinkButton>
+              </section>
+              {
+                !allDay &&
+                <section className="inline">
+                  <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
+                    From:
+                  </span>
+
+                  <div style={{width: "100%"}}>
+                    <Select
+                      name="startTime"
+                      id="startTime"
+                      isDisabled={closed}
+                      styles={selectStyle}
+                      value={possibleStartDatetime ? {label: `${moment(possibleStartDatetime*1000).hours()}:${moment(possibleStartDatetime*1000).minutes()}`, value: `${moment(possibleStartDatetime*1000).hours()}:${moment(possibleStartDatetime*1000).minutes()}`, hours: moment(possibleStartDatetime*1000).hours(), minutes: moment(possibleStartDatetime*1000).minutes()} : null}
+                      placeholder={"Set time"}
+                      onChange={(e) => {
+                        const newStartDatetime = moment(possibleStartDatetime*1000).hours(e.hours).minutes(e.minutes);
+                        if (typeof newStartDatetime !== "string"){
+                            setPossibleStartDatetime(newStartDatetime.unix());
+                      /*      if ( !addNewTask ) {
+                              updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
+                            }*/
+                        } else {
+                            setPossibleStartDatetime(newStartDatetime);
+                        /*    if ( !addNewTask ) {
+                              updateSimpleAttribute(taskId, {startDatetime: newStartDatetime});
+                            }*/
+                        }
+                      }}
+                      options={hoursAndMinutes()}
+                      />
+                  </div>
+
+                <LinkButton
+                  style={{height: "40px", marginRight: "0.6em", marginLeft: "0.6em"}}
+                  height="fit"
+                  disabled={closed}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const newHour = 0;
+                    const newMinute = 0;
+                    const newSecond = 0;
+                    const newStartDatetime = moment(possibleStartDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
+                    setPossibleStartDatetime(newStartDatetime.unix());
+
+              /*      if ( !addNewTask ) {
+                      updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
+                    }*/
+                  }}
+                  >
+                    <img
+                      style={{margin: "0px"}}
+                      className="icon"
+                      src={CloseIcon}
+                      alt="CloseIcon star icon not found"
+                      />
+                </LinkButton>
+              </section>
+              }
+                {
+                  !allDay &&
+                  <section className="inline">
+                    <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
+                      To:
+                    </span>
+                    <div style={{width: "100%"}}>
+                      <Select
+                        name="endTime"
+                        id="endTime"
+                        isDisabled={closed}
+                        styles={selectStyle}
+                        value={possibleEndDatetime ? {label: `${moment(possibleEndDatetime*1000).hours()}:${moment(possibleEndDatetime*1000).minutes()}`, value: `${moment(possibleEndDatetime*1000).hours()}:${moment(possibleEndDatetime*1000).minutes()}`, hours: moment(possibleEndDatetime*1000).hours(), minutes: moment(possibleEndDatetime*1000).minutes()} : null}
+                        placeholder={"Set time"}
+                        onChange={(e) => {
+                          let newEndDatetime = moment(possibleEndDatetime*1000).hours(e.hours).minutes(e.minutes);
+                          if (typeof newEndDatetime !== "string"){
+                              setPossibleEndDatetime(newEndDatetime.unix());
+                      /*        if ( !addNewTask ) {
+                                updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
+                              }*/
+                          } else {
+                              setPossibleEndDatetime(newEndDatetime);
+                      /*        if ( !addNewTask ) {
+                                updateSimpleAttribute(taskId, {endDatetime: newEndDatetime});
+                              }*/
+                          }
+                        }}
+                        options={hoursAndMinutes()}
+                        />
+                    </div>
+
+                  <LinkButton
+                    style={{height: "40px", marginRight: "0.6em", marginLeft: "0.6em"}}
+                    height="fit"
+                    disabled={closed}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const newHour = 0;
+                      const newMinute = 0;
+                      const newSecond = 0;
+                      const newEndDatetime = moment(possibleEndDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
+                      setPossibleEndDatetime(newEndDatetime.unix());
+                  /*    if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
+                      }*/
+                    }}
+                    >
+                      <img
+                        style={{margin: "0px"}}
+                        className="icon"
+                        src={CloseIcon}
+                        alt="CloseIcon star icon not found"
+                        />
+                  </LinkButton>
+                </section>
+                }
+                {
+                  allDay &&
+                  <section className="inline">
+                    <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
+                      To:
+                    </span>
+                  <Datetime
+                    className="full-width"
+                    dateFormat={"DD.MM.yyyy"}
+                    value={moment.unix(possibleEndDatetime)}
+                    timeFormat={false}
+                    name="endDate"
+                    id="endDate"
+                    inputProps={{
+                    placeholder: 'Set date',
+                    }}
+                    onChange={(date) => {
+                      if (typeof date !== "string"){
+                          setPossibleEndDatetime(date.unix());
+                    /*      if ( !addNewTask ) {
+                            updateSimpleAttribute(taskId, {endDatetime: date.unix()});
+                          }*/
+                      } else {
+                          setPossibleEndDatetime(date);
+                          if ( !addNewTask ) {
+                            updateSimpleAttribute(taskId, {endDatetime: date});
+                          }
+                      }
+                    }}
+                    renderInput={(props) => {
+                        return <Input
+                          {...props}
+                          disabled={closed}
+                           value={endDatetime ? props.value : ''}
+                          />
+                    }}
+                    />
+                  <LinkButton
+                    style={{height: "40px", marginRight: "0.6em", marginLeft: "0.6em"}}
+                    height="fit"
+                    disabled={closed}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPossibleEndDatetime(possibleStartDatetime);
+                /*      if ( !addNewTask ) {
+                        updateSimpleAttribute(taskId, {endDatetime: startDatetime});
+                      }*/
+                    }}
+                    >
+                      <img
+                        style={{margin: "0px"}}
+                        className="icon"
+                        src={CloseIcon}
+                        alt="CloseIcon star icon not found"
+                        />
+                  </LinkButton>
+                  </section>
+                }
+
+          <section>
+            <Input
+              id='taskAllDay'
+              type="checkbox"
+              style={{width: "1.5em", marginLeft: "9px", marginRight: "9px"}}
+              checked={allDay}
+              disabled={closed}
+              onChange={() =>  {
+                const newAllDay = !allDay;
+                setAllDay(newAllDay);
+
+                if (!newAllDay){
+                  const newYear = moment(possibleStartDatetime*1000).year();
+                  const newMonth = moment(possibleStartDatetime*1000).month();
+                  const newDay = moment(possibleStartDatetime*1000).date();
+                  const newEndDatetime = moment(possibleEndDatetime*1000).year(newYear).month(newMonth).date(newDay);
+                  setPossibleEndDatetime(newEndDatetime.unix());
+              /*    if ( !addNewTask ) {
+                    updateSimpleAttribute(taskId, {allDay: newAllDay, endDatetime: newEndDatetime.unix()});
+                  }*/
+                } else if ( !addNewTask ) {
+            //      updateSimpleAttribute(taskId, {allDay: newAllDay});
+                }
+
               }}
               />
-          }
-          {
-            !allDay &&
-            <LinkButton
-              style={{height: "40px", marginRight: "0.6em"}}
-              height="fit"
-              disabled={closed}
-              onClick={(e) => {
-                e.preventDefault();
-                const newHour = 0;
-                const newMinute = 0;
-                const newSecond = 0;
-                const newStartDatetime = moment(startDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
-                setStartDatetime(newStartDatetime.unix());
-
-                if ( !addNewTask ) {
-                  updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
-                }
-              }}
-              >
-                <img
-                  style={{margin: "0px"}}
-                  className="icon"
-                  src={CloseIcon}
-                  alt="CloseIcon star icon not found"
-                  />
-            </LinkButton>
-          }
-          {
-            !allDay &&
-              <span className="icon-container" style={{marginRight: "0.3em"}}>
-              -
+            <span style={{marginLeft: "10px"}}>
+              All day event
             </span>
-          }
-            {
-              !allDay &&
-              <Datetime
-                className="full-width m-r-03"
-                dateFormat={false}
-                value={endDatetime ? moment.unix(endDatetime) : ""}
-                timeFormat={"HH:mm"}
-                name="endTime"
-                id="endTime"
-                inputProps={{
-                  placeholder: 'Set time',
-                }}
-                onChange={(date) => {
-                  if (typeof date !== "string"){
-                      const newHour = date.hour();
-                      const newMinute = date.minute();
-                      const newSecond = date.second();
-                      const newEndDatetime = moment(endDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
-                      setEndDatetime(date.unix());
-                      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
-                      }
-                  } else {
-                      setEndDatetime(date);
-                      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: date});
-                      }
-                  }
-                }}
-                renderInput={(props) => {
-                    return <Input
-                      {...props}
-                      disabled={closed}
-                      value={endDatetime ? props.value : ''}
-                      />
-                }}
-                />
-            }
-            {
-              !allDay &&
-              <LinkButton
-                style={{height: "40px", marginRight: "0.6em"}}
-                height="fit"
-                disabled={closed}
-                onClick={(e) => {
-                  e.preventDefault();
-                  const newHour = 0;
-                  const newMinute = 0;
-                  const newSecond = 0;
-                  const newEndDatetime = moment(endDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
-                  setEndDatetime(newEndDatetime.unix());
-                  if ( !addNewTask ) {
-                    updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
-                  }
-                }}
-                >
-                  <img
-                    style={{margin: "0px"}}
-                    className="icon"
-                    src={CloseIcon}
-                    alt="CloseIcon star icon not found"
-                    />
-              </LinkButton>
-            }
-            {
-              allDay &&
-              <Datetime
-                className="full-width m-r-03"
-                dateFormat={"DD.MM.yyyy"}
-                value={endDatetime ? moment.unix(endDatetime) : ""}
-                timeFormat={false}
-                name="endDate"
-                id="endDate"
-                inputProps={{
-                placeholder: 'Set date',
-                }}
-                onChange={(date) => {
-                  if (typeof date !== "string"){
-                      setEndDatetime(date.unix());
-                      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: date.unix()});
-                      }
-                  } else {
-                      setEndDatetime(date);
-                      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: date});
-                      }
-                  }
-                }}
-                renderInput={(props) => {
-                    return <Input
-                      {...props}
-                      disabled={closed}
-                       value={endDatetime ? props.value : ''}
-                      />
-                }}
-                />
-            }
-            {
-              allDay &&
-              <LinkButton
-                style={{height: "40px", marginRight: "0.6em"}}
-                height="fit"
-                disabled={closed}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setEndDatetime(startDatetime);
-                  if ( !addNewTask ) {
-                    updateSimpleAttribute(taskId, {endDatetime: startDatetime});
-                  }
-                }}
-                >
-                  <img
-                    style={{margin: "0px"}}
-                    className="icon"
-                    src={CloseIcon}
-                    alt="CloseIcon star icon not found"
-                    />
-              </LinkButton>
-            }
-
-      </section>
-
-      <section>
-        <Input
-          id='taskAllDay'
-          type="checkbox"
-          style={{width: "1.5em", marginLeft: "3px"}}
-          checked={allDay}
-          disabled={closed}
-          onChange={() =>  {
-            const newAllDay = !allDay;
-            setAllDay(newAllDay);
-
-            if (!newAllDay){
-              const newYear = moment(startDatetime*1000).year();
-              const newMonth = moment(startDatetime*1000).month();
-              const newDay = moment(startDatetime*1000).date();
-              const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
-              setEndDatetime(newEndDatetime.unix());
+          </section>
+          <section>
+          <ButtonRow>
+          <LinkButton
+            style={{marginRight: "auto", marginLeft: "0px"}}
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              setOpenDatetime(false);
+            }}
+            >
+            Close
+          </LinkButton>
+          <FullButton
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              setStartDatetime(possibleStartDatetime);
+              setEndDatetime(possibleEndDatetime);
               if ( !addNewTask ) {
-                updateSimpleAttribute(taskId, {allDay: newAllDay, endDatetime: newEndDatetime.unix()});
+                updateSimpleAttribute(taskId, {allDay: allDay, startDatetime: possibleStartDatetime, endDatetime: possibleEndDatetime});
               }
-            } else if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {allDay: newAllDay});
-            }
-
-          }}
-          />
-        <span style={{marginLeft: "10px"}}>
-            All day event
-          </span>
+              setOpenDatetime(false);
+            }}
+            >
+            Save
+          </FullButton>
+        </ButtonRow>
       </section>
+        </DatetimePicker>
+      </div>
+        }
+
 
       <section className="inline">
         <span className="icon-container">
@@ -1028,7 +1140,7 @@ export default function TaskForm( props ) {
             }
             <LinkButton
               colour=""
-              style={{marginLeft: "auto", marginRight: "0px"}}
+              style={{marginLeft: "auto", marginRight: "0px", marginTop: "0.6em"}}
               disabled={newCommentBody.length === 0 || closed}
               onClick={(e) => {
                 e.preventDefault();

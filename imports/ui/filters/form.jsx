@@ -82,7 +82,6 @@ export default function FilterForm( props ) {
 
   const [ newFilterName, setNewFilterName] = useState(filter.name);
   const [ newFilter, setNewFilter] = useState({});
-  const [ newSearch, setNewSearch] = useState(filter.title);
 
     useEffect( () => {
 
@@ -148,15 +147,13 @@ export default function FilterForm( props ) {
             name="title"
             id="title"
             placeholder="Filter by title"
-            value={newSearch}
+            value={newFilter.title}
             onChange={(e) => {
-              setNewSearch( e.target.value );
+              setNewFilter({...newFilter, title: e.target.value});
             }}
             />
         </section>
 
-        {
-          ['all', 'important'].includes(folderID) &&
           <section className="inline">
             <span className="icon-container">
               <img
@@ -181,7 +178,6 @@ export default function FilterForm( props ) {
                 />
             </div>
           </section>
-        }
 
       <section className="inline fit">
         <LinkButton
@@ -427,7 +423,7 @@ export default function FilterForm( props ) {
               filter._id,
               newFilterName,
               userId,
-              newSearch,
+              newFilter.title,
               newFilter.folders,
               newFilter.important,
               newFilter.assigned,

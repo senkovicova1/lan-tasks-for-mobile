@@ -30,7 +30,6 @@ import {
 
 import Menu from './sidebar';
 import AddFilter from '/imports/ui/filters/addContainer';
-import EditFilter from '/imports/ui/filters/editContainer';
 
 import {
   setFolder,
@@ -100,7 +99,7 @@ export default function WebHeader( props ) {
     location,
   } = props;
 
-  const folderID = match.params.folderID;
+  const { folderID, filterID } = match.params;
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );
   const logout = () => Meteor.logout();
@@ -117,7 +116,6 @@ export default function WebHeader( props ) {
 
   const folders = useSelector( ( state ) => state.folders.value );
   const users = useSelector( ( state ) => state.users.value );
-  const filters = useSelector( ( state ) => state.filters.value );
 
   const [ title, setTitle ] = useState( "TaskApp" );
   const [ background, setBackground ] = useState( "#0078d4" );
@@ -128,7 +126,6 @@ export default function WebHeader( props ) {
   const [ newFilter, setNewFilter] = useState();
   const [ newSearch, setNewSearch] = useState("");
   const [ saveFilter, setSaveFilter] = useState(false);
-  const [ editFilter, setEditFilter] = useState(false);
 
   useEffect( () => {
 
@@ -218,16 +215,6 @@ export default function WebHeader( props ) {
     }
     return [];
   }, [users, folders, folderID]);
-
-  const filterOptions = useMemo(() => {
-    return filters.map(filter => ({
-      ...filter,
-      assigned: users && users.length > 0 ? filter.assigned.map(user => users.find(u => u._id === user)) : [],
-      folders: folders && [...folders.active, ...folders.archived ].length > 0 && filter.folders ? filter.folders.map(f1 => [...folders.active, ...folders.archived ].find(f2 => f2._id === f1)) : [],
-      label: filter.name,
-      value: filter._id
-    }))
-  }, [users, folders, filters]);
 
   return (
     <PageHeader
@@ -330,7 +317,8 @@ export default function WebHeader( props ) {
               </section>
 
               {
-                ['all', 'important'].includes(folderID) &&
+                (['all', 'important'].includes(folderID)
+              || filterID) &&
                 <section className="inline">
                   <span className="icon-container">
                     <img
@@ -427,12 +415,12 @@ export default function WebHeader( props ) {
               <Datetime
                 className="full-width"
                 dateFormat={"DD.MM.yyyy"}
-                timeFormat={"HH:mm"}
+                timeFormat={false}
                 value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin) : null}
                 name="datetimeMin"
                 id="datetimeMin"
                 inputProps={{
-                placeholder: 'Set datetime',
+                placeholder: 'Set date',
                 }}
                 onChange={(date) => {
                   if (typeof date !== "string"){
@@ -444,7 +432,7 @@ export default function WebHeader( props ) {
                 renderInput={(props) => {
                     return <Input
                       {...props}
-                      value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                       />
                 }}
                 />
@@ -468,13 +456,14 @@ export default function WebHeader( props ) {
                 <Datetime
                   className="full-width"
                   dateFormat={"DD.MM.yyyy"}
-                  timeFormat={"HH:mm"}
+                  timeFormat={false}
                   name="datetimeMax"
                   id="datetimeMax"
                   inputProps={{
-                  placeholder: 'Set datetime',
+                  placeholder: 'Set date',
                   }}
                   onChange={(date) => {
+                    date.hours(23).minutes(59).seconds(59);
                     if (typeof date !== "string"){
                         setNewFilter({...newFilter, datetimeMax: date.unix()});
                     } else {
@@ -484,7 +473,7 @@ export default function WebHeader( props ) {
                   renderInput={(props) => {
                       return <Input
                         {...props}
-                        value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                        value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                         />
                   }}
                   />
@@ -507,52 +496,13 @@ export default function WebHeader( props ) {
             </section>
 
             <section className="inline">
-              <span className="icon-container">
-                <img
-                  className="label-icon"
-                  htmlFor="filter"
-                  src={FilterIcon}
-                  alt="FilterIcon icon not found"
-                  />
-              </span>
-              <div style={{width: "100%"}}>
-                <Select
-                  id="filter"
-                  name="filter"
-                  placeholder="Select filter"
-                  styles={selectStyle}
-                  value={newFilter && newFilter._id ? newFilter : null}
-                  onChange={(e) => {
-                    setNewFilter(e);
-                    setNewSearch(e.title);
-                  }}
-                  options={filterOptions}
-                  />
-              </div>
-                  <LinkButton
-                    font="white"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setEditFilter(true);
-                    }}
-                    >
-                    <img
-                      className="icon"
-                      style={{margin: "0px"}}
-                      src={SettingsIcon}
-                      alt="Settings icon not found"
-                      />
-                  </LinkButton>
-            </section>
-
-            <section className="inline">
               <span className="icon-container" style={{fontSize: "2em", paddingLeft: "8px"}}>
                 *
               </span>
               <Datetime
                 className="full-width"
                 dateFormat={"DD.MM.yyyy"}
-                timeFormat={"HH:mm"}
+                timeFormat={false}
                 name="dateCreated"
                 id="dateCreated"
                 inputProps={{
@@ -568,7 +518,7 @@ export default function WebHeader( props ) {
                 renderInput={(props) => {
                     return <Input
                       {...props}
-                      value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                       />
                 }}
                 />
@@ -591,13 +541,14 @@ export default function WebHeader( props ) {
                 <Datetime
                   className="full-width"
                   dateFormat={"DD.MM.yyyy"}
-                  timeFormat={"HH:mm"}
+                  timeFormat={false}
                   name="dateCreated"
                   id="dateCreated"
                   inputProps={{
                   placeholder: 'Set created date',
                   }}
                   onChange={(date) => {
+                    date.hours(23).minutes(59).seconds(59);
                     if (typeof date !== "string"){
                         setNewFilter({...newFilter, dateCreatedMax: date.unix()});
                     } else {
@@ -607,7 +558,7 @@ export default function WebHeader( props ) {
                   renderInput={(props) => {
                       return <Input
                         {...props}
-                        value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                        value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                         />
                   }}
                   />
@@ -873,15 +824,6 @@ export default function WebHeader( props ) {
           />
       }
 
-      {
-        editFilter &&
-        <EditFilter
-          {...props}
-          filterId={newFilter._id}
-          setEditFilter={setEditFilter}
-          setOpenFilter={setOpenFilter}
-          />
-      }
 
     </PageHeader>
   );

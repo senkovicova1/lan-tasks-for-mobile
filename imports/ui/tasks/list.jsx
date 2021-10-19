@@ -103,7 +103,8 @@ const [ newTaskName, setNewTaskName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( false );
 
 const {
-  folderID
+  folderID,
+  filterID
 } = match.params;
 const {
   layout,
@@ -158,7 +159,7 @@ document.onkeydown = function( e ) {
         numberOfFilters > 0 &&
       <AppliedFilter>
         {
-          ["all", "important"].includes(folderID) &&
+        (  ["all", "important"].includes(folderID) || filterID ) &&
           filter.folders.length > 0 &&
           <section className="filter">
             <div className="filter-container">
@@ -242,7 +243,7 @@ document.onkeydown = function( e ) {
               src={CalendarIcon}
               alt="CalendarIcon icon not found"
               />
-            <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
+            <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY") : "No start date"} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY") : "No end date"}`}</label>
               <LinkButton
                 onClick={(e) => {
                   e.preventDefault();
@@ -268,7 +269,7 @@ document.onkeydown = function( e ) {
               src={AsteriskIcon}
               alt="AsteriskIcon icon not found"
               />
-            <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
+            <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY") : "No end date"}`}</label>
               <LinkButton
                 onClick={(e) => {
                   e.preventDefault();

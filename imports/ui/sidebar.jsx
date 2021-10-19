@@ -88,6 +88,8 @@ export default function Menu( props ) {
     search,
   } = useSelector( ( state ) => state.metadata.value );
 
+  const [ editFilter, setEditFilter] = useState(null);
+
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );
 
@@ -184,6 +186,25 @@ export default function Menu( props ) {
               alt="FilterIcon icon not found"
               />
             <span>{filter.label}</span>
+            {
+              filter._id === filterID &&
+              <LinkButton
+                className="left"
+                style={{marginLeft: "auto"}}
+                font="white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEditFilter(filter);
+                }}
+                >
+                <img
+                  className="icon"
+                  style={{margin: "0px"}}
+                  src={SettingsIcon}
+                  alt="Settings icon not found"
+                  />
+              </LinkButton>
+            }
           </NavLink>
         ))
       }
@@ -243,6 +264,17 @@ export default function Menu( props ) {
           />
         {actualArchivedFolder.label}
       </NavLink>
+
+
+      {
+        editFilter &&
+        <EditFilter
+          {...props}
+          filterId={editFilter._id}
+          setEditFilter={setEditFilter}
+          />
+      }
+
     </Sidebar>
   );
 };

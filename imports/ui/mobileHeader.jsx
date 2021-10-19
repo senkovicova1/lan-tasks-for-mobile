@@ -24,6 +24,7 @@ import {
 } from 'meteor/react-meteor-data';
 
 import Menu from '/imports/ui/sidebar';
+import AddFilter from '/imports/ui/filters/addContainer';
 
 import {
   setLayout,
@@ -90,7 +91,7 @@ export default function MobileHeader( props ) {
     location,
   } = props;
 
-  const folderID = match.params.folderID;
+  const { folderID, filterID } = match.params;
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );
   const logout = () => Meteor.logout();
@@ -114,8 +115,9 @@ export default function MobileHeader( props ) {
   const [ openFilter, setOpenFilter ] = useState( false );
   const [ openSearch, setOpenSearch ] = useState( true );
 
-  const [ newFilter, setNewFilter] = useState({});
+  const [ newFilter, setNewFilter] = useState();
   const [ newSearch, setNewSearch] = useState("");
+  const [ saveFilter, setSaveFilter] = useState(false);
 
   useEffect( () => {
 
@@ -345,9 +347,9 @@ export default function MobileHeader( props ) {
                 }}
                 />
             </section>
-
             {
-              ['all', 'important'].includes(folderID) &&
+              (['all', 'important'].includes(folderID)
+            || filterID) &&
               <section className="inline">
                 <span className="icon-container">
                   <img
@@ -436,7 +438,7 @@ export default function MobileHeader( props ) {
             <span className="icon-container">
               <img
                 className="label-icon"
-                htmlFor="deadline"
+                htmlFor="datetimeMin"
                 src={CalendarIcon}
                 alt="Calendar icon not found"
                 />
@@ -444,23 +446,24 @@ export default function MobileHeader( props ) {
             <Datetime
               className="full-width"
               dateFormat={"DD.MM.yyyy"}
-              timeFormat={"HH:mm"}
-              value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin) : null}
-              name="deadline"
-              id="deadline"
+              timeFormat={false}
+              value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin) : null}
+              name="datetimeMin"
+              id="datetimeMin"
               inputProps={{
-              placeholder: 'Set deadline',
+              placeholder: 'Set date',
               }}
               onChange={(date) => {
                 if (typeof date !== "string"){
-                    setNewFilter({...newFilter, deadlineMin: date.unix()});
+                    setNewFilter({...newFilter, datetimeMin: date.unix()});
                 } else {
-                    setNewFilter({...newFilter, deadlineMin: date});
+                    setNewFilter({...newFilter, datetimeMin: date});
                 }
               }}
               renderInput={(props) => {
                   return <Input
-                    {...props}                        value={newFilter.deadlineMin ? moment.unix(newFilter.deadlineMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                    {...props}
+                    value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                     />
               }}
               />
@@ -470,7 +473,7 @@ export default function MobileHeader( props ) {
                 height="fit"
                 onClick={(e) => {
                   e.preventDefault();
-                  setNewFilter({...newFilter, deadlineMin: ""});
+                  setNewFilter({...newFilter, datetimeMin: ""});
                 }}
                 >
                   <img
@@ -484,23 +487,24 @@ export default function MobileHeader( props ) {
               <Datetime
                 className="full-width"
                 dateFormat={"DD.MM.yyyy"}
-                timeFormat={"HH:mm"}
-                name="deadline"
-                id="deadline"
+                timeFormat={false}
+                name="datetimeMax"
+                id="datetimeMax"
                 inputProps={{
-                placeholder: 'Set deadline',
+                placeholder: 'Set date',
                 }}
                 onChange={(date) => {
+                  date.hours(23).minutes(59).seconds(59);
                   if (typeof date !== "string"){
-                      setNewFilter({...newFilter, deadlineMax: date.unix()});
+                      setNewFilter({...newFilter, datetimeMax: date.unix()});
                   } else {
-                      setNewFilter({...newFilter, deadlineMax: date});
+                      setNewFilter({...newFilter, datetimeMax: date});
                   }
                 }}
                 renderInput={(props) => {
                     return <Input
                       {...props}
-                      value={newFilter.deadlineMax ? moment.unix(newFilter.deadlineMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                       />
                 }}
                 />
@@ -510,7 +514,7 @@ export default function MobileHeader( props ) {
                   height="fit"
                   onClick={(e) => {
                     e.preventDefault();
-                    setNewFilter({...newFilter, deadlineMax: ""});
+                    setNewFilter({...newFilter, datetimeMax: ""});
                   }}
                   >
                     <img
@@ -529,7 +533,7 @@ export default function MobileHeader( props ) {
             <Datetime
               className="full-width"
               dateFormat={"DD.MM.yyyy"}
-              timeFormat={"HH:mm"}
+              timeFormat={false}
               name="dateCreated"
               id="dateCreated"
               inputProps={{
@@ -545,7 +549,7 @@ export default function MobileHeader( props ) {
               renderInput={(props) => {
                   return <Input
                     {...props}
-                    value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                    value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                     />
               }}
               />
@@ -568,13 +572,14 @@ export default function MobileHeader( props ) {
               <Datetime
                 className="full-width"
                 dateFormat={"DD.MM.yyyy"}
-                timeFormat={"HH:mm"}
+                timeFormat={false}
                 name="dateCreated"
                 id="dateCreated"
                 inputProps={{
-                placeholder: 'Set deadline',
+                placeholder: 'Set created date',
                 }}
                 onChange={(date) => {
+                  date.hours(23).minutes(59).seconds(59);
                   if (typeof date !== "string"){
                       setNewFilter({...newFilter, dateCreatedMax: date.unix()});
                   } else {
@@ -584,7 +589,7 @@ export default function MobileHeader( props ) {
                 renderInput={(props) => {
                     return <Input
                       {...props}
-                      value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                      value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                       />
                 }}
                 />
@@ -609,6 +614,7 @@ export default function MobileHeader( props ) {
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
+                setSaveFilter(true);
               }}
               >
               Save filter
@@ -616,14 +622,14 @@ export default function MobileHeader( props ) {
             <FullButton
               onClick={(e) => {
                 e.preventDefault();
-                dispatch(setFilter(newFilter));
+                dispatch(setSearch(newSearch));
+                dispatch(setFilter({...newFilter}));
                 setOpenFilter(false);
               }}
               >
-              Aply filter
+              Apply filter
             </FullButton>
           </ButtonRow>
-
         </Form>
         </Filter>
       }
@@ -752,6 +758,17 @@ export default function MobileHeader( props ) {
         currentUser &&
         <Menu {...props} setBackground={setBackground} widthWithSidebar={sidebarOpen}/>
       }
+
+      {
+        saveFilter &&
+        <AddFilter
+          title={newSearch}
+          {...newFilter}
+          setSaveFilter={setSaveFilter}
+          setOpenFilter={setOpenFilter}
+          />
+      }
+
 
     </PageHeader>
   );

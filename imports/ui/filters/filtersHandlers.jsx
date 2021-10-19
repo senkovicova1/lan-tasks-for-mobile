@@ -47,7 +47,7 @@ export const editFilter = ( _id, name, user, title, folders, important, assigned
       onFail( error );
     } else {
       onSuccess();
-    }    
+    }
   } );
 }
 

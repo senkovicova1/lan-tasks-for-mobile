@@ -39,7 +39,6 @@ export default function EditFilterContainer( props ) {
     location,
     filterId,
     setEditFilter,
-    setOpenFilter,
   } = props;
 
   const userId = Meteor.userId();
@@ -47,24 +46,7 @@ export default function EditFilterContainer( props ) {
 
   const submit = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) => {
     editFilter(_id, name, user, title, folders.map(folder => folder._id), important, assigned.map(a => a._id), datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, () => {
-        setEditFilter(false);
-        dispatch(setFilter({
-          _id,
-          name,
-          user,
-          title,
-          folders,
-          important,
-          assigned,
-          datetimeMin,
-          datetimeMax,
-          dateCreatedMin,
-          dateCreatedMax,
-          value: _id,
-          label: name,
-        }));
-        dispatch(setSearch(title));
-        setOpenFilter(false);
+        setEditFilter(null);
       },
       (error) => {console.log(error)}
     )
@@ -73,23 +55,12 @@ export default function EditFilterContainer( props ) {
   const remove = () => {
     if ( window.confirm( "Are you sure you want to permanently remove this filter?" ) ) {
       removeFilter(filterId);
-      setEditFilter(false);
-      dispatch(setFilter({
-        folders: [],
-        important: false,
-        datetimeMin: "",
-        datetimeMax: "",
-        assigned: [],
-        dateCreatedMin: "",
-        dateCreatedMax: "",
-      }));
-      dispatch(setSearch(""));
-      setOpenFilter(false);
+      setEditFilter(null);
     }
   }
 
   const cancel = () => {
-    setEditFilter(false);
+    setEditFilter(null);
   }
 
   const filter = useMemo(() => {
