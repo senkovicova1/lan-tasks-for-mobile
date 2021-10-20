@@ -5,7 +5,6 @@ import React, {
 } from 'react';
 
 import {
-  useDispatch,
   useSelector
 } from 'react-redux';
 
@@ -39,26 +38,17 @@ import {
   removeTask
 } from './tasksHandlers';
 
+import FilterSummary from '/imports/ui/filters/summary';
 import EditTask from './editContainer';
-
-import {
-  setFilter,
-  setSearch
-} from '/imports/redux/metadataSlice';
 
 import {
   RestoreIcon,
   PlusIcon,
   CloseIcon,
-  SettingsIcon,
   UserIcon,
   SendIcon,
   FullStarIcon,
   EmptyStarIcon,
-  ClockIcon,
-  CalendarIcon,
-  FolderIcon,
-  AsteriskIcon
 } from "/imports/other/styles/icons";
 
 import {
@@ -84,8 +74,6 @@ import {
 } from '/imports/other/translations';
 
 export default function TaskList( props ) {
-
-  const dispatch = useDispatch();
 
   const {
   match,
@@ -143,172 +131,11 @@ document.onkeydown = function( e ) {
   }
 };
 
-  const numberOfFilters = useMemo(() => {
-    return ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
-              (filter.important ? 1 : 0) +
-              (filter.assigned.length > 0 ? 1 : 0) +
-              (filter.datetimeMin ? 1 : 0) +
-              (filter.datetimeMax ? 1 : 0) +
-              (filter.dateCreatedMin ? 1 : 0) +
-              (filter.dateCreatedMax ? 1 : 0);
-  }, [filter]);
-
   return (
     <List>
-      {
-        numberOfFilters > 0 &&
-      <AppliedFilter>
-        {
-        (  ["all", "important"].includes(folderID) || filterID ) &&
-          filter.folders.length > 0 &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={FolderIcon}
-              alt="FolderIcon icon not found"
-              />
-            <label>{filter.folders.map(folder => folder.name).join(", ")}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, folders: []}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          filter.important &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={EmptyStarIcon}
-              alt="EmptyStarIcon icon not found"
-              />
-            <label>Important</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, important: false}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          filter.assigned.length > 0 &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={UserIcon}
-              alt="UserIcon icon not found"
-              />
-            <label>{filter.assigned.map(user => user.label).join(", ")}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, assigned: []}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          (filter.datetimeMin || filter.datetimeMax)  &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={CalendarIcon}
-              alt="CalendarIcon icon not found"
-              />
-            <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY") : "No start date"} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY") : "No end date"}`}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, datetimeMin: "", datetimeMax: ""}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          (filter.dateCreatedMin || filter.dateCreatedMax)  &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              style={{width: "auto"}}
-              className="label-icon"
-              src={AsteriskIcon}
-              alt="AsteriskIcon icon not found"
-              />
-            <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY") : "No end date"}`}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, dateCreatedMin: "", dateCreatedMax: ""}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-
-        {
-          numberOfFilters >= 2 &&
-          <LinkButton
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(setSearch(""));
-              dispatch(setFilter({
-                folders: [],
-                important: false,
-                datetimeMin: "",
-                datetimeMax: "",
-                assigned: [],
-                dateCreatedMin: "",
-                dateCreatedMax: "",
-              }));
-            }}
-            >
-            Remove all filters
-          </LinkButton>
-        }
-      </AppliedFilter>
-    }
-
+      <FilterSummary
+        {...props}
+        />
       {
         activeTasks.length === 0 &&
         <span className="message">You have no open tasks.</span>
@@ -473,6 +300,7 @@ document.onkeydown = function( e ) {
       }
 
       {
+        showClosed &&
         closedTasks.map((task) => (
           <ItemContainer
             key={task._id}

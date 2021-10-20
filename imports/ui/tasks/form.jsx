@@ -243,8 +243,19 @@ export default function TaskForm( props ) {
       setPossibleEndDatetime(endDatetime);
     }
     if (!startDatetime) {
-      setPossibleStartDatetime(moment().add(1, 'days').unix());
-      setPossibleEndDatetime(moment().add(1, 'days').add(30, 'minutes').unix());
+      let now = moment().add(1, 'days');
+      if (now.minutes() <= 15){
+        now.minutes(15);
+      } else if (now.minutes() <= 30){
+        now.minutes(30);
+      } else if (now.minutes() <= 45){
+        now.minutes(45)
+      } else if (now.minutes <= 60){
+        now.add(1, 'h');
+        now.minutes(0);
+      }
+      setPossibleStartDatetime(now.unix());
+      setPossibleEndDatetime(now.add(30, 'minutes').unix());
     }
   }, [openDatetime]);
 
@@ -526,11 +537,10 @@ export default function TaskForm( props ) {
             alt="Calendar icon not found"
             />
         </span>
+        <span className="datetime-span" >
         <span
-          className="datetime-span"
           onClick={() => setOpenDatetime(true)}
           >
-        <span>
           {
             !startDatetime &&
             !endDatetime &&
@@ -555,7 +565,7 @@ export default function TaskForm( props ) {
           onClick={(e) => {
             e.preventDefault();
             setStartDatetime("");
-            setStartDatetime("");
+            setEndDatetime("");
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
             }

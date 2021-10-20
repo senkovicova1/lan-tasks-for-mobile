@@ -171,9 +171,10 @@ export default function TasksContainer( props ) {
   const sortedTasks = useMemo( () => {
     const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
     if ( sortBy === "customOrder" ) {
+      const containerOrder = folder.containers ? [{_id: 0}, ...folder.containers.map((c, index) => ({...c, order: c.order ? c.order : index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)] : [{_id: 0}];
         let newSorted = groupBy(tasksWithAdvancedFilters, 'container');
-        return Object.keys(newSorted).map(key => {
-          return newSorted[key].sort((t1, t2) => {
+        return containerOrder.map(container => {
+          return newSorted[container._id].sort((t1, t2) => {
             if (!t1.order && !t2.order){
               return 0;
             }
@@ -200,7 +201,7 @@ export default function TasksContainer( props ) {
         }
         return t1.name.toLowerCase() < t2.name.toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
       } );
-  }, [ tasksWithAdvancedFilters, sortBy, sortDirection ] );
+  }, [ tasksWithAdvancedFilters, sortBy, sortDirection, folder ] );
 
   const activeTasks = useMemo( () => {
     return sortedTasks.filter( task => !task.closed );

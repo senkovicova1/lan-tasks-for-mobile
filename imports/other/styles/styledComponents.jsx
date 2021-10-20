@@ -44,6 +44,10 @@ export const MainPage = styled.div `
       height: 1em !important;
       width: 1em !important;
     }
+
+    .flip{
+      transform: scaleX(-1);
+    }
 `;
 
 export const MobilePageHeader = styled.header `
@@ -616,6 +620,13 @@ export const Form = styled.form `
     padding: 0px 7px;
     align-items: center;
     cursor: pointer;
+  }
+
+  .datetime-span span {
+    width: -webkit-fill-available;
+    height: 40px;
+    display: flex;
+    align-items: center;
   }
 
   input[type=text], input[type=color], input[type=password], input[type=number], input[type=datetime-local], &>div:not(.spinner), textarea {

@@ -5,7 +5,6 @@ import React, {
 } from 'react';
 
 import {
-  useDispatch,
   useSelector
 } from 'react-redux';
 
@@ -52,25 +51,18 @@ import {
 
 import AddTask from './addContainer';
 import EditTask from './editContainer';
+import FilterSummary from '/imports/ui/filters/summary';
+
 
 import {
-  setFilter,
-  setSearch
-} from '/imports/redux/metadataSlice';
-
-import {
+  LeftArrowIcon,
   RestoreIcon,
   PlusIcon,
   CloseIcon,
-  SettingsIcon,
   UserIcon,
   SendIcon,
   FullStarIcon,
   EmptyStarIcon,
-  ClockIcon,
-  CalendarIcon,
-  FolderIcon,
-  AsteriskIcon
 } from "/imports/other/styles/icons";
 
 import {
@@ -102,8 +94,6 @@ const DnDCalendar = withDragAndDrop(Calendar);
 
 export default function DND( props ) {
 
-  const dispatch = useDispatch();
-
   const {
   match,
   history,
@@ -124,7 +114,7 @@ const {
   sortDirection,
 } = useSelector( ( state ) => state.metadata.value );
 
-const [ showClosed, setShowClosed ] = useState( false );
+const [ showClosed, setShowClosed ] = useState( [] );
 const [ newContainerName, setNewContainerName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( [] );
 
@@ -136,9 +126,9 @@ const language = useMemo( () => {
 
 const containers = useMemo( () => {
   if ( folder.containers && folder.containers.length > 0) {
-    return [{_id: 0, label: "New"}, ...folder.containers];
+    return [{_id: 0, label: "New", order: 0}, ...folder.containers.map((container, index) => ({...container, order: container.order ? container.order: index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)];
   }
-  return [{_id: 0, label: "New"}];
+  return [{_id: 0, label: "New", order: 0}];
 }, [ folder ] );
 
 const addQuickTask = (containerId) => {
@@ -163,43 +153,38 @@ const addQuickTask = (containerId) => {
       return acc;
     }, initialValue);
   };
-  
+
   const tasksByContainer = useMemo( () => {
     return groupBy(sortedTasks, 'container')
   }, [ sortedTasks ] );
 
-  const activeTasks = useMemo( () => {
+  const activeAndClosedTasks = useMemo( () => {
     let result = {};
     containers.forEach((container, i) => {
-        result[container._id] = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => !task.closed) : [];
+        let newEntry = {};
+        newEntry.active = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => !task.closed) : [];
+        newEntry.closed = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => task.closed) : [];
+        result[container._id] = {...newEntry};
     });
     return result;
   }, [ tasksByContainer, showClosed, containers ] );
-
-  const numberOfFilters = useMemo(() => {
-    return ((filter.folders.length > 0) ? 1 : 0) +
-              (filter.important ? 1 : 0) +
-              (filter.assigned.length > 0 ? 1 : 0) +
-              (filter.deadlineMin ? 1 : 0) +
-              (filter.deadlineMax ? 1 : 0) +
-              (filter.dateCreatedMin ? 1 : 0) +
-              (filter.dateCreatedMax ? 1 : 0);
-  }, [filter]);
 
   const handleOnDragEnd = (result) => {
     if (!result.destination) return;
     const { draggableId, destination, source } = result;
     if (destination.droppableId === source.droppableId){
-      let newTasks = activeTasks[parseInt(destination.droppableId)];
+
+      let newTasks = [ ...activeAndClosedTasks[parseInt(destination.droppableId)].active, ...activeAndClosedTasks[parseInt(destination.droppableId)].closed ];
       const movedTask = newTasks[source.index];
       newTasks = newTasks.filter((_, index) => index !== source.index);
       newTasks.splice(destination.index, 0, movedTask);
       newTasks.forEach((task, i) => {
         updateSimpleAttribute(task._id, {order: i});
       });
+
     } else {
-      let newSourceTasks = activeTasks[parseInt(source.droppableId)];
-      let newDestinationTasks = activeTasks[parseInt(destination.droppableId)];
+      let newSourceTasks = [ ...activeAndClosedTasks[parseInt(source.droppableId)].active, ...activeAndClosedTasks[parseInt(source.droppableId)].closed ];
+      let newDestinationTasks = [ ...activeAndClosedTasks[parseInt(destination.droppableId)].active, ...activeAndClosedTasks[parseInt(destination.droppableId)].closed ];
       const movedTask = newSourceTasks[source.index];
       newSourceTasks = newSourceTasks.filter((_, index) => index !== source.index);
       newDestinationTasks.splice(destination.index, 0, movedTask);
@@ -212,160 +197,22 @@ const addQuickTask = (containerId) => {
     }
   }
 
+  const changeOrder = (movedContainer, difference) => {
+    let newContainers = [...folder.containers.map((container, index) => ({...container, order: container.order ? container.order: index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)];
+    const containerToBeSwitched = newContainers[movedContainer.order + difference - 1];
+    newContainers.splice(movedContainer.order + difference - 1, 1, movedContainer);
+    newContainers.splice(movedContainer.order - 1, 1, containerToBeSwitched);
+    newContainers = newContainers.map((container, index) => ({...container, order: index + 1}));
+    editContianers(newContainers, folder._id);
+  }
+
   return (
     <DndContainer>
-      {
-        numberOfFilters > 0 &&
-      <AppliedFilter style={{padding: "0px"}}>
-        {
-          filter.folders.length > 0 &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={FolderIcon}
-              alt="FolderIcon icon not found"
-              />
-            <label>{filter.folders.map(folder => folder.name).join(", ")}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, folders: []}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          filter.important &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={EmptyStarIcon}
-              alt="EmptyStarIcon icon not found"
-              />
-            <label>Important</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, important: false}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          filter.assigned.length > 0 &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={UserIcon}
-              alt="UserIcon icon not found"
-              />
-            <label>{filter.assigned.map(user => user.label).join(", ")}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, assigned: []}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          (filter.deadlineMin || filter.deadlineMax)  &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              className="label-icon"
-              src={CalendarIcon}
-              alt="CalendarIcon icon not found"
-              />
-            <label>{`${filter.deadlineMin ? moment.unix(filter.deadlineMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.deadlineMax ? moment.unix(filter.deadlineMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, deadlineMin: "", deadlineMax: ""}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
-        {
-          (filter.dateCreatedMin || filter.dateCreatedMax)  &&
-          <section className="filter">
-            <div className="filter-container">
-            <img
-              style={{width: "auto"}}
-              className="label-icon"
-              src={AsteriskIcon}
-              alt="AsteriskIcon icon not found"
-              />
-            <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY HH:mm:ss") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY HH:mm:ss") : "No end date"}`}</label>
-              <LinkButton
-                onClick={(e) => {
-                  e.preventDefault();
-                  dispatch(setFilter({...filter, dateCreatedMin: "", dateCreatedMax: ""}));
-                }}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-          </div>
-          </section>
-        }
 
-        {
-          numberOfFilters >= 2 &&
-          <LinkButton
-            onClick={(e) => {
-              e.preventDefault();
-              dispatch(setSearch(""));
-              dispatch(setFilter({
-                folders: [],
-                important: false,
-                deadlineMin: "",
-                deadlineMax: "",
-                assigned: [],
-                dateCreatedMin: "",
-                dateCreatedMax: "",
-              }));
-            }}
-            >
-            Remove all filters
-          </LinkButton>
-        }
-      </AppliedFilter>
-    }
+      <FilterSummary
+        {...props}
+        style={{padding: "0px"}}
+        />
 
     <div style={{display: "flex"}}>
       <DragDropContext
@@ -373,11 +220,12 @@ const addQuickTask = (containerId) => {
         >
         {
           containers.map(container => (
-            <Droppable droppableId={container._id + ""}>
+            <Droppable droppableId={container._id + "-active"}>
               {(provided) => (
                 <ul {...provided.droppableProps} ref={provided.innerRef}>
+                  <div style={{display: "flex"}}>
                   <HiddenInput
-                    style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em"}}
+                    style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em", width: container._id !== 0 ? "300px" : "400px"}}
                     className="thin-placeholder truly-invisible"
                     id={`header-${container.label}-${container._id}`}
                     placeholder="Add new container"
@@ -393,11 +241,45 @@ const addQuickTask = (containerId) => {
                         return ({
                           _id: c._id,
                           label: e.target.value,
+                          order: c.order,
                         })
                       }), folder._id);
                     }
                   }}
                     />
+                  {
+                    container.order > 1 &&
+                   <LinkButton
+                  onClick={(e) => {
+                    e.preventDefault();
+                    changeOrder(container, -1);
+                  }}
+                  >
+                  <img
+                    className="icon"
+                    src={LeftArrowIcon}
+                    alt="LeftArrowIcon icon not found"
+                    />
+                </LinkButton>
+              }
+            {
+              container.order !== 0 &&
+              container.order !== (containers.length - 1) &&
+               <LinkButton
+              onClick={(e) => {
+                e.preventDefault();
+                changeOrder(container, 1);
+              }}
+              >
+              <img
+                style={{marginRight: "0px"}}
+                className="icon flip"
+                src={LeftArrowIcon}
+                alt="LeftArrowIcon icon not found"
+                />
+            </LinkButton>
+          }
+                </div>
                   <ItemCard>
                     {
                       folder._id &&
@@ -463,16 +345,24 @@ const addQuickTask = (containerId) => {
                   </ItemCard>
 
                   {
-                    activeTasks[container._id].map((task, index) => (
+                    activeAndClosedTasks[container._id]["active"].map((task, index) => (
                       <Draggable key={task._id} draggableId={task._id} index={index}>
                         {(provided) => (
-                      <ItemCard ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                      <ItemCard
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                         onClick={() => setParentChosenTask(task._id)}
+                        >
                         <div className="info-bar">
                           <Input
                             id={`task_name ${task._id}`}
                             type="checkbox"
                             checked={task.closed}
-                            onChange={() => closeTask(task)}
+                            onClickCapture={(e) => {
+                              closeTask(task);
+                              e.stopPropagation();
+                            }}
                             />
                           {
                             task.important &&
@@ -496,7 +386,11 @@ const addQuickTask = (containerId) => {
                             ))
                           }
                           <LinkButton
-                            onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+                            onClickCapture={(e) => {
+                              e.preventDefault();
+                              removeTask(task, removedTasks, subtasks, comments);
+                              e.stopPropagation();
+                            }}
                             >
                             <img
                               className="icon"
@@ -506,7 +400,7 @@ const addQuickTask = (containerId) => {
                           </LinkButton>
                         </div>
                         <div>
-                          <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+                          <span htmlFor={`task_name ${task._id}`}>
                             {task.name}
                           </span>
                         </div>
@@ -515,7 +409,110 @@ const addQuickTask = (containerId) => {
                     </Draggable>
                     ))
                   }
-                  {provided.placeholder}
+
+                  <hr
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    style={{marginBottom: "1em"}}
+                    />
+                    <div
+                      style={{display: "flex", alignItems: "center", marginBottom: "1em"}}
+                      >
+                      <Switch
+                        id="show-closed"
+                        name="show-closed"
+                        onChange={() => {
+                          let newShowClosed = [...showClosed];
+                          if (newShowClosed.includes(container._id)){
+                            newShowClosed = newShowClosed.filter(item => item !== container._id);
+                          } else {
+                            newShowClosed.push(container._id);
+                          }
+                          setShowClosed(newShowClosed);
+                        }}
+                        checked={showClosed.includes(container._id)}
+                        onColor="#0078d4"
+                        uncheckedIcon={false}
+                        checkedIcon={false}
+                        style={{
+                          marginRight: "0.2em",
+                          display: "none"
+                        }}
+                        />
+                      <span htmlFor="show-closed"  style={{marginLeft: "0.6em"}}>
+                        {translations[language].showClosed}
+                      </span>
+                    </div>
+
+                    {
+                      showClosed.includes(container._id) &&
+                      activeAndClosedTasks[container._id]["closed"].map((task, index) => (
+                        <Draggable key={task._id} draggableId={task._id} index={activeAndClosedTasks[container._id]["active"].length + index}>
+                          {(provided) => (
+                        <ItemCard
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          onClick={() => setParentChosenTask(task._id)}
+                          >
+                          <div className="info-bar">
+                            <Input
+                              id={`task_name ${task._id}`}
+                              type="checkbox"
+                              checked={task.closed}
+                              onClickCapture={(e) => {
+                                closeTask(task);
+                                e.stopPropagation();
+                              }}
+                              />
+                            {
+                              task.important &&
+                              <img
+                                className="icon star"
+                                src={FullStarIcon}
+                                alt="Full star icon not found"
+                                />
+                            }
+                            {
+                              !task.important &&
+                              <img
+                                className="icon star"
+                                src={EmptyStarIcon}
+                                alt="Empty star icon not found"
+                                />
+                            }
+                            {
+                              task.assigned.map(assigned => (
+                                <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
+                              ))
+                            }
+                            <LinkButton
+                              onClickCapture={(e) => {
+                                e.preventDefault();
+                                removeTask(task, removedTasks, subtasks, comments);
+                                e.stopPropagation();
+                              }}
+                              >
+                              <img
+                                className="icon"
+                                src={CloseIcon}
+                                alt="Close icon not found"
+                                />
+                            </LinkButton>
+                          </div>
+                          <div>
+                            <span htmlFor={`task_name ${task._id}`}>
+                              {task.name}
+                            </span>
+                          </div>
+                        </ItemCard>
+                      )}
+                      </Draggable>
+                      ))
+                    }
+
+                    {provided.placeholder}
                 </ul>
               )}
             </Droppable>
@@ -537,7 +534,11 @@ const addQuickTask = (containerId) => {
         {
           newContainerName &&
           <LinkButton
-            onClick={(e) => {e.preventDefault(); editContianers(folder.containers ? [...folder.containers, {_id: folder.containers.length + 1, label: newContainerName}] : [{_id: 1, label: newContainerName}], folder._id); setNewContainerName("")}}
+            onClick={(e) => {
+              e.preventDefault();
+              editContianers(folder.containers ? [...folder.containers, {_id: folder.containers.length + 1, label: newContainerName, order: folder.containers.length + 1}] : [{_id: 1, label: newContainerName, order: 1}], folder._id);
+              setNewContainerName("");
+            }}
             >
             <img
               className="icon"
