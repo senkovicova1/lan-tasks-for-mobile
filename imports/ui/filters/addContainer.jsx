@@ -15,7 +15,8 @@ import {
 } from 'reactstrap';
 
 import {
-  setFilter
+  setFilter,
+  setSearch
 } from '/imports/redux/metadataSlice';
 
 import {
@@ -90,7 +91,17 @@ export default function AddFilterContainer( props ) {
                 dateCreatedMax,
                 () => {
                   setSaveFilter(false);
-                  dispatch(setFilter({...newFilter}));
+                  dispatch(setSearch(title));
+                  dispatch(setFilter({
+                      title,
+                      folders,
+                      important,
+                      assigned,
+                      datetimeMin,
+                      datetimeMax,
+                      dateCreatedMin,
+                      dateCreatedMax,
+                    }));
                   setOpenFilter(false);
                 },
                 (error) => {console.log(error)}

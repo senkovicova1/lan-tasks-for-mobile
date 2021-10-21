@@ -268,7 +268,7 @@ export default function TasksContainer( props ) {
           folder={folder}
           />
       </div>
-      <div style={{width: "80%", backgroundColor: "white", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>
+      <div style={{width: "50%", borderLeft: "1px solid #d6d6d6", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>
         {
           chosenTask &&
           <EditTask {...props} taskId={chosenTask} setParentChosenTask={setChosenTask}/>
