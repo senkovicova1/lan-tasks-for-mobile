@@ -22,6 +22,7 @@ import {
 } from '/imports/redux/metadataSlice';
 
 import {
+  BellIcon,
   CloseIcon,
   LogoutIcon,
   MenuIcon,
@@ -183,6 +184,22 @@ export default function WebHeader( props ) {
               className="icon"
               src={MenuIcon2}
               alt="MenuIcon2 icon not found"
+              />
+          </LinkButton>
+        }
+
+        {
+          currentUser &&
+          <LinkButton
+            font="white"
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+            >
+            <img
+              className="icon"
+              src={BellIcon}
+              alt="BellIcon icon not found"
               />
           </LinkButton>
         }

@@ -82,6 +82,8 @@ export default function TaskList( props ) {
   closedTasks,
   activeTasks,
   removedTasks,
+  subtasks,
+  comments,
   setParentChosenTask,
   chosenTask
 } = props;

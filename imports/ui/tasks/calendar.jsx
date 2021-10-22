@@ -92,6 +92,8 @@ export default function CalendarList( props ) {
   folder,
   tasksWithAdvancedFilters,
   removedTasks,
+  subtasks,
+  comments,
   setParentChosenTask,
   chosenTask
 } = props;

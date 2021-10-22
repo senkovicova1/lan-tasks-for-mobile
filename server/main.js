@@ -20,6 +20,9 @@ import {
   FoldersCollection
 } from '/imports/api/foldersCollection';
 import {
+  HistoryCollection
+} from '/imports/api/historyCollection';
+import {
   UsersCollection
 } from '/imports/api/usersCollection';
 import {

@@ -35,6 +35,11 @@ import {
 } from './commentsHandlers';
 
 import {
+  addNewHistory,
+  editHistory
+} from './historyHandlers';
+
+import {
   EmptyStarIcon,
   FullStarIcon,
   FolderIcon,
@@ -48,6 +53,7 @@ import {
   CalendarIcon,
   PaperClipIcon,
   TextIcon,
+  ColumnsIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -130,6 +136,8 @@ export default function TaskForm( props ) {
   const [ closed, setClosed ] = useState( false );
   const [ assigned, setAssigned ] = useState( [] );
   const [ description, setDescription ] = useState( "" );
+  const [ newDescription, setNewDescription ] = useState( "" );
+  const [ descriptionInFocus, setDescriptionInFocus ] = useState( false );
   const [ deadline, setDeadline ] = useState( "" );
   const [ allDay, setAllDay ] = useState( false );
   const [ startDatetime, setStartDatetime ] = useState( "" );
@@ -359,6 +367,8 @@ export default function TaskForm( props ) {
     this.style.height = ( this.scrollHeight ) + "px";
   }
 
+  let timeout = null;
+
   return (
     <Form excludeBtn={true}>
 
@@ -385,7 +395,7 @@ export default function TaskForm( props ) {
             const newClosed = !closed;
             setClosed(newClosed);
             if (!addNewTask){
-              updateSimpleAttribute(taskId, {closed: newClosed});
+              updateSimpleAttribute(taskId, {closed: newClosed});              
             }
           }}
           />
@@ -476,8 +486,8 @@ export default function TaskForm( props ) {
         <img
           className="label-icon"
           htmlFor="container"
-          src={FolderIcon}
-          alt="FolderIcon icon not found"
+          src={ColumnsIcon}
+          alt="ColumnsIcon icon not found"
           />
       </span>
       <div style={{width: "100%"}}>
@@ -620,16 +630,8 @@ export default function TaskForm( props ) {
                       const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
                       setPossibleStartDatetime(date.unix());
                       setPossibleEndDatetime(newEndDatetime.unix());
-
-                  /*    if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {startDatetime: date.unix(), endDatetime: newEndDatetime.unix()});
-                      }*/
                   } else {
                       setPossibleStartDatetime(date);
-
-                /*      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {startDatetime: date, endDatetime: date});
-                      }*/
                   }
                 }}
                 renderInput={(props) => {
@@ -647,9 +649,6 @@ export default function TaskForm( props ) {
                   onClick={(e) => {
                     e.preventDefault();
                     setPossibleStartDatetime("");
-            /*        if ( !addNewTask ) {
-                      updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
-                    }*/
                   }}
                   >
                     <img
@@ -679,14 +678,8 @@ export default function TaskForm( props ) {
                         const newStartDatetime = moment(possibleStartDatetime*1000).hours(e.hours).minutes(e.minutes);
                         if (typeof newStartDatetime !== "string"){
                             setPossibleStartDatetime(newStartDatetime.unix());
-                      /*      if ( !addNewTask ) {
-                              updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
-                            }*/
                         } else {
                             setPossibleStartDatetime(newStartDatetime);
-                        /*    if ( !addNewTask ) {
-                              updateSimpleAttribute(taskId, {startDatetime: newStartDatetime});
-                            }*/
                         }
                       }}
                       options={hoursAndMinutes()}
@@ -704,10 +697,6 @@ export default function TaskForm( props ) {
                     const newSecond = 0;
                     const newStartDatetime = moment(possibleStartDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
                     setPossibleStartDatetime(newStartDatetime.unix());
-
-              /*      if ( !addNewTask ) {
-                      updateSimpleAttribute(taskId, {startDatetime: newStartDatetime.unix()});
-                    }*/
                   }}
                   >
                     <img
@@ -737,14 +726,8 @@ export default function TaskForm( props ) {
                           let newEndDatetime = moment(possibleEndDatetime*1000).hours(e.hours).minutes(e.minutes);
                           if (typeof newEndDatetime !== "string"){
                               setPossibleEndDatetime(newEndDatetime.unix());
-                      /*        if ( !addNewTask ) {
-                                updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
-                              }*/
                           } else {
                               setPossibleEndDatetime(newEndDatetime);
-                      /*        if ( !addNewTask ) {
-                                updateSimpleAttribute(taskId, {endDatetime: newEndDatetime});
-                              }*/
                           }
                         }}
                         options={hoursAndMinutes()}
@@ -762,9 +745,6 @@ export default function TaskForm( props ) {
                       const newSecond = 0;
                       const newEndDatetime = moment(possibleEndDatetime*1000).hour(newHour).minute(newMinute).second(newSecond);
                       setPossibleEndDatetime(newEndDatetime.unix());
-                  /*    if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: newEndDatetime.unix()});
-                      }*/
                     }}
                     >
                       <img
@@ -795,9 +775,6 @@ export default function TaskForm( props ) {
                     onChange={(date) => {
                       if (typeof date !== "string"){
                           setPossibleEndDatetime(date.unix());
-                    /*      if ( !addNewTask ) {
-                            updateSimpleAttribute(taskId, {endDatetime: date.unix()});
-                          }*/
                       } else {
                           setPossibleEndDatetime(date);
                           if ( !addNewTask ) {
@@ -820,9 +797,6 @@ export default function TaskForm( props ) {
                     onClick={(e) => {
                       e.preventDefault();
                       setPossibleEndDatetime(possibleStartDatetime);
-                /*      if ( !addNewTask ) {
-                        updateSimpleAttribute(taskId, {endDatetime: startDatetime});
-                      }*/
                     }}
                     >
                       <img
@@ -852,11 +826,6 @@ export default function TaskForm( props ) {
                   const newDay = moment(possibleStartDatetime*1000).date();
                   const newEndDatetime = moment(possibleEndDatetime*1000).year(newYear).month(newMonth).date(newDay);
                   setPossibleEndDatetime(newEndDatetime.unix());
-              /*    if ( !addNewTask ) {
-                    updateSimpleAttribute(taskId, {allDay: newAllDay, endDatetime: newEndDatetime.unix()});
-                  }*/
-                } else if ( !addNewTask ) {
-            //      updateSimpleAttribute(taskId, {allDay: newAllDay});
                 }
 
               }}
@@ -935,16 +904,70 @@ export default function TaskForm( props ) {
         <Textarea
           type="text"
           placeholder="Write description"
-          value={description}
+          value={newDescription ? newDescription : description}
           disabled={closed}
+          onFocus={() => {
+            setDescriptionInFocus(true);
+          }}
           onChange={(e) => {
-            setDescription(e.target.value);
-            if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {description: e.target.value});
+            setNewDescription(e.target.value);
+          }}
+          onBlur={() => {
+            if ( !addNewTask) {
+              timeout  = setTimeout(() => {
+                if (newDescription){
+                  setDescription(newDescription);
+                  updateSimpleAttribute(taskId, {description: newDescription});
+                  setDescriptionInFocus(false);
+                }
+              }, 1500);
             }
           }}
           />
       </section>
+      {
+        !addNewTask &&
+        descriptionInFocus &&
+        <ButtonRow>
+          <LinkButton
+            style={{marginLeft: "auto", marginRight: "0.6em"}}
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              clearTimeout(timeout);
+              setNewDescription("");
+              setDescriptionInFocus(false);
+            }}
+            >
+            <img
+              className="icon"
+              style={{width: "1.6em", margin: "0em"}}
+              src={CloseIcon}
+              alt="CloseIcon icon not found"
+              />
+          </LinkButton>
+          <FullButton
+            colour=""
+            style={{marginRight: "0px", width: "100px", paddingLeft: "0px"}}
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              clearTimeout(timeout);
+              setDescription(newDescription);
+              updateSimpleAttribute(taskId, {description: newDescription});
+              setDescriptionInFocus(false);
+            }}
+            >
+            <img
+              className="icon"
+              style={{width: "1.6em", margin: "0em"}}
+              src={SendIcon}
+              alt="Send icon not found"
+              />
+            {translations[language].save}
+          </FullButton>
+        </ButtonRow>
+      }
 
       <section  className="inline">
         <span className="icon-container">

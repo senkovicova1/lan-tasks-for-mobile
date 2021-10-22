@@ -171,10 +171,11 @@ export default function TasksContainer( props ) {
   const sortedTasks = useMemo( () => {
     const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
     if ( sortBy === "customOrder" ) {
+      console.log(folder.containers);
       const containerOrder = folder.containers ? [{_id: 0}, ...folder.containers.map((c, index) => ({...c, order: c.order ? c.order : index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)] : [{_id: 0}];
         let newSorted = groupBy(tasksWithAdvancedFilters, 'container');
         return containerOrder.map(container => {
-          return newSorted[container._id].sort((t1, t2) => {
+          return newSorted[container._id] ? newSorted[container._id].sort((t1, t2) => {
             if (!t1.order && !t2.order){
               return 0;
             }
@@ -185,7 +186,7 @@ export default function TasksContainer( props ) {
               return 1 * multiplier;
             }
             return t1.order < t2.order ?  1 * multiplier : ( -1 ) * multiplier;
-          })
+          }) : [];
         }).flat();
     }
     return tasksWithAdvancedFilters
@@ -248,6 +249,8 @@ export default function TasksContainer( props ) {
           {...props}
           sortedTasks={sortedTasks}
           removedTasks={removedTasks}
+          subtasks={subtasks}
+          comments={comments}
           setParentChosenTask={setChosenTask}
           chosenTask={chosenTask}
           folder={folder}
