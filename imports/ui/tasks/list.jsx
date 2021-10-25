@@ -38,6 +38,10 @@ import {
   removeTask
 } from './tasksHandlers';
 
+import {
+  addNewHistory
+} from './historyHandlers';
+
 import FilterSummary from '/imports/ui/filters/summary';
 import EditTask from './editContainer';
 
@@ -108,13 +112,22 @@ const language = useMemo( () => {
 }, [ user ] );
 
 const addQuickTask = () => {
+  const dateCreated = moment().unix();
   addTask(
     newTaskName,
     [userId],
     folderID,
-    moment().unix(),
+    dateCreated,
     null,
-    () => {
+    (_id) => {
+      addNewHistory(
+        _id,
+        [ {
+            dateCreated,
+            user: user._id,
+            message: "created this task!",
+        } ]
+      );
       setNewTaskName( "" );
       setOpenNewTask( false );
     },

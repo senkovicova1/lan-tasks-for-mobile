@@ -36,12 +36,12 @@ export const addTask = ( name, assigned, folder, dateCreated, container, onSucce
     if ( error ) {
       onFail( error );
     } else {
-      onSuccess();
+      onSuccess(_id);
     }
   } );
 }
 
-export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, container, dateCreated ) => {
+export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, container, dateCreated, onSuccess, onFail ) => {
   let data = {
     name,
     important,
@@ -60,13 +60,15 @@ export const addFullTask = ( name, important, assigned, startDatetime, endDateti
       ...data
   }, (error, _id) => {
     if (error){
-      console.log(error);
+      onFail(error);
     } else {
       const addedSubtasks = subtasks.filter( subtask => subtask.change === ADDED );
 
       addedSubtasks.forEach( ( subtask, i ) => {
         addNewSubtask( subtask.name, subtask.closed, _id, subtask.dateCreated );
       } );
+
+      onSuccess(_id);
     }
   } );
 }

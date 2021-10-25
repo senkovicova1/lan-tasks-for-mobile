@@ -42,7 +42,10 @@ import {
 } from './containersHandlers';
 
 import {
-  addTask,
+  addNewHistory
+} from './historyHandlers';
+
+import {
   closeTask,
   removeTask,
   restoreLatestTask,
@@ -146,13 +149,22 @@ const containers = useMemo( () => {
 }, [ folder ] );
 
 const addQuickTask = (containerId) => {
+  const dateCreated = moment().unix();
   addTask(
     openNewTask.find(t => t.container === containerId).name,
     [userId],
     folderID,
-    moment().unix(),
+    dateCreated,
     containerId,
-    () => {
+    (_id) => {
+      addNewHistory(
+        _id,
+        [ {
+            dateCreated,
+            user: userId,
+            message: "created this task!",
+        } ]
+      );
       setOpenNewTask([...openNewTask.filter(open => open.container !== containerId)]);
     },
     () => console.log( error )

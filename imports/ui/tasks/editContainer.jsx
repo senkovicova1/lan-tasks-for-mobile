@@ -11,6 +11,10 @@ import {
 } from 'meteor/react-meteor-data';
 
 import {
+  HistoryCollection
+} from '/imports/api/historyCollection';
+
+import {
   editTask
 } from './tasksHandlers';
 
@@ -40,9 +44,18 @@ export default function EditTaskContainer( props ) {
     return tasks.length > 0 ? tasks.find( task => task._id === taskId ) : {};
   }, [ taskId, tasks ] );
 
+  const history = useTracker( () => HistoryCollection.find( {
+    task: ( task ? task._id : null)
+  } ).fetch() );
+
+  if (!task){
+    return <div></div>;
+  }
+
   return (
     <Form
       {...task}
+      history={history}
       title={translations[language].editTask}
       match={props.match}
       setParentChosenTask={setParentChosenTask}

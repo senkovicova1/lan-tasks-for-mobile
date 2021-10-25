@@ -726,6 +726,41 @@ export const Form = styled.form `
     height: 1em;
     width: 1em;
   }
+
+  .pipe{
+    display: flex;
+    align-items: center;
+  }
+
+  .pipe button:first-of-type{
+    margin-right: 0.6em;
+  }
+
+  .pipe button:last-of-type{
+    margin-left: 0.6em;
+  }
+
+  .pipe button{
+    color: grey;
+  }
+
+  .pipe button.active{
+    color: black;
+    font-weight: 500;
+  }
+
+  .history{
+    background: white;
+    padding: 0.6em;
+  }
+
+  .history p:first-of-type{
+    color: ${basicBlueColour};
+  }
+
+  .history p:last-of-type{
+    margin: 0px;
+  }
 `;
 
 export const Color = styled.div`
@@ -955,6 +990,38 @@ export const Filter = styled.div`
   }
 `;
 
+export const Notifications = styled.div`
+  position: absolute;
+    overflow-y: auto;
+  z-index: 999;
+  background-color: white;
+  box-shadow: 0px 0px 7px 0px slategrey;
+  width: 350px;
+  height: calc(100vh - 50px);
+  top: 50px;
+  right: 20px;
+  padding: ${inputOffset};
+
+  .notification{
+    padding: 0.6em;
+  }
+
+  .notification.read{
+      background: #d6d6d6;
+  }
+
+    .notification.unread{
+      background: ${lightBlueColour};
+    }
+
+  .notification p:first-of-type{
+    color: ${basicBlueColour};
+  }
+
+  .notification p:last-of-type{
+    margin: 0px;
+  }
+`;
 
 export const DatetimePicker = styled.div`
   position: absolute;

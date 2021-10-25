@@ -23,6 +23,9 @@ import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 import {
+  NotificationsCollection
+} from '/imports/api/notificationsCollection';
+import {
   UsersCollection
 } from '/imports/api/usersCollection';
 import {

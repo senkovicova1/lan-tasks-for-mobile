@@ -8,6 +8,7 @@ import subtasksReducer from './subtasksSlice';
 import commentsReducer from './commentsSlice';
 import filtersReducer from './filtersSlice';
 import metadataReducer from './metadataSlice';
+import notificationsReducer from './notificationsSlice';
 
 export default configureStore( {
   reducer: {
@@ -18,5 +19,6 @@ export default configureStore( {
     comments: commentsReducer,
     metadata: metadataReducer,
     filters: filtersReducer,
+    notifications: notificationsReducer,
   },
 } )

@@ -28,10 +28,6 @@ import {
 } from 'reactstrap';
 
 import {
-  updateSimpleAttribute
-} from './tasksHandlers';
-
-import {
   removeSubtask
 } from './subtasksHandlers';
 
@@ -40,10 +36,10 @@ import {
 } from './commentsHandlers';
 
 import {
-  addTask,
   closeTask,
   removeTask,
-  restoreLatestTask
+  restoreLatestTask,
+  updateSimpleAttribute
 } from './tasksHandlers';
 
 import AddTask from './addContainer';
@@ -134,7 +130,7 @@ document.onkeydown = function( e ) {
   switch ( e.which || e.keyCode ) {
     case 13:
       if ( newTaskName.length > 0 ) {
-        addQuickTask();
+      //  addQuickTask();
       }
       break;
   }

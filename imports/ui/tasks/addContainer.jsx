@@ -11,8 +11,21 @@ import {
 } from 'meteor/react-meteor-data';
 
 import {
+  NotificationsCollection
+} from '/imports/api/notificationsCollection';
+
+import {
   addFullTask
 } from './tasksHandlers';
+
+import {
+  addNewHistory
+} from './historyHandlers';
+
+import {
+  addNewNotification,
+  editNotifications
+} from './notificationsHandlers';
 
 import Form from './form';
 
@@ -35,7 +48,57 @@ export default function AddTaskContainer( props ) {
   }, [ user ] );
 
   const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, dateCreated ) => {
-    addFullTask(name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, dateCreated);
+
+    addFullTask(
+      name,
+      important,
+      assigned,
+      startDatetime,
+      endDatetime,
+      hours,
+      description,
+      subtasks,
+      comments,
+      files,
+      folder,
+      dateCreated,
+      ( _id ) => {
+        addNewHistory(_id, [ {
+            dateCreated,
+            user: user._id,
+            message: "created this task!",
+          } ]  );
+            assigned.filter(assigned => assigned !== userId).map(assigned => {
+              let usersNotifications = NotificationsCollection.findOne( {
+                _id: assigned,
+              } );
+             if (usersNotifications.notifications.length > 0){
+                editNotifications(assigned, {
+                  date: dateCreated,
+                  from: user._id,
+                  message: `created task ${name} and assigned it to you!`,
+                  read: false,
+                  taskId: _id,
+                  folderId: folder,
+                })
+              } else {
+                addNewNotification(assigned, [{
+                  date: dateCreated,
+                  from: user._id,
+                  message: `created task ${name} and assigned it to you!`,
+                  read: false,
+                  taskId: _id,
+                  folderId: folder,
+                }])
+              }
+            });
+          addNewNotification()
+      },
+      ( error ) => {
+        console.log( error );
+      }
+    );
+
     close();
   }
 

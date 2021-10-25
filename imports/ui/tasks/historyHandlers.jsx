@@ -2,26 +2,24 @@ import React from 'react';
 
 import {
   HistoryCollection
-} from '/imports/api/subtasksCollection';
+} from '/imports/api/historyCollection';
 
 /*
 type change = {
 dateCreated: unix,
 user: _id,
-attribute: string,
-oldValue: string,
-newValue: string,
+message" string,
 }
 */
 
-export const addNewHistory = ( changes ) => {
+export const addNewHistory = ( taskId, changes ) => {
   HistoryCollection.insert( {
-    task,
+    task: taskId,
     changes
   } );
 };
 
-export const editHistory = ( historyId, taskId, additionalChanges ) => {
+export const editHistory = ( historyId, additionalChanges ) => {
   HistoryCollection.update( historyId, {
     $push: {
       changes: additionalChanges

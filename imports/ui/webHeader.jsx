@@ -16,6 +16,7 @@ import {
 import Menu from './sidebar';
 import Search from '/imports/ui/other/search';
 import SortAndLayout from '/imports/ui/other/sortAndLayout';
+import NotificationsList from '/imports/ui/other/notifications';
 
 import {
   setSidebarOpen,
@@ -67,6 +68,7 @@ export default function WebHeader( props ) {
 
   const [ openSort, setOpenSort ] = useState( false );
   const [ openSearch, setOpenSearch ] = useState( true );
+  const [ openNotifications, setOpenNotifications ] = useState( false );
 
   useEffect( () => {
 
@@ -194,6 +196,7 @@ export default function WebHeader( props ) {
             font="white"
             onClick={(e) => {
               e.preventDefault();
+              setOpenNotifications(!openNotifications);
             }}
             >
             <img
@@ -267,6 +270,11 @@ export default function WebHeader( props ) {
       {
         openSort &&
         <SortAndLayout {...props} setOpenSort={setOpenSort} />
+      }
+
+      {
+        openNotifications &&
+        <NotificationsList {...props} setOpenNotifications={setOpenNotifications} />
       }
 
     </PageHeader>

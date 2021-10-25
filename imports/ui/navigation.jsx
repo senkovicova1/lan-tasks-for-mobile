@@ -38,6 +38,14 @@ import {
 } from '/imports/api/filtersCollection';
 
 import {
+  NotificationsCollection
+} from '/imports/api/notificationsCollection';
+
+import {
+  setNotifications
+} from '/imports/redux/notificationsSlice';
+
+import {
   setComments
 } from '/imports/redux/commentsSlice';
 
@@ -107,6 +115,19 @@ export default function MainPage( props ) {
     layout,
     sidebarOpen
   } = useSelector( ( state ) => state.metadata.value );
+
+  const notifications = useTracker( () => NotificationsCollection.find( {
+    _id: userId
+  } ).fetch() );
+  useEffect( () => {
+    if (notifications.length === 0){
+      dispatch( setNotifications( [] ) );
+    } else {
+      dispatch( setNotifications( notifications[0] ) );
+    }
+  }, [ notifications ] );
+
+  console.log(notifications);
 
   const folders = useTracker( () => FoldersCollection.find( {
     users: {
