@@ -5,7 +5,8 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
+  useSelector,
+  useDispatch
 } from 'react-redux';
 
 import {
@@ -41,6 +42,10 @@ import {
   restoreLatestTask,
   updateSimpleAttribute
 } from './tasksHandlers';
+
+import {
+  setChosenTask
+} from '/imports/redux/metadataSlice';
 
 import AddTask from './addContainer';
 import EditTask from './editContainer';
@@ -82,6 +87,8 @@ const DnDCalendar = withDragAndDrop(Calendar);
 
 export default function CalendarList( props ) {
 
+  const dispatch = useDispatch();
+
   const {
   match,
   history,
@@ -90,8 +97,6 @@ export default function CalendarList( props ) {
   removedTasks,
   subtasks,
   comments,
-  setParentChosenTask,
-  chosenTask
 } = props;
 
 const {
@@ -100,7 +105,8 @@ const {
 
 const {
   search,
-  filter
+  filter,
+  chosenTask
 } = useSelector( ( state ) => state.metadata.value );
 
 const [ selectedInterval, setSelectedInterval ] = useState(null);
@@ -203,7 +209,7 @@ document.onkeydown = function( e ) {
               </LinkButton>
             </div>
             <div>
-              <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+              <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
                 {task.name}
               </span>
             </div>
@@ -297,7 +303,7 @@ document.onkeydown = function( e ) {
               </LinkButton>
             </div>
             <div>
-              <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+              <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
                 {task.name}
               </span>
             </div>
@@ -349,7 +355,7 @@ document.onkeydown = function( e ) {
       chosenTask &&
       <Modal isOpen={true}>
         <ModalBody>
-          <EditTask {...props} taskId={chosenTask} close={() => setParentChosenTask(null)}/>
+          <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
         </ModalBody>
       </Modal>
     }

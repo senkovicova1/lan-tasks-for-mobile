@@ -25,7 +25,7 @@ import {
 import {
   addNewNotification,
   editNotifications
-} from './notificationsHandlers';
+} from '/imports/ui/other/notificationsHandlers';
 
 import Form from './form';
 

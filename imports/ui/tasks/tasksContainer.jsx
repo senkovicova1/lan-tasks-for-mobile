@@ -4,7 +4,8 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
+  useSelector,
+  useDispatch
 } from 'react-redux';
 
 import {
@@ -27,6 +28,8 @@ import {
 
 export default function TasksContainer( props ) {
 
+  const dispatch = useDispatch();
+
   const {
     match,
     history,
@@ -42,10 +45,9 @@ export default function TasksContainer( props ) {
     search,
     sortBy,
     sortDirection,
-    filter
+    filter,
+    chosenTask,
   } = useSelector( ( state ) => state.metadata.value );
-
-  const [ chosenTask, setChosenTask ] = useState( null );
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
@@ -171,7 +173,6 @@ export default function TasksContainer( props ) {
   const sortedTasks = useMemo( () => {
     const multiplier = !sortDirection || sortDirection === "asc" ? -1 : 1;
     if ( sortBy === "customOrder" ) {
-      console.log(folder.containers);
       const containerOrder = folder.containers ? [{_id: 0}, ...folder.containers.map((c, index) => ({...c, order: c.order ? c.order : index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)] : [{_id: 0}];
         let newSorted = groupBy(tasksWithAdvancedFilters, 'container');
         return containerOrder.map(container => {
@@ -223,8 +224,6 @@ export default function TasksContainer( props ) {
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
-          setParentChosenTask={setChosenTask}
-          chosenTask={chosenTask}
           folder={folder}
           />
     );
@@ -236,8 +235,6 @@ export default function TasksContainer( props ) {
           {...props}
           tasksWithAdvancedFilters={tasksWithAdvancedFilters}
           removedTasks={removedTasks}
-          setParentChosenTask={setChosenTask}
-          chosenTask={chosenTask}
           folder={folder}
           />
     );
@@ -251,8 +248,6 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
-          setParentChosenTask={setChosenTask}
-          chosenTask={chosenTask}
           folder={folder}
           />
     );
@@ -266,15 +261,13 @@ export default function TasksContainer( props ) {
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
-          setParentChosenTask={setChosenTask}
-          chosenTask={chosenTask}
           folder={folder}
           />
       </div>
       <div style={{width: "50%", borderLeft: "1px solid #d6d6d6", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>
         {
           chosenTask &&
-          <EditTask {...props} taskId={chosenTask} setParentChosenTask={setChosenTask}/>
+          <EditTask {...props} taskId={chosenTask}/>
         }
         {
           !chosenTask &&

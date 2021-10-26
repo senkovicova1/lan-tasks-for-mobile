@@ -249,6 +249,9 @@ export default function WebHeader( props ) {
               e.preventDefault();
               setBackground("#0078d4");
               props.history.push("/login");
+              setOpenSort(false);
+              setOpenSearch(false);
+              setOpenNotifications(false);
               logout();
             }}
             >

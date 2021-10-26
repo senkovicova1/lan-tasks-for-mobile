@@ -5,7 +5,8 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
+  useSelector,
+  useDispatch
 } from 'react-redux';
 
 import {
@@ -41,6 +42,10 @@ import {
 import {
   addNewHistory
 } from './historyHandlers';
+
+import {
+  setChosenTask
+} from '/imports/redux/metadataSlice';
 
 import FilterSummary from '/imports/ui/filters/summary';
 import EditTask from './editContainer';
@@ -79,6 +84,8 @@ import {
 
 export default function TaskList( props ) {
 
+  const dispatch = useDispatch();
+
   const {
   match,
   history,
@@ -88,8 +95,6 @@ export default function TaskList( props ) {
   removedTasks,
   subtasks,
   comments,
-  setParentChosenTask,
-  chosenTask
 } = props;
 
 const [ showClosed, setShowClosed ] = useState( false );
@@ -102,8 +107,11 @@ const {
 } = match.params;
 const {
   layout,
-  filter
+  filter,
+  chosenTask
 } = useSelector( ( state ) => state.metadata.value );
+
+console.log(chosenTask);
 
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
@@ -161,7 +169,7 @@ document.onkeydown = function( e ) {
         layout === PLAIN &&
         <Modal isOpen={true}>
           <ModalBody>
-            <EditTask {...props} taskId={chosenTask} close={() => setParentChosenTask(null)}/>
+            <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
           </ModalBody>
         </Modal>
       }
@@ -250,7 +258,7 @@ document.onkeydown = function( e ) {
                 alt="Empty star icon not found"
                 />
             }
-            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+            <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
               {task.name}
             </span>
             {
@@ -342,7 +350,7 @@ document.onkeydown = function( e ) {
                 alt="Empty star icon not found"
                 />
             }
-            <span htmlFor={`task_name ${task._id}`} onClick={() => setParentChosenTask(task._id)}>
+            <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
               {task.name}
             </span>
             {

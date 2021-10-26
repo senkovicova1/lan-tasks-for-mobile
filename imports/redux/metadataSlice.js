@@ -15,6 +15,7 @@ export const metadataSlice = createSlice( {
   initialState: {
     value: {
       layout: PLAIN,
+      chosenTask: null,
       search: "",
       sidebarOpen: true,
       sortBy: sortByOptions[ 0 ].value,
@@ -35,6 +36,12 @@ export const metadataSlice = createSlice( {
       state.value = {
         ...state.value,
         layout: action.payload,
+      }
+    },
+    setChosenTask: ( state, action ) => {
+      state.value = {
+        ...state.value,
+        chosenTask: action.payload,
       }
     },
     setSearch: ( state, action ) => {
@@ -75,6 +82,7 @@ export const metadataSlice = createSlice( {
 
 export const {
   setLayout,
+  setChosenTask,
   setSidebarOpen,
   setSearch,
   setSortBy,

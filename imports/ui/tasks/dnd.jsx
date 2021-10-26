@@ -5,7 +5,8 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
+  useSelector,
+  useDispatch
 } from 'react-redux';
 
 import {
@@ -56,6 +57,9 @@ import AddTask from './addContainer';
 import EditTask from './editContainer';
 import FilterSummary from '/imports/ui/filters/summary';
 
+import {
+  setChosenTask
+} from '/imports/redux/metadataSlice';
 
 import {
   LeftArrowIcon,
@@ -106,6 +110,8 @@ const getListStyle = isDraggingOver => ({
 
 export default function DND( props ) {
 
+  const dispatch = useDispatch();
+
   const {
   match,
   history,
@@ -114,8 +120,6 @@ export default function DND( props ) {
   removedTasks,
   subtasks,
   comments,
-  setParentChosenTask,
-  chosenTask
 } = props;
 
 const {
@@ -127,6 +131,7 @@ const {
   filter,
   sortBy,
   sortDirection,
+  chosenTask,
 } = useSelector( ( state ) => state.metadata.value );
 
 const [ isDropDisabled, setIsDropDisabled ] = useState(false);
@@ -394,7 +399,7 @@ const addQuickTask = (containerId) => {
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
                                         {...provided.dragHandleProps}
-                                         onClick={() => setParentChosenTask(task._id)}
+                                         onClick={() => dispatch(setChosenTask(task._id))}
                                         >
                                         <div className="info-bar">
                                           <Input
@@ -500,7 +505,7 @@ const addQuickTask = (containerId) => {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      onClick={() => setParentChosenTask(task._id)}
+                                      onClick={() => dispatch(setChosenTask(task._id))}
                                       >
                                       <div className="info-bar">
                                         <Input
@@ -609,7 +614,7 @@ const addQuickTask = (containerId) => {
       chosenTask &&
       <Modal isOpen={true}>
         <ModalBody>
-          <EditTask {...props} taskId={chosenTask} close={() => setParentChosenTask(null)}/>
+          <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
         </ModalBody>
       </Modal>
       }

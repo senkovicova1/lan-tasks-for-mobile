@@ -1004,22 +1004,46 @@ export const Notifications = styled.div`
 
   .notification{
     padding: 0.6em;
+    margin-bottom: 1em;
+    cursor: pointer;
   }
 
-  .notification.read{
-      background: #d6d6d6;
+  .notification:last-of-type{
+    margin-bottom: 0em;
   }
-
-    .notification.unread{
-      background: ${lightBlueColour};
-    }
 
   .notification p:first-of-type{
     color: ${basicBlueColour};
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.3em;
   }
+
+  .notification p:first-of-type input{
+    width: 1.5em;
+    height: 1.5em;
+  }
+
+  .notification p:first-of-type span{
+      margin-left: auto;
+    }
 
   .notification p:last-of-type{
     margin: 0px;
+  }
+
+  .mark-read{
+    display: flex;
+    align-items: center;
+  }
+
+  .header{
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .header .left{
+    margin-left: auto;
   }
 `;
 

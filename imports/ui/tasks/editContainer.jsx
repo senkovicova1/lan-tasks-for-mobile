@@ -3,7 +3,7 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
+  useSelector,
 } from 'react-redux';
 
 import {
@@ -29,7 +29,6 @@ export default function EditTaskContainer( props ) {
 
   const {
     taskId,
-    setParentChosenTask,
     close,
   } = props;
 
@@ -58,7 +57,6 @@ export default function EditTaskContainer( props ) {
       history={history}
       title={translations[language].editTask}
       match={props.match}
-      setParentChosenTask={setParentChosenTask}
       language={language}
       onCancel={close}
       />
