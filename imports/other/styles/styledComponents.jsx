@@ -622,6 +622,11 @@ export const Form = styled.form `
     cursor: pointer;
   }
 
+  .datetime-span.closed{
+    background: transparent;
+    color: #757575;
+  }
+
   .datetime-span span {
     width: -webkit-fill-available;
     height: 40px;
@@ -1005,7 +1010,7 @@ export const Notifications = styled.div`
   .notification{
     padding: 0.6em;
     margin-bottom: 1em;
-    cursor: pointer;
+    cursor: default;
   }
 
   .notification:last-of-type{
@@ -1025,11 +1030,20 @@ export const Notifications = styled.div`
   }
 
   .notification p:first-of-type span{
-      margin-left: auto;
+      margin-right: auto;
     }
 
   .notification p:last-of-type{
     margin: 0px;
+  }
+
+  .link{
+    color: ${basicBlueColour};
+  }
+
+  .link:hover{
+    cursor.pointer !important;
+    text-decoration: underline;
   }
 
   .mark-read{

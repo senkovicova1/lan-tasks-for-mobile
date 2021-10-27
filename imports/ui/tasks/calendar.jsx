@@ -162,6 +162,7 @@ document.onkeydown = function( e ) {
 
   <div style={{display: "flex", width: "100%"}}>
     <div className="task-list">
+      <h2>Unscheduled</h2>
       {
         activeTasksWithoutDatetimes.length === 0 &&
         <span className="message">You have no open tasks.</span>

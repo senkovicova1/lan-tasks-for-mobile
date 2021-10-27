@@ -111,8 +111,6 @@ const {
   chosenTask
 } = useSelector( ( state ) => state.metadata.value );
 
-console.log(chosenTask);
-
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
 const language = useMemo( () => {

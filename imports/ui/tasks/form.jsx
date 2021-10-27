@@ -770,7 +770,7 @@ export default function TaskForm( props ) {
       </section>
 
       {
-        !openDatetime &&
+        (closed || !openDatetime) &&
       <section className="inline">
         <span className="icon-container">
           <img
@@ -780,14 +780,21 @@ export default function TaskForm( props ) {
             alt="Calendar icon not found"
             />
         </span>
-        <span className="datetime-span" >
+        <span className={"datetime-span" + (closed ? " closed" : "")} >
         <span
           onClick={() => setOpenDatetime(true)}
           >
           {
+            !closed &&
             !startDatetime &&
             !endDatetime &&
             "Set scheduled"
+          }
+          {
+            closed &&
+            !startDatetime &&
+            !endDatetime &&
+            "Not scheduled"
           }
           {
             (startDatetime || endDatetime) &&
@@ -800,6 +807,8 @@ export default function TaskForm( props ) {
             `${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}`
           }
         </span>
+        {
+          !closed &&
         <LinkButton
           style={{height: "40px", marginLeft: "auto"}}
           className="left"
@@ -862,11 +871,13 @@ export default function TaskForm( props ) {
               alt="CloseIcon star icon not found"
               />
         </LinkButton>
+      }
       </span>
       </section>
     }
 
         {
+          !closed &&
           openDatetime &&
           <div style={{position: "relative"}}>
           <DatetimePicker>
@@ -1260,7 +1271,7 @@ export default function TaskForm( props ) {
           type="number"
           name="hours"
           id="hours"
-          placeholder="Hours"
+          placeholder={closed ? "Unset" : "Hours"}
           value={hours}
           disabled={closed}
           onChange={(e) => {
@@ -1324,7 +1335,7 @@ export default function TaskForm( props ) {
         </span>
         <Textarea
           type="text"
-          placeholder="Write description"
+          placeholder={closed ? "No description" : "Write description"}
           value={newDescription ? newDescription : description}
           disabled={closed}
           onFocus={() => {
@@ -1547,6 +1558,16 @@ export default function TaskForm( props ) {
             showSpinner &&
             <Spinner color="primary" size="1em" className="spinner" children=""/>
           }
+          {
+            closed &&
+            <span className={"datetime-span" + (closed ? " closed" : "")} >
+              <span>
+                No files
+              </span>
+            </span>
+          }
+          {
+            !closed &&
           <Input
             id="files"
             name="files"
@@ -1613,6 +1634,7 @@ export default function TaskForm( props ) {
               reader.readAsDataURL(file);
             }}
             />
+        }
         </div>
       </section>
 
@@ -1683,7 +1705,6 @@ export default function TaskForm( props ) {
                   disabled={closed}
                   value={editedSubtask === subtask._id ? possibleSubtaskName : subtask.name}
                   onFocus={() => {
-                    console.log("NO");
                     setEditedSubtask(subtask._id);
                     setPossibleSubtaskName(subtask.name);
                   }}
@@ -1764,7 +1785,6 @@ export default function TaskForm( props ) {
                   disabled={closed}
                   onClick={(e) => {
                     e.preventDefault();
-                    console.log("HI");
                     const oldName = subtask.name;
                     const newName = possibleSubtaskName;
                     editSubtask(subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
@@ -1823,6 +1843,15 @@ export default function TaskForm( props ) {
             ))
           }
           {
+            closed &&
+            <span className={"datetime-span" + (closed ? " closed" : "")} >
+              <span>
+                No subtasks
+              </span>
+            </span>
+          }
+          {
+            !closed &&
             !openNewSubtask &&
             <InlineInput style={{padding: "0px"}}>
               <LinkButton

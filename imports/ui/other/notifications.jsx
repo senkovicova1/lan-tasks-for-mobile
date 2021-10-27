@@ -15,8 +15,14 @@ import {
 } from './notificationsHandlers';
 
 import {
-  setChosenTask
+  setChosenTask,
+  setLayout
 } from '/imports/redux/metadataSlice';
+
+import {
+ DND,
+ PLAIN
+} from '/imports/other/constants';
 
 import {
   Input,
@@ -35,6 +41,9 @@ export default function NotificationsList( props ) {
 
   const userId = Meteor.userId();
 
+    const {
+      layout
+    } = useSelector( ( state ) => state.metadata.value );
   const {
     notifications
   } = useSelector( ( state ) => state.notifications.value );
@@ -44,7 +53,31 @@ export default function NotificationsList( props ) {
       if (!notifications || (notifications && notifications.length === 0) || !dbUsers || ( dbUsers && dbUsers.length === 0)){
         return [];
       }
-      return notifications.map(notif => ({...notif, from: dbUsers.find(user => user._id === notif.from)})).reverse();
+      return notifications.map(notif => {
+        const fromIndex = notif.message.indexOf('the task');
+        const taskNameStart = notif.message.indexOf('"', fromIndex);
+        const taskNameEnd = notif.message.indexOf('"', taskNameStart + 1);
+        return ({
+        ...notif,
+        from: dbUsers.find(user => user._id === notif.from),
+        note: <p>
+        {`${notif.from.label} ${notif.message.slice(0, taskNameStart)}`}
+         <span
+           className="link"
+           onClick={() => {
+             dispatch(setChosenTask(notif.taskId));
+             if (layout === DND){
+               dispatch(setLayout(PLAIN));
+             }
+             history.push("/all/list");
+           }}
+           >
+           {notif.message.slice(taskNameStart, taskNameEnd + 1)}
+         </span>
+         {notif.message.slice(taskNameEnd + 1)}
+       </p>
+      })
+    }).reverse();
     }, [notifications, dbUsers]);
 
   return (
@@ -66,26 +99,23 @@ export default function NotificationsList( props ) {
           <div
             className="notification"
             key={notification.date + notification.message}
-            onClick={() => {
-              dispatch(setChosenTask(notification.taskId));
-              history.push("/all/list");
-            }}
             >
             <p>
+              <span>
+                {`${moment.unix(notification.date).format("D.M.YYYY HH:mm:ss")}`}
+              </span>
               <Input
                 type="checkbox"
                 checked={notification.read}
                 onChange={() => {
-                      e.preventDefault();
-                      markReadOne(userId, notification, notifications);
-                      e.stopPropagation();
-                    }}
+                  markReadOne(userId, notification, notifications);
+                }}
+                onClickCapture={(e) => {
+                  e.stopPropagation();
+                }}
                 />
-              <span>
-                {`${moment.unix(notification.date).format("D.M.YYYY HH:mm:ss")}`}
-              </span>
             </p>
-            <p>{`${notification.from.label} ${notification.message}`}</p>
+            {notification.note}
           </div>
         )
 

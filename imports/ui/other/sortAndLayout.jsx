@@ -32,8 +32,11 @@ export default function SortAndLayout( props ) {
   const dispatch = useDispatch();
 
   const {
+    match,
     setOpenSort,
   } = props;
+
+  const {folderID} = match.params;
 
   const {
     layout,
@@ -107,6 +110,7 @@ export default function SortAndLayout( props ) {
       }
         {
           window.innerWidth > 820 &&
+          folderID &&
           !location.pathname.includes('all') &&
           !location.pathname.includes('important') &&
         <span>

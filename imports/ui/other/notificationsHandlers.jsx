@@ -35,7 +35,7 @@ export const markReadOne = ( userId, notification, allNotifications ) => {
     if ( notif.date === notification.date && notif.message === notification.message ) {
       return ( {
         ...notif,
-        read: true
+        read: !notif.read,
       } );
     }
     return notif;

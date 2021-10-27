@@ -127,8 +127,6 @@ export default function MainPage( props ) {
     }
   }, [ notifications ] );
 
-  console.log(notifications);
-
   const folders = useTracker( () => FoldersCollection.find( {
     users: {
       $elemMatch: {
