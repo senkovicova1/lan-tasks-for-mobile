@@ -1,4 +1,5 @@
 import React, {
+  useMemo,
   useState,
 } from 'react';
 
@@ -27,6 +28,10 @@ import {
   sortDirectionOptions,
 } from "/imports/other/constants";
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function SortAndLayout( props ) {
 
   const dispatch = useDispatch();
@@ -44,6 +49,15 @@ export default function SortAndLayout( props ) {
     sortDirection,
   } = useSelector( ( state ) => state.metadata.value );
 
+  const userId = Meteor.userId();
+  const dbUsers = useSelector( ( state ) => state.users.value );
+    const language = useMemo( () => {
+      if (dbUsers.length > 0){
+      return dbUsers.find( user => user._id === userId ).language;
+    }
+    return "en";
+    }, [ userId, dbUsers ] );
+
   const [ openFilter, setOpenFilter ] = useState( false );
   const [ newFilter, setNewFilter] = useState();
   const [ newSearch, setNewSearch] = useState("");
@@ -52,7 +66,7 @@ export default function SortAndLayout( props ) {
     <Sort id="sort-menu" name="sort-menu">
       {
         window.innerWidth > 820 &&
-        <h3>Layout</h3>
+        <h3>{translations[language].layout}</h3>
       }
         {
           window.innerWidth > 820 &&
@@ -69,7 +83,9 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="plain-layout">List</label>
+          <label htmlFor="plain-layout">
+            {translations[language].list}
+          </label>
         </span>
       }
         {
@@ -87,7 +103,7 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="columns-layout">Columns</label>
+          <label htmlFor="columns-layout">{translations[language].columns}</label>
         </span>
       }
         {
@@ -105,7 +121,7 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="calendar-layout">Calendar</label>
+          <label htmlFor="calendar-layout">{translations[language].calendar}</label>
         </span>
       }
         {
@@ -126,7 +142,7 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="dnd-layout">Planner</label>
+          <label htmlFor="dnd-layout">{translations[language].dnd}</label>
         </span>
       }
       <h3>Sort by</h3>
@@ -143,7 +159,7 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor={"customOrder"}>Custom order</label>
+          <label htmlFor={"customOrder"}>{translations[language].customOrder}</label>
         </span>
       {
         sortByOptions

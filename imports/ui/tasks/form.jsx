@@ -23,7 +23,8 @@ import {
 } from '/imports/api/notificationsCollection';
 
 import {
-  updateSimpleAttribute
+  updateSimpleAttribute,
+  addRepeatToTask,
 } from './tasksHandlers';
 
 import {
@@ -39,6 +40,10 @@ import {
 } from './commentsHandlers';
 
 import {
+  editRepeatInTask
+} from '/imports/ui/repeats/repeatsHandlers';
+
+import {
   addNewHistory,
   editHistory
 } from './historyHandlers';
@@ -47,6 +52,9 @@ import {
   addNewNotification,
   editNotifications
 } from '/imports/ui/other/notificationsHandlers';
+
+import Repeat from '/imports/ui/repeats/form';
+//import EditRepeat from '/imports/ui/repeats/editContainer';
 
 import {
   EmptyStarIcon,
@@ -101,6 +109,32 @@ import {
   uint8ArrayToImg,
 } from '/imports/other/helperFunctions';
 
+import {
+  CLOSED_STATUS,
+  OPEN_STATUS,
+  TITLE,
+  IMPORTANT,
+  NOT_IMPORTANT,
+  CONTAINER,
+  ASSIGNED,
+  REMOVED_START_END,
+  SET_START,
+  SET_END,
+  SET_HOURS,
+  CHANGE_HOURS,
+  DESCRIPTION,
+  REMOVE_FILE,
+  ADD_FILE,
+  SUBTASK_CLOSED,
+  SUBTASK_OPENED,
+  REMOVE_SUBTASK,
+  RENAME_SUBTASK,
+  ADD_SUBTASK,
+  ADD_COMMENT,
+  EDIT_COMMENT,
+ REMOVE_COMMENT,
+ historyEntryTypes
+} from '/imports/other/messages';
 
 import {
   translations
@@ -124,6 +158,8 @@ export default function TaskForm( props ) {
     folder: taskFolder,
     container: taskContainer,
     files: taskFiles,
+    repeat: taskRepeat,
+    allTasks,
     history,
     title,
     language,
@@ -156,6 +192,8 @@ export default function TaskForm( props ) {
   const [ possibleEndDatetime, setPossibleEndDatetime ] = useState( "" );
   const [ openDatetime, setOpenDatetime ] = useState( false );
   const [ hours, setHours ] = useState( "" );
+
+  const [ repeat, setRepeat ] = useState( null);
 
   const [ possibleSubtaskName, setPossibleSubtaskName ] = useState("");
   const [ editedSubtask, setEditedSubtask ] = useState("");
@@ -254,7 +292,13 @@ export default function TaskForm( props ) {
       setFiles( [] );
     }
 
-  }, [ taskName, taskFolder, taskContainer, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, dbUsers, userId ] );
+    if ( taskRepeat ) {
+      setRepeat( taskRepeat );
+    } else {
+      setRepeat( [] );
+    }
+
+  }, [ taskName, taskFolder, taskContainer, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, taskRepeat, dbUsers, userId ] );
 
   useEffect(() => {
     if (startDatetime){
@@ -358,7 +402,8 @@ export default function TaskForm( props ) {
           const historyData = {
             dateCreated: moment().unix(),
             user: userId,
-            message: `added the subtask "${newSubtaskName}".`
+            type: ADD_SUBTASK,
+            args: [newSubtaskName],
           };
           if (history.length === 0){
             addNewHistory(taskId, [ historyData ]);
@@ -366,9 +411,8 @@ export default function TaskForm( props ) {
             editHistory(history[0]._id, historyData);
           }
           const notificationData = {
-            date: moment().unix(),
-            from: userId,
-            message: `added the subtask "${newSubtaskName}" to the task "${name}".`,
+            ...historyData,
+            args: [newSubtaskName, name],
             read: false,
             taskId,
             folderId: folder._id,
@@ -449,7 +493,8 @@ export default function TaskForm( props ) {
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
-                message: `set the status of this task to ${newClosed ? "CLOSED" : "ACTIVE"}.`,
+                type: newClosed ? CLOSED_STATUS : OPEN_STATUS,
+                args: [],
               };
               if (history.length === 0){
                 addNewHistory(taskId, [ historyData ]);
@@ -462,9 +507,8 @@ export default function TaskForm( props ) {
                     _id: assigned._id,
                   } );
                   const notificationData = {
-                    date: moment().unix(),
-                    from: userId,
-                    message: `set the status of the task "${name}" to ${newClosed ? "CLOSED" : "ACTIVE"}.`,
+                    ...historyData,
+                    args: [name],
                     read: false,
                     taskId,
                     folderId: folder._id,
@@ -495,7 +539,8 @@ export default function TaskForm( props ) {
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
-                message: `changed the title of this task from ${oldName} to ${e.target.value}.`,
+                type: TITLE,
+                args: [oldName, e.target.value],
               };
               if (history.length === 0){
                 addNewHistory(taskId, [ historyData ]);
@@ -508,9 +553,8 @@ export default function TaskForm( props ) {
                     _id: assigned._id,
                   } );
                   const notificationData = {
-                    date: moment().unix(),
-                    from: userId,
-                    message: `changed the title of the task ${oldName} to ${e.target.value}.`,
+                    ...historyData,
+                    args: [oldName, e.target.value],
                     read: false,
                     taskId,
                     folderId: folder._id,
@@ -538,19 +582,16 @@ export default function TaskForm( props ) {
             setImportant(newImportant);
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {important: newImportant});
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: newImportant ? IMPORTANT : NOT_IMPORTANT,
+                args: [],
+              };
               if (history.length === 0){
-                addNewHistory(taskId, [{
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `${newImportant ? "set the status of this task to IMPORTANT" : "removed the IMPORTANT status from this task"}.`,
-                }
-              ]);
+                addNewHistory(taskId, [historyData]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `${newImportant ? "set the status of this task to IMPORTANT" : "removed the IMPORTANT status from this task"}.`,
-                });
+                editHistory(history[0]._id, historyData);
               }
 
               if (assigned.length > 0){
@@ -558,24 +599,17 @@ export default function TaskForm( props ) {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
-                 if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: `${newImportant ? "set the status of the task " + name + " to IMPORTANT" : "removed the IMPORTANT status from the task " + name + "."}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                  const notificationData = {
+                    ...historyData,
+                    args: [name],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  }
+                 if (usersNotifications && usersNotifications.notifications.length > 0){
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: `${newImportant ? "set the status of the task " + name + " to IMPORTANT" : "removed the IMPORTANT status from the task " + name + "."}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -654,19 +688,16 @@ export default function TaskForm( props ) {
             setContainer(e);
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {container: e._id});
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: CONTAINER,
+                args: [oldContainer.label, e.label],
+              }
               if (history.length === 0){
-                addNewHistory(taskId, [{
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `changed the container of this task from ${oldContainer.label} to ${e.label}.`,
-                }
-              ]);
+                addNewHistory(taskId, [historyData]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `changed the container of this task from ${oldContainer.label} to ${e.label}.`,
-                });
+                editHistory(history[0]._id, historyData);
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
@@ -674,23 +705,16 @@ export default function TaskForm( props ) {
                     _id: assigned._id,
                   } );
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: `changed the container of the task "${name}" from ${oldContainer.label} to ${e.label}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                     const notificationData = {
+                       ...historyData,
+                       args: [name, oldContainer.label, e.label],
+                       read: false,
+                       taskId,
+                       folderId: folder._id,
+                     }
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: `changed the container of the task "${name}" from ${oldContainer.label} to ${e.label}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -723,42 +747,33 @@ export default function TaskForm( props ) {
               setAssigned(e);
               if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {assigned: e.map(user => user._id)});
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: ASSIGNED,
+                args: [oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]
+              }
               if (history.length === 0){
-                addNewHistory(taskId, [ {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `set the assigned to this task from ${oldAssigned.map(user => user.label).join(", ")} to ${e.map(user => user.label).join(", ")}.`,
-                }]);
+                addNewHistory(taskId, [ historyData ]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `set the assigned to this task from ${oldAssigned.map(user => user.label).join(", ")} to ${e.map(user => user.label).join(", ")}.`,
-                });
+                editHistory(history[0]._id, historyData);
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
+                  const notificationData = {
+                    ...historyData,
+                    args: [name, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: `set the assigned to the task "${name}" from ${oldAssigned.map(user => user.label).join(", ")} to ${e.map(user => user.label).join(", ")}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: `set the assigned to the task "${name}" from ${oldAssigned.map(user => user.label).join(", ")} to ${e.map(user => user.label).join(", ")}.`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -788,13 +803,13 @@ export default function TaskForm( props ) {
             !closed &&
             !startDatetime &&
             !endDatetime &&
-            "Set scheduled"
+            translations[language].setScheduled
           }
           {
             closed &&
             !startDatetime &&
             !endDatetime &&
-            "Not scheduled"
+            translations[language].notScheduled
           }
           {
             (startDatetime || endDatetime) &&
@@ -822,42 +837,33 @@ export default function TaskForm( props ) {
             setEndDatetime("");
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: REMOVED_START_END,
+                args: [],
+              }
               if (history.length === 0){
-                addNewHistory(taskId, [ {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `removed the start and end dates of this task.`,
-                }]);
+                addNewHistory(taskId, [historyData]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: `removed the start and end dates of this task.`,
-                });
+                editHistory(history[0]._id, historyData);
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
+                  const notificationData = {
+                    ...historyData,
+                    args: [name],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: `removed the start and end dates of the task "${name}".`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: `removed the start and end dates of the task "${name}".`,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -882,7 +888,7 @@ export default function TaskForm( props ) {
           <div style={{position: "relative"}}>
           <DatetimePicker>
             <section>
-            <h3>Set scheduled</h3>
+            <h3>{translations[language].setScheduled}</h3>
           </section>
           <section className="inline">
               {
@@ -905,7 +911,7 @@ export default function TaskForm( props ) {
                 name="startDate"
                 id="startDate"
                 inputProps={{
-                  placeholder: 'Set date',
+                  placeholder: translations[language].setDate,
                 }}
                 onChange={(date) => {
                   if (typeof date !== "string"){
@@ -948,7 +954,7 @@ export default function TaskForm( props ) {
                 !allDay &&
                 <section className="inline">
                   <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
-                    From:
+                    {translations[language].from}
                   </span>
 
                   <div style={{width: "100%"}}>
@@ -997,7 +1003,7 @@ export default function TaskForm( props ) {
                   !allDay &&
                   <section className="inline">
                     <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
-                      To:
+                      {translations[language].to}
                     </span>
                     <div style={{width: "100%"}}>
                       <Select
@@ -1045,7 +1051,7 @@ export default function TaskForm( props ) {
                   allDay &&
                   <section className="inline">
                     <span className="icon-container" style={{width: "45px", justifyContent: "center"}}>
-                      To:
+                      {translations[language].to}
                     </span>
                   <Datetime
                     className="full-width"
@@ -1064,18 +1070,16 @@ export default function TaskForm( props ) {
                           setPossibleEndDatetime(date);
                           if ( !addNewTask ) {
                             updateSimpleAttribute(taskId, {endDatetime: date});
-                            if (history.length === 0){
-                              addNewHistory(taskId, [{
+                            const historyData = {
                                 dateCreated: moment().unix(),
                                 user: userId,
-                                message: `set the end date from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`
-                              }]);
+                                type: SET_END,
+                                args: [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                            }
+                            if (history.length === 0){
+                              addNewHistory(taskId, [historyData]);
                             } else {
-                                editHistory(history[0]._id, {
-                                  dateCreated: moment().unix(),
-                                  user: userId,
-                                  message: `set the end date from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`
-                                });
+                                editHistory(history[0]._id, historyData);
                             }
 
                             if (assigned.length > 0){
@@ -1083,24 +1087,17 @@ export default function TaskForm( props ) {
                                 let usersNotifications = NotificationsCollection.findOne( {
                                   _id: assigned._id,
                                 } );
+                                const notificationData = {
+                                  ...historyData,
+                                  args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")],
+                                  read: false,
+                                  taskId,
+                                  folderId: folder._id,
+                                };
                                if (usersNotifications.notifications.length > 0){
-                                   editNotifications(assigned._id, {
-                                     date: moment().unix(),
-                                     from: userId,
-                                     message: `set the end date of the task "${name}" from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                                     read: false,
-                                     taskId,
-                                     folderId: folder._id,
-                                   });
+                                   editNotifications(assigned._id, notificationData);
                                 } else {
-                                  addNewNotification(assigned._id, [{
-                                    date: moment().unix(),
-                                    from: userId,
-                                    message: `set the end date of the task "${name}" from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                                    read: false,
-                                    taskId,
-                                    folderId: folder._id,
-                                  }]);
+                                  addNewNotification(assigned._id, [notificationData]);
                                 }
                               })
                             }
@@ -1156,20 +1153,19 @@ export default function TaskForm( props ) {
               }}
               />
             <span style={{marginLeft: "10px"}}>
-              All day event
+              {translations[language].allDay}
             </span>
           </section>
           <section>
           <ButtonRow>
           <LinkButton
             style={{marginRight: "auto", marginLeft: "0px"}}
-            disabled={closed}
             onClick={(e) => {
               e.preventDefault();
               setOpenDatetime(false);
             }}
             >
-            Close
+            {translations[language].close}
           </LinkButton>
           <FullButton
             disabled={closed}
@@ -1181,27 +1177,24 @@ export default function TaskForm( props ) {
               setEndDatetime(possibleEndDatetime);
               if ( !addNewTask ) {
                 updateSimpleAttribute(taskId, {allDay: allDay, startDatetime: possibleStartDatetime, endDatetime: possibleEndDatetime});
+
+                const historyData1 = {
+                  dateCreated: moment().unix(),
+                  user: userId,
+                  type: SET_START,
+                  args: [moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")]
+                };
+                const historyData2 = {
+                  dateCreated: moment().unix(),
+                  user: userId,
+                  type: SET_END,
+                  args: [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                };
                 if (history.length === 0){
-                  addNewHistory(taskId, [{
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    message: `set the start date from ${moment.unix(oldStart).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")}`
-                  }, {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    message: `set the end date from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`
-                  }]);
+                  addNewHistory(taskId, [ historyData1, historyData2]);
                 } else {
-                  editHistory(history[0]._id, {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    message: `set the start date from ${moment.unix(oldStart).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")}`
-                  });
-                    editHistory(history[0]._id, {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      message: `set the end date from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`
-                    });
+                  editHistory(history[0]._id, historyData1);
+                  editHistory(history[0]._id, historyData2);
                 }
 
                 if (assigned.length > 0){
@@ -1209,39 +1202,25 @@ export default function TaskForm( props ) {
                     let usersNotifications = NotificationsCollection.findOne( {
                       _id: assigned._id,
                     } );
+                    const notificationData1 = {
+                      ...historyData1,
+                      args: [name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                      read: false,
+                      taskId,
+                      folderId: folder._id,
+                    };
+                    const notificationData2 = {
+                      ...historyData2,
+                      args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")],
+                      read: false,
+                      taskId,
+                      folderId: folder._id,
+                    };
                    if (usersNotifications.notifications.length > 0){
-                      editNotifications(assigned._id, {
-                        date: moment().unix(),
-                        from: userId,
-                        message: `set the start date of the task "${name}" from ${moment.unix(oldStart).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      });
-                       editNotifications(assigned._id, {
-                         date: moment().unix(),
-                         from: userId,
-                         message: `set the end date of the task "${name}" from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                         read: false,
-                         taskId,
-                         folderId: folder._id,
-                       });
+                      editNotifications(assigned._id, notificationData1);
+                       editNotifications(assigned._id, notificationData2);
                     } else {
-                      addNewNotification(assigned._id, [{
-                        date: moment().unix(),
-                        from: userId,
-                        message: `set the start date of the task "${name}" from ${moment.unix(oldStart).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      }, {
-                        date: moment().unix(),
-                        from: userId,
-                        message: `set the end date of the task "${name}" from ${moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss")} to ${moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")}`,
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      }]);
+                      addNewNotification(assigned._id, [notificationData1, notificationData2]);
                     }
                   })
                 }
@@ -1249,7 +1228,7 @@ export default function TaskForm( props ) {
               setOpenDatetime(false);
             }}
             >
-            Save
+            {translations[language].save}
           </FullButton>
         </ButtonRow>
       </section>
@@ -1271,7 +1250,7 @@ export default function TaskForm( props ) {
           type="number"
           name="hours"
           id="hours"
-          placeholder={closed ? "Unset" : "Hours"}
+          placeholder={closed ? translations[language].unset : translations[language].hours}
           value={hours}
           disabled={closed}
           onChange={(e) => {
@@ -1279,18 +1258,16 @@ export default function TaskForm( props ) {
             setHours(e.target.value);
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {hours: e.target.value});
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: oldHours ? CHANGE_HOURS : SET_HOURS,
+                args: oldHours ? [oldHours, e.target.value] : [e.target.value],
+              }
               if (history.length === 0){
-                addNewHistory(taskId, [{
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: oldHours ? `changed the hours attribute of this task from ${oldHours} to ${e.target.value}.` :  `set the hours attribute of this task to ${e.target.value}.`  ,
-                }]);
+                addNewHistory(taskId, [historyData]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: oldHours ? `changed the hours attribute of this task from ${oldHours} to ${e.target.value}.` :  `set the hours attribute of this task to ${e.target.value}.`  ,
-                });
+                editHistory(history[0]._id, historyData);
               }
 
               if (assigned.length > 0){
@@ -1298,24 +1275,18 @@ export default function TaskForm( props ) {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
+
+                  const notificationData = {
+                    ...historyData,
+                    args: oldHours ? [name, oldHours, e.target.value] : [name, e.target.value],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: oldHours ? `changed the hours attribute ofthe task "${name}" from ${oldHours} to ${e.target.value}.` :  `set the hours attribute of the task "${name}" to ${e.target.value}.`  ,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: oldHours ? `changed the hours attribute of the task "${name}" from ${oldHours} to ${e.target.value}.` :  `set the hours attribute of the task "${name}" to ${e.target.value}.`  ,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -1323,6 +1294,23 @@ export default function TaskForm( props ) {
           }}
           />
       </section>
+{
+  false &&
+      <Repeat
+        {...props}
+        taskId={taskId ? taskId : null}
+        repeat={repeat}
+        setRepeat={(newRepeat) => {
+          if (repeat._id){
+            editRepeatInTask(taskRepeat, {...newRepeat, repeatStart: startDatetime}, allTasks) ;
+          } else {
+            addRepeatToTask(taskId, {...newRepeat, repeatStart: startDatetime});
+          }
+          setRepeat(newRepeat);
+        }
+      }
+        />
+    }
 
       <section className="inline">
         <span className="icon-container">
@@ -1335,7 +1323,7 @@ export default function TaskForm( props ) {
         </span>
         <Textarea
           type="text"
-          placeholder={closed ? "No description" : "Write description"}
+          placeholder={closed ? translations[language].noDescription : translations[language].writeDescription}
           value={newDescription ? newDescription : description}
           disabled={closed}
           onFocus={() => {
@@ -1352,42 +1340,33 @@ export default function TaskForm( props ) {
                   setDescription(newDescription);
                   updateSimpleAttribute(taskId, {description: newDescription});
                   setDescriptionInFocus(false);
+                  const historyData = {
+                    dateCreated: moment().unix(),
+                    user: userId,
+                    type: DESCRIPTION,
+                    args: [newDescription],
+                  };
                   if (history.length === 0){
-                    addNewHistory(taskId, [ {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      message: "changed the description to ${newDescription}." ,
-                    }]);
+                    addNewHistory(taskId, [ historyData ]);
                   } else {
-                    editHistory(history[0]._id, {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      message: "changed the description to ${newDescription}." ,
-                    });
+                    editHistory(history[0]._id, historyData);
                   }
                   if (assigned.length > 0){
                     assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                       let usersNotifications = NotificationsCollection.findOne( {
                         _id: assigned._id,
                       } );
+                      const notificationData = {
+                        ...historyData,
+                        args: [name],
+                        read: false,
+                        taskId,
+                        folderId: folder._id,
+                      };
                      if (usersNotifications.notifications.length > 0){
-                        editNotifications(assigned._id, {
-                          date: moment().unix(),
-                          from: userId,
-                          message: `changed the description of the task "${name}".` ,
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        })
+                        editNotifications(assigned._id, notificationData);
                       } else {
-                        addNewNotification(assigned._id, [{
-                          date: moment().unix(),
-                          from: userId,
-                          message: `changed the description of the task "${name}".` ,
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        }])
+                        addNewNotification(assigned._id, [notificationData]);
                       }
                     })
                   }
@@ -1429,42 +1408,33 @@ export default function TaskForm( props ) {
               setDescription(newDescription);
               updateSimpleAttribute(taskId, {description: newDescription});
               setDescriptionInFocus(false);
+              const historyData = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: DESCRIPTION,
+                args: [newDescription],
+              };
               if (history.length === 0){
-                addNewHistory(taskId, [{
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: "changed the description to ${newDescription}." ,
-                }]);
+                addNewHistory(taskId, [historyData]);
               } else {
-                editHistory(history[0]._id, {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  message: "changed the description to ${newDescription}." ,
-                });
+                editHistory(history[0]._id, historyData);
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
+                  const notificationData = {
+                    ...historyData,
+                    args: [name],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, {
-                      date: moment().unix(),
-                      from: userId,
-                      message: `changed the description of the task "${name}".` ,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    })
+                    editNotifications(assigned._id, notificationData)
                   } else {
-                    addNewNotification(assigned._id, [{
-                      date: moment().unix(),
-                      from: userId,
-                      message: `changed the description of the task "${name}".` ,
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    }])
+                    addNewNotification(assigned._id, [notificationData])
                   }
                 })
               }
@@ -1502,42 +1472,33 @@ export default function TaskForm( props ) {
                     if ( !addNewTask ) {
                       const oldFile = file;
                       updateSimpleAttribute(taskId, {files: files.filter(f => f.dateCreated !== file.dateCreated)});
+                      const historyData = {
+                        dateCreated: moment().unix(),
+                        user: userId,
+                        type: REMOVE_FILE,
+                        args: [oldFile.name],
+                      };
                       if (history.length === 0){
-                        addNewHistory(taskId, [ {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          message: `removed the file "${oldFile.name}".`
-                        }]);
+                        addNewHistory(taskId, [historyData]);
                       } else {
-                        editHistory(history[0]._id, {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          message: `removed the file "${oldFile.name}".`
-                        });
+                        editHistory(history[0]._id, historyData);
                       }
                       if (assigned.length > 0){
                         assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                           let usersNotifications = NotificationsCollection.findOne( {
                             _id: assigned._id,
                           } );
+                          const notificationData = {
+                            ...historyData,
+                            args: [oldFile.name, name],
+                            read: false,
+                            taskId,
+                            folderId: folder._id,
+                          };
                          if (usersNotifications.notifications.length > 0){
-                            editNotifications(assigned._id, {
-                              date: moment().unix(),
-                              from: userId,
-                              message: `removed the file "${oldFile.name}" from the task "${name}".`,
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            })
+                            editNotifications(assigned._id, notificationData)
                           } else {
-                            addNewNotification(assigned._id, [{
-                              date: moment().unix(),
-                              from: userId,
-                              message: `removed the file "${oldFile.name}" from the task "${name}".`,
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            }])
+                            addNewNotification(assigned._id, [notificationData])
                           }
                         })
                       }
@@ -1562,7 +1523,7 @@ export default function TaskForm( props ) {
             closed &&
             <span className={"datetime-span" + (closed ? " closed" : "")} >
               <span>
-                No files
+                {translations[language].noFiles}
               </span>
             </span>
           }
@@ -1588,42 +1549,33 @@ export default function TaskForm( props ) {
                 setShowSpinner(false);
                 if ( !addNewTask ) {
                   updateSimpleAttribute(taskId, {files: [...files, newFile]});
+                  const historyData = {
+                    dateCreated: moment().unix(),
+                    user: userId,
+                    type: ADD_FILE,
+                    args: [newFile.name]
+                  };
                   if (history.length === 0){
-                    addNewHistory(taskId, [ {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      message: `added file "${newFile.name}".`,
-                    }]);
+                    addNewHistory(taskId, [ historyData ]);
                   } else {
-                    editHistory(history[0]._id, {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      message: `added file "${newFile.name}".`,
-                    });
+                    editHistory(history[0]._id, historyData);
                   }
                   if (assigned.length > 0){
                     assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                       let usersNotifications = NotificationsCollection.findOne( {
                         _id: assigned._id,
                       } );
+                      const notificationData = {
+                        ...historyData,
+                        args: [newFile.name, name],
+                        read: false,
+                        taskId,
+                        folderId: folder._id,
+                      };
                      if (usersNotifications.notifications.length > 0){
-                        editNotifications(assigned._id, {
-                          date: moment().unix(),
-                          from: userId,
-                          message: `added file "${newFile.name}" to the task "${name}".`,
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        })
+                        editNotifications(assigned._id, notificationData)
                       } else {
-                        addNewNotification(assigned._id, [{
-                          date: moment().unix(),
-                          from: userId,
-                          message: `added file "${newFile.name}" to the task "${name}".`,
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        }])
+                        addNewNotification(assigned._id, [notificationData])
                       }
                     })
                   }
@@ -1657,42 +1609,33 @@ export default function TaskForm( props ) {
                   onChange={() =>  {
                     const oldClosed = subtask.closed;
                     editSubtask(subtask._id, subtask.name, !subtask.closed, subtask.task, subtask.dateCreated);
+                    const historyData = {
+                      dateCreated: moment().unix(),
+                      user: userId,
+                      type: oldClosed ? SUBTASK_OPENED : SUBTASK_CLOSED,
+                      args: [subtask.name],
+                    };
                     if (history.length === 0){
-                      addNewHistory(taskId, [ {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `set the status of the subtask "${subtask.name}" to ${oldClosed ? "CLOSED" : "ACTIVE"}.`,
-                      }]);
+                      addNewHistory(taskId, [ historyData ]);
                     } else {
-                      editHistory(history[0]._id, {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `set the status of the subtask "${subtask.name}" to ${oldClosed ? "CLOSED" : "ACTIVE"}.`,
-                      });
+                      editHistory(history[0]._id, historyData);
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                         let usersNotifications = NotificationsCollection.findOne( {
                           _id: assigned._id,
                         } );
+                        const notificationData = {
+                          ...historyData,
+                          args: [subtask.name, name],
+                          read: false,
+                          taskId,
+                          folderId: folder._id,
+                        };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, {
-                            date: moment().unix(),
-                            from: userId,
-                            message: `set the status of the subtask "${subtask.name}" in the task "${name}" to ${oldClosed ? "CLOSED" : "ACTIVE"}.`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          })
+                          editNotifications(assigned._id, notificationData);
                         } else {
-                          addNewNotification(assigned._id, [{
-                            date: moment().unix(),
-                            from: userId,
-                            message: `set the status of the subtask "${subtask.name}" in the task "${name}" to ${oldClosed ? "CLOSED" : "ACTIVE"}.`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          }])
+                          addNewNotification(assigned._id, [notificationData]);
                         }
                       })
                     }
@@ -1729,42 +1672,33 @@ export default function TaskForm( props ) {
                     } else {
                       const oldName = subtask.name;
                       removeSubtask(subtask._id);
+                      const historyData =  {
+                        dateCreated: moment().unix(),
+                        user: userId,
+                        type: REMOVE_SUBTASK,
+                        args: [oldName],
+                      };
                       if (history.length === 0){
-                        addNewHistory(taskId, [ {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          message: `removed the subtask "${oldName}".`
-                        }]);
+                        addNewHistory(taskId, [ historyData ]);
                       } else {
-                        editHistory(history[0]._id, {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          message: `removed the subtask "${oldName}".`
-                        });
+                        editHistory(history[0]._id, historyData);
                       }
                       if (assigned.length > 0){
                         assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                           let usersNotifications = NotificationsCollection.findOne( {
                             _id: assigned._id,
                           } );
+                          const notificationData = {
+                            ...historyData,
+                            args: [oldName, name],
+                            read: false,
+                            taskId,
+                            folderId: folder._id,
+                          };
                           if (usersNotifications.notifications.length > 0){
-                            editNotifications(assigned._id, {
-                              date: moment().unix(),
-                              from: userId,
-                              message: `removed the subtask "${oldName}" from the task "${name}".`,
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            })
+                            editNotifications(assigned._id, notificationData);
                           } else {
-                            addNewNotification(assigned._id, [{
-                              date: moment().unix(),
-                              from: userId,
-                              message: `removed the subtask "${oldName}" from the task "${name}".`,
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            }])
+                            addNewNotification(assigned._id, [notificationData]);
                           }
                         })
                       }
@@ -1790,42 +1724,33 @@ export default function TaskForm( props ) {
                     editSubtask(subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
                     setPossibleSubtaskName("");
                     setEditedSubtask(null);
+                    const historyData = {
+                      dateCreated: moment().unix(),
+                      user: userId,
+                      type: RENAME_SUBTASK,
+                      args: [oldName, newName],
+                    };
                     if (history.length === 0){
-                      addNewHistory(taskId, [ {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `changed the subtask "${oldName}" to "${newName}".`
-                      }]);
+                      addNewHistory(taskId, [ historyData ]);
                     } else {
-                      editHistory(history[0]._id, {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `changed the subtask "${oldName}" to "${newName}".`
-                      });
+                      editHistory(history[0]._id, historyData);
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                         let usersNotifications = NotificationsCollection.findOne( {
                           _id: assigned._id,
                         } );
+                        const notificationData = {
+                          ...historyData,
+                          args: [oldName, name, newName],
+                          read: false,
+                          taskId,
+                          folderId: folder._id,
+                        };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, {
-                            date: moment().unix(),
-                            from: userId,
-                            message: `changed the subtask "${oldName}" in the task "${name}" to "${newName}".`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          })
+                          editNotifications(assigned._id, notificationData);
                         } else {
-                          addNewNotification(assigned._id, [{
-                            date: moment().unix(),
-                            from: userId,
-                            message: `changed the subtask "${oldName}" in the task "${name}" to "${newName}".`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          }])
+                          addNewNotification(assigned._id, [notificationData]);
                         }
                       })
                     }
@@ -1846,7 +1771,7 @@ export default function TaskForm( props ) {
             closed &&
             <span className={"datetime-span" + (closed ? " closed" : "")} >
               <span>
-                No subtasks
+                {translations[language].noSubtasks}
               </span>
             </span>
           }
@@ -1864,7 +1789,7 @@ export default function TaskForm( props ) {
                   src={PlusIcon}
                   alt="Plus icon not found"
                   />
-                Subtask
+                {translations[language].subtask}
               </LinkButton>
             </InlineInput>
           }
@@ -1877,7 +1802,7 @@ export default function TaskForm( props ) {
               <input
                 id={`add-task`}
                 type="text"
-                placeholder="New task"
+                placeholder={translations[language].newTask}
                 disabled={closed}
                 value={newSubtaskName}
                 onChange={(e) => setNewSubtaskName(e.target.value)}
@@ -1900,42 +1825,33 @@ export default function TaskForm( props ) {
                   e.preventDefault();
                   if (!addNewTask){
                     addNewSubtask( newSubtaskName, false, taskId, moment().unix() );
+                    const historyData = {
+                      dateCreated: moment().unix(),
+                      user: userId,
+                      type: ADD_SUBTASK,
+                      args: [newSubtaskName],
+                    };
                     if (history.length === 0){
-                      addNewHistory(taskId, [{
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `added the subtask "${newSubtaskName}".`
-                      }]);
+                      addNewHistory(taskId, [historyData]);
                     } else {
-                      editHistory(history[0]._id, {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        message: `added the subtask "${newSubtaskName}".`
-                      });
+                      editHistory(history[0]._id, historyData);
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                         let usersNotifications = NotificationsCollection.findOne( {
                           _id: assigned._id,
                         } );
+                        const notificationData = {
+                          ...historyData,
+                          args: [newSubtaskName, name],
+                          read: false,
+                          taskId,
+                          folderId: folder._id,
+                        };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, {
-                            date: moment().unix(),
-                            from: userId,
-                            message: `added the subtask "${newSubtaskName}" to the task "${name}".`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          })
+                          editNotifications(assigned._id, notificationData);
                         } else {
-                          addNewNotification(assigned._id, [{
-                            date: moment().unix(),
-                            from: userId,
-                            message: `added the subtask "${newSubtaskName}" to the task "${name}".`,
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          }])
+                          addNewNotification(assigned._id, [notificationData])
                         }
                       })
                     }
@@ -1976,7 +1892,7 @@ export default function TaskForm( props ) {
             setShowComments(false);
           }}
           >
-          History
+          {translations[language].history}
         </LinkButton>
       </section>
 
@@ -2014,42 +1930,33 @@ export default function TaskForm( props ) {
                 e.preventDefault();
                 const dateCreated = moment().unix();
                 addNewComment(userId, taskId, dateCreated, newCommentBody);
+                const historyData = {
+                  dateCreated,
+                  user: userId,
+                  type: ADD_COMMENT,
+                  args: [],
+                };
                 if (history.length === 0){
-                  addNewHistory(taskId, [{
-                    dateCreated,
-                    user: userId,
-                    message: "added a new comment.",
-                  }]);
+                  addNewHistory(taskId, [historyData]);
                 } else {
-                  editHistory(history[0]._id, {
-                    dateCreated,
-                    user: userId,
-                    message: "added a new comment.",
-                  });
+                  editHistory(history[0]._id, historyData);
                 }
                 if (assigned.length > 0){
                   assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                     let usersNotifications = NotificationsCollection.findOne( {
                       _id: assigned._id,
                     } );
+                    const notificationData = {
+                      ...historyData,
+                      args: [name],
+                      read: false,
+                      taskId,
+                      folderId: folder._id,
+                    };
                    if (usersNotifications.notifications.length > 0){
-                      editNotifications(assigned._id, {
-                        date: moment().unix(),
-                        from: userId,
-                        message: `added a new comment to the task "${name}".`,
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      })
+                      editNotifications(assigned._id, notificationData);
                     } else {
-                      addNewNotification(assigned._id, [{
-                        date: moment().unix(),
-                        from: userId,
-                        message: `added a new comment to the task "${name}".`,
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      }])
+                      addNewNotification(assigned._id, [notificationData]);
                     }
                   })
                 }
@@ -2092,42 +1999,33 @@ export default function TaskForm( props ) {
                       onClick={(e) => {
                         e.preventDefault();
                         setEditedComment(comment._id ? comment._id : comment.dateCreated);
+                        const historyData = {
+                          dateCreated: moment().unix(),
+                          user: userId,
+                          type: EDIT_COMMENT,
+                          args: [],
+                        };
                         if (history.length === 0){
-                          addNewHistory(taskId, [{
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "edited a comment."
-                          }]);
+                          addNewHistory(taskId, historyData);
                         } else {
-                          editHistory(history[0]._id, {
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "edited a comment."
-                          });
+                          editHistory(history[0]._id, historyData);
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                             let usersNotifications = NotificationsCollection.findOne( {
                               _id: assigned._id,
                             } );
+                            const notificationData = {
+                              ...historyData,
+                              args: [name],
+                              read: false,
+                              taskId,
+                              folderId: folder._id,
+                            };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, {
-                                date: moment().unix(),
-                                from: userId,
-                                message: `edited a comment to the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              })
+                              editNotifications(assigned._id, notificationData);
                             } else {
-                              addNewNotification(assigned._id, [{
-                                date: moment().unix(),
-                                from: userId,
-                                message: `edited a comment to the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              }])
+                              addNewNotification(assigned._id, [notificationData]);
                             }
                           })
                         }
@@ -2148,42 +2046,33 @@ export default function TaskForm( props ) {
                       onClick={(e) => {
                         e.preventDefault();
                         removeComment(comment._id);
+                        const historyData = {
+                          dateCreated: moment().unix(),
+                          user: userId,
+                          type: REMOVE_COMMENT,
+                          args: [],
+                        };
                         if (history.length === 0){
-                          addNewHistory(taskId, [{
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "removed a comment."
-                          }]);
+                          addNewHistory(taskId, [historyData]);
                         } else {
-                          editHistory(history[0]._id, {
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "removed a comment."
-                          });
+                          editHistory(history[0]._id, historyData);
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                             let usersNotifications = NotificationsCollection.findOne( {
                               _id: assigned._id,
                             } );
+                            const notificationData = {
+                              ...historyData,
+                              args: [name],
+                              read: false,
+                              taskId,
+                              folderId: folder._id,
+                            };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, {
-                                date: moment().unix(),
-                                from: userId,
-                                message: `removed a comment in the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              })
+                              editNotifications(assigned._id, notificationData);
                             } else {
-                              addNewNotification(assigned._id, [{
-                                date: moment().unix(),
-                                from: userId,
-                                message: `removed a comment in the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              }])
+                              addNewNotification(assigned._id, [notificationData]);
                             }
                           })
                         }
@@ -2240,42 +2129,33 @@ export default function TaskForm( props ) {
                       onClick={(e) => {
                         e.preventDefault();
                         editComment(comment._id, comment.author._id, comment.task, comment.dateCreated, editedCommentBody);
+                        const historyData = {
+                          dateCreated: moment().unix(),
+                          user: userId,
+                          type: EDIT_COMMENT,
+                          args: [],
+                        }
                         if (history.length === 0){
-                          addNewHistory(taskId, [{
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "edited a comment."
-                          }]);
+                          addNewHistory(taskId, [historyData]);
                         } else {
-                          editHistory(history[0]._id, {
-                            dateCreated: moment().unix(),
-                            user: userId,
-                            message: "edited a comment."
-                          });
+                          editHistory(history[0]._id, historyData);
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                             let usersNotifications = NotificationsCollection.findOne( {
                               _id: assigned._id,
                             } );
+                            const notificationData = {
+                              ...historyData,
+                              args: [name],
+                              read: false,
+                              taskId,
+                              folderId: folder._id,
+                            };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, {
-                                date: moment().unix(),
-                                from: userId,
-                                message: `edited a comment in the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              })
+                              editNotifications(assigned._id, notificationData);
                             } else {
-                              addNewNotification(assigned._id, [{
-                                date: moment().unix(),
-                                from: userId,
-                                message: `edited a comment in the task "${name}".`,
-                                read: false,
-                                taskId,
-                                folderId: folder._id,
-                              }])
+                              addNewNotification(assigned._id, [notificationData])
                             }
                           })
                         }
@@ -2308,12 +2188,18 @@ export default function TaskForm( props ) {
           }
           {
             history.length > 0 &&
-            mappedHistory.map(change => (
+            mappedHistory.map(change => {
+              const historyEntry = historyEntryTypes.find(entry => entry.type === change.type);
+              let message = historyEntry.message[language];
+              change.args.forEach((arg, i) => {
+                message = message.replace(`[${i}]`, arg);
+              });
+              return (
               <p className="history">
                 <p>{`${moment.unix(change.dateCreated).format("D.M.YYYY HH:mm:ss")}`}</p>
-                <p>{`${change.user.label} ${change.message}`}</p>
+                <p>{`${change.user.label} ${message}`}</p>
               </p>
-            ))
+            )})
           }
         </section>
       }
@@ -2338,6 +2224,8 @@ export default function TaskForm( props ) {
                 subtasks,
                 comments,
                 files,
+                taskRepeat,
+                repeat,
                 folder._id,
                 e._id,
                 moment().unix()

@@ -1,4 +1,5 @@
 import React, {
+  useMemo,
   useState,
 }  from 'react';
 import {
@@ -6,6 +7,7 @@ import {
 } from 'meteor/meteor';
 
 import {
+  useSelector,
   useDispatch
 } from 'react-redux';
 
@@ -30,6 +32,10 @@ import {
   ButtonRow,
 } from '/imports/other/styles/styledComponents';
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function AddFilterContainer( props ) {
 
   const dispatch = useDispatch();
@@ -50,17 +56,22 @@ export default function AddFilterContainer( props ) {
   } = props;
 
   const userId = Meteor.userId();
+  const dbUsers = useSelector( ( state ) => state.users.value );
+  const language = useMemo( () => {
+    return dbUsers.find( user => user._id === userId ).language;
+  }, [ userId, dbUsers ] );
 
   const [ newFilterName, setNewFilterName] = useState("");
+
 
   return (
     <Modal isOpen={true}>
       <ModalBody>
         <Form>
-        <h2>Add filter</h2>
+        <h2>{translations[language].addFilter}</h2>
           <section className="inline">
             <span className="icon-container">
-              Name
+              {translations[language].name}
             </span>
             <Input
             id="filterName"
@@ -72,7 +83,7 @@ export default function AddFilterContainer( props ) {
             />
         </section>
         <ButtonRow>
-          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); setSaveFilter(false);}}>Cancel</FullButton>
+          <FullButton colour="grey" onClick={(e) => {e.preventDefault(); setSaveFilter(false);}}>{translations[language].cancel}</FullButton>
           <FullButton
             colour=""
             disabled={newFilterName.length === 0}
@@ -108,7 +119,7 @@ export default function AddFilterContainer( props ) {
               );
             }}
             >
-            Save
+            {translations[language].save}
           </FullButton>
         </ButtonRow>
       </Form>

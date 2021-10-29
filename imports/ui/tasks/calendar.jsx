@@ -162,10 +162,10 @@ document.onkeydown = function( e ) {
 
   <div style={{display: "flex", width: "100%"}}>
     <div className="task-list">
-      <h2>Unscheduled</h2>
+      <h2>{translations[language].unscheduled}</h2>
       {
         activeTasksWithoutDatetimes.length === 0 &&
-        <span className="message">You have no open tasks.</span>
+        <span className="message">{translations[language].noOpenTasks}</span>
       }
       {
         activeTasksWithoutDatetimes.length > 0 &&
@@ -176,7 +176,7 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => closeTask(task)}
+                onChange={() => closeTask(task, subtasks)}
                 />
               {
                 task.important &&
@@ -258,7 +258,7 @@ document.onkeydown = function( e ) {
       {
         showClosed &&
         inactiveTasksWithoutDatetimes.length === 0 &&
-        <span className="message">You have no closed tasks.</span>
+        <span className="message">{translations[language].noClosedTasks}</span>
       }
       {
         showClosed &&
@@ -270,7 +270,7 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => closeTask(task)}
+                onChange={() => closeTask(task, subtasks)}
                 />
               {
                 task.important &&

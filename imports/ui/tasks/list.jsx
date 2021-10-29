@@ -66,6 +66,7 @@ import {
 
 import {
   List,
+  FullButton,
   ItemContainer,
   LinkButton,
   Input,
@@ -152,14 +153,33 @@ document.onkeydown = function( e ) {
   }
 };
 
+/*
+
+<FullButton
+  onClick={(e) => {
+    e.preventDefault();
+    Meteor.call(
+      'sendEmail',
+      'Sonka <sona.senkovicova@gmail.com>',
+      '',
+      'Hello from Meteor!',
+      'This is a test of Email.send.'
+    );
+  }}
+  >
+  Send mail
+</FullButton>
+*/
+
   return (
     <List>
+
       <FilterSummary
         {...props}
         />
       {
         activeTasks.length === 0 &&
-        <span className="message">You have no open tasks.</span>
+        <span className="message">{translations[language].noOpenTasks}</span>
       }
 
       {
@@ -185,7 +205,7 @@ document.onkeydown = function( e ) {
               src={PlusIcon}
               alt="Plus icon not found"
               />
-            Task
+            {translations[language].task}
           </LinkButton>
         </InlineInput>
       }
@@ -238,7 +258,7 @@ document.onkeydown = function( e ) {
               id={`task_name ${task._id}`}
               type="checkbox"
               checked={task.closed}
-              onChange={() => closeTask(task)}
+              onChange={() => closeTask(task, subtasks)}
               />
             {
               task.important &&
@@ -317,7 +337,7 @@ document.onkeydown = function( e ) {
       {
         showClosed &&
         closedTasks.length === 0 &&
-        <span className="message">You have no closed tasks.</span>
+        <span className="message">{translations[language].noClosedTasks}</span>
       }
 
       {
@@ -330,7 +350,7 @@ document.onkeydown = function( e ) {
               id={`task_name ${task._id}`}
               type="checkbox"
               checked={task.closed}
-              onChange={() => closeTask(task)}
+              onChange={() => closeTask(task, subtasks)}
               />
             {
               task.important &&

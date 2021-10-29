@@ -18,6 +18,12 @@ import {
 } from './commentsHandlers';
 
 import {
+ addRepeat,
+ setRepeatTasks,
+ addRepeatTask
+} from '/imports/ui/repeats/repeatsHandlers';
+
+import {
   NO_CHANGE,
   ADDED,
   EDITED,
@@ -41,7 +47,23 @@ export const addTask = ( name, assigned, folder, dateCreated, container, onSucce
   } );
 }
 
-export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, container, dateCreated, onSuccess, onFail ) => {
+export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, repeat, folder, container, dateCreated, onSuccess, onFail ) => {
+
+  let repeatId = null;
+  if (repeat){
+    addRepeat(
+      repeat.intervalNumber,
+      repeat.intervalFrequency,
+      repeat.customInterval,
+      repeat.useCustomInterval,
+      repeat.repeatStart,
+      repeat.repeatUntil,
+      [],
+      (_id) => { repeatId = _id;},
+      (error) => console.log(error)
+    );
+  }
+
   let data = {
     name,
     important,
@@ -54,7 +76,8 @@ export const addFullTask = ( name, important, assigned, startDatetime, endDateti
     closed: false,
     folder,
     container,
-    dateCreated
+    dateCreated,
+    repeatId
   };
   TasksCollection.insert({
       ...data
@@ -68,12 +91,40 @@ export const addFullTask = ( name, important, assigned, startDatetime, endDateti
         addNewSubtask( subtask.name, subtask.closed, _id, subtask.dateCreated );
       } );
 
+      if (repeatId){
+        setRepeatTasks(repeatId, [_id]);
+      }
+
       onSuccess(_id);
     }
   } );
 }
 
-export const editTask = ( _id, name, important, assigned, deadline, hours, description, subtasks, comments, files ) => {
+export const updateSimpleAttribute = ( taskId, data ) => {
+  TasksCollection.update( taskId, {
+    $set: data
+  } );
+}
+
+export const addRepeatToTask = (taskId, repeat) => {
+  addRepeat(
+    repeat.intervalNumber,
+    repeat.intervalFrequency,
+    repeat.customInterval,
+    repeat.useCustomInterval,
+    repeat.repeatStart,
+    repeat.repeatUntil,
+    [taskId],
+    (_id) => {
+      TasksCollection.update( taskId, {
+        $set: {repeat: _id}
+      } );
+    },
+    (error) => console.log(error)
+  );
+}
+
+export const editTask = ( _id, name, important, assigned, deadline, hours, description, subtasks, comments, files, repeat ) => {
   let data = {
     name,
     important,
@@ -81,7 +132,7 @@ export const editTask = ( _id, name, important, assigned, deadline, hours, descr
     deadline,
     hours,
     description,
-    files
+    files,
   };
   TasksCollection.update( _id, {
     $set: {
@@ -121,13 +172,7 @@ export const editTask = ( _id, name, important, assigned, deadline, hours, descr
   } );
 }
 
-export const updateSimpleAttribute = ( taskId, data ) => {
-  TasksCollection.update( taskId, {
-    $set: data
-  } );
-}
-
-export const closeTask = ( task ) => {
+export const closeTask = ( task, subtasks ) => {
   let data = {
     closed: !task.closed,
   };
@@ -136,6 +181,42 @@ export const closeTask = ( task ) => {
       ...data
     }
   } );
+
+  let addAmount = task.repeat.intervalNumber;
+  let addTimeType = task.repeat.intervalFrequency;
+  const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
+  if (!task.closed && task.repeat && (newStartDatetime <= task.repeat.repeatUntil || !repeatUntil)){
+
+    let data = {
+      name: task.name,
+      important: task.important,
+      assigned: task.assigned.map(user => user._id),
+      startDatetime: newStartDatetime,
+      endDatetime: moment(task.endDatetime*1000).add(addAmount, addTimeType).unix(),
+      hours: task.hours,
+      description: task.description,
+      files: [...task.files],
+      closed: false,
+      folder: task.folder._id,
+      container: 0,
+      dateCreated: moment().unix(),
+      repeat: task.repeat._id
+    };
+    TasksCollection.insert({
+        ...data
+    }, (error, _id) => {
+      if (error){
+        console.log(error);
+      } else {
+
+        subtasks.filter( subtask => subtask.task === task._id ).forEach( ( subtask, i ) => {
+          addNewSubtask( subtask.name, false, _id, moment().unix() );
+        } );
+
+        addRepeatTask(task.repeat._id, _id);
+      }
+    } );
+  }
 }
 
 export const restoreLatestTask = ( removedTasks ) => {
@@ -159,6 +240,9 @@ export const removeTask = ( task, removedTasks, subtasks, comments ) => {
       TasksCollection.remove( {
         _id: idsToDelete[ difference - 1 ]
       } );
+      if (task.repeat){
+        removeTaskFromRepeat(task._id, task.repeat._id);
+      }
       subtasksToDelete.forEach( ( subtask, i ) => {
         removeSubtask( subtask._id );
       } );

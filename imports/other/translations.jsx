@@ -16,6 +16,7 @@ export const translations = {
     'userProf': 'User profile',
     'forgotPass': 'Forgot password',
     'accountReg': 'Account registration',
+    'close': "Close",
 
     'allFolders': 'All my tasks',
     'importantFolder': 'Important tasks',
@@ -42,6 +43,60 @@ export const translations = {
     'colour': 'Colour',
     'admin': 'Administrator',
     'user': 'User',
+
+    'saveFilter': "Save filter",
+    'applyFilter': "Apply filter",
+    'addFilter': "Add filter",
+    'nameOfTheFilter': "Name of the filter",
+    'filterByTitle': "Filter by title",
+    'filterByFolder': "Filter by folders",
+    'important': "Important",
+    'filterByAssigned': "Filter by assigned users",
+    'setDate': "Set date",
+    'setDatetime': "Set datetime",
+    'setCreatedDate': "Set created date",
+    'noStartDate': "No start date",
+    'noEndDate': "No end date",
+    'removeAllFitlers': "Remove all filters",
+
+    "confirmRemoveFolder":  "Are you sure you want to permanently remove this folder?",
+    'enterName' : "Enter name",
+    'clickToChange': "Click to change to",
+    'noArchivedFolders': "You have no archived folders",
+
+    'notifications': "Notifications",
+    'markRead': "Mark as read",
+
+    'layout': "Layout",
+    'list': "List",
+    'columns': "Columns",
+    'calendar': "Calendar",
+    'dnd': "Planner",
+    'customOrder': "Custom order",
+
+    'unscheduled': "Unscheduled",
+    'noOpenTasks': "You have no open tasks.",
+    'noClosedTasks': "You have no closed tasks.",
+
+    'addContainer': "Add new container",
+
+    'to': "To:",
+    'from': "From:",
+    'setScheduled': "Set scheduled",
+    'notScheduled': "Not scheduled",
+    'allDay': "All day event",
+    'unset': "Unset",
+    'hours': "Hours",
+    'writeDescription': "Write description",
+    'noDescription': "No description",
+    'noFiles': "No files",
+    'noSubtasks': "No subtasks",
+    'subtask': "Subtask",
+    'newTask': "New task",
+
+    'history': "History",
+
+    'repeatEvery': "Repeat every",
   },
   'sk': {
     'name': 'Meno',
@@ -85,5 +140,59 @@ export const translations = {
     'colour': 'Farba',
     'admin': 'Administrátor',
     'user': 'Používateľ',
+
+    'saveFilter': "Uložiť filter",
+    'applyFilter': "Aplikovať filter",
+    'addFilter': "Pridať filter",
+    'nameOfTheFilter': "Názov filtra",
+    'filterByTitle': "Filtrovať podľa názvu",
+    'filterByFolder': "Filtrovať podľa priečinka",
+    'important': "Dôležité",
+    'filterByAssigned': "Filtrovať podľa riešiteľov",
+    'setDate': "Nastaviť dátum",
+    'setDatetime': "Nastaviť dátum a čas",
+    'setCreatedDate': "Nastaviť čas vytvorenia",
+    'noStartDate': "Nešpecifikovaný začiatok",
+    'noEndDate': "Nešpecifikovaný koniec",
+    'removeAllFitlers': "Zrušiť filtre",
+
+    "confirmRemoveFolder":  "Ste si istý, že chcete vymazať tento priečinok?",
+    'enterName' : "Zvoľte názov",
+    'clickToChange': "Kliknite pre zmenenie na",
+    'noArchivedFolders': "Nemáte žiadne archivované priečinky",
+
+    'notifications': "Notifikácie",
+    'markRead': "Označiť ako prečítané",
+
+    'layout': "Vzhľad",
+    'list': "Zoznam",
+    'columns': "Trojstĺpec",
+    'calendar': "Kalendár",
+    'dnd': "Plánovač",
+    'customOrder': "Vlastné poradie",
+
+    'unscheduled': "Nenaplánované",
+    'noOpenTasks': "Namáte žiadne otvorené úlohy.",
+    'noClosedTasks': "Nemáte žiadne uzavreté úlohy.",
+
+    'addContainer': "Pridať nový kontajner",
+
+    'to': "Do:",
+    'from': "Od:",
+    'setScheduled': "Nastaviť naplánovanie",
+    'notScheduled': "Nenaplánované",
+    'allDay': "Celý deň",
+    'unset': "Nenastavené",
+    'hours': "Hodiny",
+    'writeDescription': "Napíšte popis",
+    'noDescription': "Žiadny popis",
+    'noFiles': "Žiadne súbory",
+    'noSubtasks': "Žiadny podúlohy",
+    'subtask': "Podúloha",
+    'newTask': "Nová úloha",
+
+    'history': "História",
+
+    'repeatEvery': "Opakovať každý",
   }
 }

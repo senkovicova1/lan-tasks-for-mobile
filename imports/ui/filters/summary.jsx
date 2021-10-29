@@ -34,6 +34,10 @@ import {
   LinkButton,
 } from '/imports/other/styles/styledComponents';
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function FilterSummary( props ) {
 
   const dispatch = useDispatch();
@@ -49,6 +53,9 @@ export default function FilterSummary( props ) {
     filterID
   } = match.params;
 
+  const userId = Meteor.userId();
+  const dbUsers = useSelector( ( state ) => state.users.value );
+
   const {
     filter
   } = useSelector( ( state ) => state.metadata.value );
@@ -60,6 +67,13 @@ export default function FilterSummary( props ) {
               (filter.datetimeMin || filter.datetimeMax ? 1 : 0) +
               (filter.dateCreatedMin || filter.dateCreatedMax ? 1 : 0);
   }, [filter]);
+
+  const language = useMemo( () => {
+    if (dbUsers.length > 0){
+      return dbUsers.find( user => user._id === userId ).language;
+    }
+    return "en";
+  }, [ userId, dbUsers ] );
 
   if (numberOfFilters > 0){
 
@@ -150,7 +164,7 @@ export default function FilterSummary( props ) {
             src={CalendarIcon}
             alt="CalendarIcon icon not found"
             />
-          <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY") : "No start date"} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY") : "No end date"}`}</label>
+          <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY") : translations[language].noStartDate} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY") : translations[language].noEndDate}`}</label>
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
@@ -176,7 +190,7 @@ export default function FilterSummary( props ) {
             src={AsteriskIcon}
             alt="AsteriskIcon icon not found"
             />
-          <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY") : "No start date"} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY") : "No end date"}`}</label>
+          <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY") : translations[language].noStartDate} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY") : translations[language].noEndDate}`}</label>
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
@@ -210,7 +224,7 @@ export default function FilterSummary( props ) {
             }));
           }}
           >
-          Remove all filters
+          {translations[language].removeAllFitlers}
         </LinkButton>
       }
     </AppliedFilter>

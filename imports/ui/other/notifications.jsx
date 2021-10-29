@@ -30,6 +30,37 @@ import {
   Notifications,
 } from '/imports/other/styles/styledComponents';
 
+import {
+  CLOSED_STATUS,
+  OPEN_STATUS,
+  TITLE,
+  IMPORTANT,
+  NOT_IMPORTANT,
+  CONTAINER,
+  ASSIGNED,
+  REMOVED_START_END,
+  SET_START,
+  SET_END,
+  SET_HOURS,
+  CHANGE_HOURS,
+  DESCRIPTION,
+  REMOVE_FILE,
+  ADD_FILE,
+  SUBTASK_CLOSED,
+  SUBTASK_OPENED,
+  REMOVE_SUBTASK,
+  RENAME_SUBTASK,
+  ADD_SUBTASK,
+  ADD_COMMENT,
+  EDIT_COMMENT,
+  REMOVE_COMMENT,
+ notificationTypes
+} from '/imports/other/messages';
+
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function NotificationsList( props ) {
 
   const dispatch = useDispatch();
@@ -40,6 +71,13 @@ export default function NotificationsList( props ) {
   } = props;
 
   const userId = Meteor.userId();
+  const dbUsers = useSelector( ( state ) => state.users.value );
+    const language = useMemo( () => {
+      if (dbUsers.length > 0){
+      return dbUsers.find( user => user._id === userId ).language;
+    }
+    return "en";
+    }, [ userId, dbUsers ] );
 
     const {
       layout
@@ -47,21 +85,28 @@ export default function NotificationsList( props ) {
   const {
     notifications
   } = useSelector( ( state ) => state.notifications.value );
-    const dbUsers = useSelector( ( state ) => state.users.value );
 
     const mappedNotifications = useMemo(() => {
       if (!notifications || (notifications && notifications.length === 0) || !dbUsers || ( dbUsers && dbUsers.length === 0)){
         return [];
       }
       return notifications.map(notif => {
-        const fromIndex = notif.message.indexOf('the task');
-        const taskNameStart = notif.message.indexOf('"', fromIndex);
-        const taskNameEnd = notif.message.indexOf('"', taskNameStart + 1);
+
+        const notificationType = notificationTypes.find(type => type.type === notif.type);
+        let message = notificationType.message[language];
+
+        notif.args.forEach((arg, i) => {
+          message = message.replace(`[${i}]`, arg);
+        });
+
+        const fromIndex = message.indexOf( language === "en" ? 'the task' : " úloh");
+        const taskNameStart = message.indexOf("'", fromIndex);
+        const taskNameEnd = message.indexOf("'", taskNameStart + 1);
+        const user = dbUsers.find(user => user._id === notif.user);
         return ({
         ...notif,
-        from: dbUsers.find(user => user._id === notif.from),
         note: <p>
-        {`${notif.from.label} ${notif.message.slice(0, taskNameStart)}`}
+        {`${user.label} ${message.slice(0, taskNameStart)}`}
          <span
            className="link"
            onClick={() => {
@@ -72,37 +117,39 @@ export default function NotificationsList( props ) {
              history.push("/all/list");
            }}
            >
-           {notif.message.slice(taskNameStart, taskNameEnd + 1)}
+           {message.slice(taskNameStart, taskNameEnd + 1)}
          </span>
-         {notif.message.slice(taskNameEnd + 1)}
+         {message.slice(taskNameEnd + 1)}
        </p>
       })
-    }).reverse();
+    }
+
+  ).reverse();
     }, [notifications, dbUsers]);
 
   return (
     <Notifications>
       <div className="header">
       <h2>
-        Notifications
+        {translations[language].notifications}
       </h2>
       <LinkButton
         fit={true}
         className="left"
         onClick={() => {markAllRead(userId, notifications)}}
         >
-        Mark as read
+          {translations[language].markRead}
       </LinkButton>
     </div>
       {
-        mappedNotifications.map(notification => (
+        mappedNotifications.map((notification, index) => (
           <div
             className="notification"
-            key={notification.date + notification.message}
+            key={notification.date + notification.type + index}
             >
             <p>
               <span>
-                {`${moment.unix(notification.date).format("D.M.YYYY HH:mm:ss")}`}
+                {`${moment.unix(notification.dateCreated).format("D.M.YYYY HH:mm:ss")}`}
               </span>
               <Input
                 type="checkbox"

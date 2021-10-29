@@ -224,6 +224,8 @@ export default function TasksContainer( props ) {
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
+          subtasks={subtasks}
+          comments={comments}
           folder={folder}
           />
     );
@@ -236,6 +238,8 @@ export default function TasksContainer( props ) {
           tasksWithAdvancedFilters={tasksWithAdvancedFilters}
           removedTasks={removedTasks}
           folder={folder}
+          subtasks={subtasks}
+          comments={comments}
           />
     );
   }
@@ -261,6 +265,8 @@ export default function TasksContainer( props ) {
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
+          subtasks={subtasks}
+          comments={comments}
           folder={folder}
           />
       </div>

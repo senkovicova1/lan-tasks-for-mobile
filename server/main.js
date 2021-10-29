@@ -26,12 +26,32 @@ import {
   NotificationsCollection
 } from '/imports/api/notificationsCollection';
 import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+import {
   UsersCollection
 } from '/imports/api/usersCollection';
 import {
   WebApp
 } from 'meteor/webapp';
 
+Meteor.methods( {
+  sendEmail( to, from, subject, text ) {
+    // Make sure that all arguments are strings.
+    check( [ to, from, subject, text ], [ String ] );
+
+    // Let other method calls from the same client start running, without
+    // waiting for the email sending to complete.
+    this.unblock();
+
+    Email.send( {
+      to,
+      from,
+      subject,
+      text
+    } );
+  }
+} );
 
 WebApp.rawConnectHandlers.use( function( req, res, next ) {
   res.setHeader( "Access-Control-Allow-Origin", "*" );

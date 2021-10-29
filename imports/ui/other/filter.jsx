@@ -46,6 +46,10 @@ import {
   ButtonRow,
 } from '/imports/other/styles/styledComponents';
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function Filter( props ) {
 
     const dispatch = useDispatch();
@@ -62,7 +66,15 @@ export default function Filter( props ) {
       filter
     } = useSelector( ( state ) => state.metadata.value );
 
+    const userId = Meteor.userId();
     const users = useSelector( ( state ) => state.users.value );
+      const language = useMemo( () => {
+        if (users .length > 0){
+        return users.find( user => user._id === userId ).language;
+      }
+      return "en";
+      }, [ userId, users ] );
+
       const folders = useSelector( ( state ) => state.folders.value );
 
       const [ newFilter, setNewFilter] = useState();
@@ -115,7 +127,7 @@ export default function Filter( props ) {
               type="text"
               name="title"
               id="title"
-              placeholder="Filter by title"
+              placeholder={translations[language].filterByTitle}
               value={newSearch}
               onChange={(e) => {
                 setNewSearch( e.target.value );
@@ -139,7 +151,7 @@ export default function Filter( props ) {
                 <Select
                   id="folder"
                   name="folder"
-                  placeholder="Filter by folders"
+                  placeholder={translations[language].filterByFolder}
                   isMulti
                   styles={selectStyle}
                   value={newFilter.folders}
@@ -180,7 +192,7 @@ export default function Filter( props ) {
                 />
             }
             <span style={{marginLeft: "10px"}}>
-              Important
+              {translations[language].important}
             </span>
           </LinkButton>
         </section>
@@ -199,7 +211,7 @@ export default function Filter( props ) {
               id="assigned"
               name="assigned"
               styles={selectStyle}
-              placeholder="Filter by assigned users"
+              placeholder={translations[language].filterByAssigned}
               value={newFilter.assigned}
               isMulti
               onChange={(e) => {
@@ -267,7 +279,7 @@ export default function Filter( props ) {
               name="datetimeMax"
               id="datetimeMax"
               inputProps={{
-              placeholder: 'Set date',
+              placeholder: translations[language].setDate,
               }}
               onChange={(date) => {
                 date.hours(23).minutes(59).seconds(59);
@@ -313,7 +325,7 @@ export default function Filter( props ) {
             name="dateCreated"
             id="dateCreated"
             inputProps={{
-            placeholder: 'Set created date',
+            placeholder: translations[language].setCreatedDate,
             }}
             onChange={(date) => {
               if (typeof date !== "string"){
@@ -352,7 +364,7 @@ export default function Filter( props ) {
               name="dateCreated"
               id="dateCreated"
               inputProps={{
-              placeholder: 'Set created date',
+              placeholder: translations[language].setCreatedDate,
               }}
               onChange={(date) => {
                 date.hours(23).minutes(59).seconds(59);
@@ -393,7 +405,7 @@ export default function Filter( props ) {
               setSaveFilter(true);
             }}
             >
-            Save filter
+            {translations[language].saveFilter}
           </LinkButton>
           <FullButton
             onClick={(e) => {
@@ -403,7 +415,7 @@ export default function Filter( props ) {
               setOpenFilter(false);
             }}
             >
-            Apply filter
+            {translations[language].applyFilter}
           </FullButton>
         </ButtonRow>
 

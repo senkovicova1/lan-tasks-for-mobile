@@ -59,6 +59,10 @@ import {
   ButtonRow,
 } from '/imports/other/styles/styledComponents';
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function FilterForm( props ) {
 
   const dispatch = useDispatch();
@@ -79,6 +83,10 @@ export default function FilterForm( props ) {
 
   const folders = useSelector( ( state ) => state.folders.value );
   const users = useSelector( ( state ) => state.users.value );
+
+  const language = useMemo( () => {
+    return users.find( user => user._id === userId ).language;
+  }, [ userId, users ] );
 
   const [ newFilterName, setNewFilterName] = useState(filter.name);
   const [ newFilter, setNewFilter] = useState({});
@@ -119,13 +127,13 @@ export default function FilterForm( props ) {
 
         <section className="inline">
           <span className="icon-container">
-            Name
+            {translations[language].name}
           </span>
           <Input
             type="text"
             name="name"
             id="name"
-            placeholder="Name of the filter"
+            placeholder={translations[language].nameOfTheFilter}
             value={newFilterName}
             onChange={(e) => {
               setNewFilterName( e.target.value );
@@ -146,7 +154,7 @@ export default function FilterForm( props ) {
             type="text"
             name="title"
             id="title"
-            placeholder="Filter by title"
+            placeholder={translations[language].filterByTitle}
             value={newFilter.title}
             onChange={(e) => {
               setNewFilter({...newFilter, title: e.target.value});
@@ -167,7 +175,7 @@ export default function FilterForm( props ) {
               <Select
                 id="folder"
                 name="folder"
-                placeholder="Filter by folders"
+                placeholder={translations[language].filterByFolder}
                 isMulti
                 styles={selectStyle}
                 value={newFilter.folders}
@@ -207,7 +215,7 @@ export default function FilterForm( props ) {
               />
           }
           <span style={{marginLeft: "10px"}}>
-            Important
+            {translations[language].important}
           </span>
         </LinkButton>
       </section>
@@ -226,7 +234,7 @@ export default function FilterForm( props ) {
             id="assigned"
             name="assigned"
             styles={selectStyle}
-            placeholder="Filter by assigned users"
+            placeholder={translations[language].filterByAssigned}
             value={newFilter.assigned}
             isMulti
             onChange={(e) => {
@@ -254,7 +262,7 @@ export default function FilterForm( props ) {
           name="datetimeMin"
           id="datetimeMin"
           inputProps={{
-          placeholder: 'Set datetime',
+          placeholder: translations[language].setDatetime,
           }}
           onChange={(date) => {
             if (typeof date !== "string"){
@@ -294,7 +302,7 @@ export default function FilterForm( props ) {
             name="datetimeMax"
             id="datetimeMax"
             inputProps={{
-            placeholder: 'Set datetime',
+            placeholder: translations[language].setDatetime,
             }}
             onChange={(date) => {
               if (typeof date !== "string"){
@@ -339,7 +347,7 @@ export default function FilterForm( props ) {
           name="dateCreated"
           id="dateCreated"
           inputProps={{
-          placeholder: 'Set created date',
+          placeholder:  translations[language].setCreatedDate,
           }}
           onChange={(date) => {
             if (typeof date !== "string"){
@@ -378,7 +386,7 @@ export default function FilterForm( props ) {
             name="dateCreated"
             id="dateCreated"
             inputProps={{
-            placeholder: 'Set created date',
+            placeholder: translations[language].setCreatedDate,
             }}
             onChange={(date) => {
               if (typeof date !== "string"){
@@ -412,8 +420,8 @@ export default function FilterForm( props ) {
       </section>
 
       <ButtonRow>
-        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); cancel();}}>Cancel</FullButton>
-        <FullButton colour="red" onClick={(e) => {e.preventDefault(); remove();}}>Remove</FullButton>
+        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); cancel();}}>{translations[language].cancel}</FullButton>
+        <FullButton colour="red" onClick={(e) => {e.preventDefault(); remove();}}>{translations[language].delete}</FullButton>
         <FullButton
           colour=""
           disabled={newFilterName.length === 0}
@@ -434,7 +442,7 @@ export default function FilterForm( props ) {
             );
           }}
           >
-          Save
+          {translations[language].save}
         </FullButton>
       </ButtonRow>
     </Form>

@@ -28,6 +28,7 @@ import {
 import {
   colours
 } from '/imports/other/constants';
+
 import {
   translations
 } from '/imports/other/translations';
@@ -47,9 +48,8 @@ export default function FolderForm( props ) {
     location
   } = props;
 
-  const dbUsers = useSelector( ( state ) => state.users.value );
-
   const userId = Meteor.userId();
+  const dbUsers = useSelector( ( state ) => state.users.value );
 
   const [ name, setName ] = useState( "" );
   const [ archived, setArchived ] = useState( false );
@@ -101,7 +101,10 @@ export default function FolderForm( props ) {
   }, [ dbUsers, users ] );
 
   const language = useMemo( () => {
+    if (dbUsers.length > 0){
     return dbUsers.find( user => user._id === userId ).language;
+  }
+  return "en";
   }, [ userId, dbUsers ] );
 
   document.onkeydown = function( e ) {
@@ -132,7 +135,7 @@ export default function FolderForm( props ) {
           id="name"
           name="name"
           type="text"
-          placeholder="Enter name"
+          placeholder={translations[language].enterName}
           value={name}
           onChange={(e) => setName(e.target.value)}
           />
@@ -206,7 +209,7 @@ export default function FolderForm( props ) {
                   }}
                   >
                   {user.admin ? translations[language].admin : translations[language].user}
-                  { user._id !== userId && ` (Click to change to ${user.admin ? translations[language].user : translations[language].admin})` }
+                  { user._id !== userId && ` (${translations[language].clickToChange} ${user.admin ? translations[language].user : translations[language].admin})` }
                 </label>
               </div>
               {

@@ -297,7 +297,7 @@ const addQuickTask = (containerId) => {
                           style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em", width: container._id !== 0 ? "300px" : "400px"}}
                           className="thin-placeholder truly-invisible"
                           id={`header-${container.label}-${container._id}`}
-                          placeholder="Add new container"
+                          placeholder={translations[language].addContainer}
                           disabled={container._id === 0}
                           type="text"
                           value={container.label}
@@ -326,7 +326,7 @@ const addQuickTask = (containerId) => {
                                 src={PlusIcon}
                                 alt="Plus icon not found"
                                 />
-                              Task
+                              {translations[language].task}
                             </LinkButton>
                           </InlineInput>
                         }
@@ -407,7 +407,7 @@ const addQuickTask = (containerId) => {
                                             type="checkbox"
                                             checked={task.closed}
                                             onClickCapture={(e) => {
-                                              closeTask(task);
+                                              closeTask(task, subtasks);
                                               e.stopPropagation();
                                             }}
                                             />
@@ -513,7 +513,7 @@ const addQuickTask = (containerId) => {
                                           type="checkbox"
                                           checked={task.closed}
                                           onClickCapture={(e) => {
-                                            closeTask(task);
+                                            closeTask(task, subtasks);
                                             e.stopPropagation();
                                           }}
                                           />

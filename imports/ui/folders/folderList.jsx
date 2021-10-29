@@ -20,6 +20,10 @@ import {
   ItemContainer
 } from "../../other/styles/styledComponents";
 
+import {
+  translations
+} from '/imports/other/translations';
+
 export default function FolderList( props ) {
 
   const {
@@ -27,7 +31,15 @@ export default function FolderList( props ) {
     history,
   } = props;
 
-  const userId = Meteor.userId();
+    const userId = Meteor.userId();
+    const dbUsers = useSelector( ( state ) => state.users.value );
+      const language = useMemo( () => {
+        if (dbUsers.length > 0){
+        return dbUsers.find( user => user._id === userId ).language;
+      }
+      return "en";
+      }, [ userId, dbUsers ] );
+
   const {
     search
   } = useSelector( ( state ) => state.metadata.value );
@@ -43,7 +55,7 @@ export default function FolderList( props ) {
     <List>
       {
         mySearchedFolders.length === 0 &&
-        <span className="message">You have no archived folders</span>
+        <span className="message">{translations[language].noArchivedFolders}</span>
       }
       {
         mySearchedFolders.map(folder =>

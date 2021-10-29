@@ -59,6 +59,7 @@ export default function EditTaskContainer( props ) {
       match={props.match}
       language={language}
       onCancel={close}
+      allTasks={tasks}
       />
   );
 };

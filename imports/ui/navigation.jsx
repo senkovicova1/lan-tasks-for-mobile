@@ -42,6 +42,10 @@ import {
 } from '/imports/api/notificationsCollection';
 
 import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+
+import {
   setNotifications
 } from '/imports/redux/notificationsSlice';
 
@@ -162,6 +166,7 @@ export default function MainPage( props ) {
     );
   }, [ users ] );
 
+  const repeats = useTracker( () => RepeatsCollection.find( {} ).fetch() );
   const foldersIds = folders.map( folder => folder._id );
   const tasks = useTracker( () => TasksCollection.find( {
     folder: {
@@ -176,6 +181,7 @@ export default function MainPage( props ) {
           return {
             ...task,
             folder: folders.find( folder => folder._id === task.folder ),
+            repeat: repeats.find(repeat => repeat._id === task.repeat),
             container: task.container ? task.container : 0,
             assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.map(user => ({
               _id: user._id,
@@ -204,7 +210,7 @@ export default function MainPage( props ) {
     } else {
       dispatch( setTasks( [] ) );
     }
-  }, [ folders, tasks, users ] );
+  }, [ folders, tasks, users, repeats ] );
 
   const tasksIds = tasks.map( task => task._id );
   const subtasks = useTracker( () => SubtasksCollection.find( {
