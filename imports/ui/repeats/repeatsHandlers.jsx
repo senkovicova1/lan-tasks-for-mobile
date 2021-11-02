@@ -2,6 +2,10 @@ import React from 'react';
 import moment from 'moment';
 
 import {
+  useSelector
+} from 'react-redux';
+
+import {
   RepeatsCollection
 } from '/imports/api/repeatsCollection';
 
@@ -44,15 +48,22 @@ export const addRepeatTask = ( _id, task ) => {
   } );
 }
 
-export const removeTaskFromRepeat = ( taskId, repeatId ) => {
-  RepeatsCollection.update( repeatId, {
-    $pull: {
-      tasks: taskId
-    }
-  } );
+export const removeTaskFromRepeat = ( taskId, repeatId, allTasks ) => {
+
+  const tasksWithThisRepeat = allTasks.filter(task => task.repeat === repeatId);
+  if (tasksWithThisRepeat.length > 1){
+    RepeatsCollection.update( repeatId, {
+      $pull: {
+        tasks: taskId
+      }
+    } );
+  } else {
+    RepeatsCollection.remove( { _id: repeatId });
+  }
 }
 
 export const editRepeatInTask = ( oldRepeat, newRepeat, allTasks ) => {
+  console.log("KURVA", oldRepeat, newRepeat);
   const tasksWithThisRepeat = allTasks.filter(task => oldRepeat.tasks.includes(task._id));
 
   if (tasksWithThisRepeat.some(task => task.closed)){

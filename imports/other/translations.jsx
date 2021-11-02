@@ -97,6 +97,9 @@ export const translations = {
     'history': "History",
 
     'repeatEvery': "Repeat every",
+    'repeatUntil': "Repeat until",
+    'setRepeat': "Set repeat",
+    'noRepeat': "No repeat",
   },
   'sk': {
     'name': 'Meno',
@@ -194,5 +197,8 @@ export const translations = {
     'history': "História",
 
     'repeatEvery': "Opakovať každý",
+    'repeatUntil': "Opakovať kým",
+    'setRepeat': "Nastaviť opakovanie",
+    'noRepeat': "Žiadne opakovanie",
   }
 }

@@ -28,6 +28,8 @@ import {
   ButtonCol,
   LinkButton,
   FullButton,
+  DatetimePicker,
+  ButtonRow
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -39,6 +41,7 @@ export default function RepeatForm( props ) {
   const {
     repeat,
     setRepeat,
+    close,
   } = props;
 
   const user = useTracker( () => Meteor.user() );
@@ -55,7 +58,8 @@ export default function RepeatForm( props ) {
   useEffect(() => {
     if (repeat && typeof repeat !== "array"){
       setIntervalNumber(repeat.intervalNumber);
-      setIntervalFrequency([{label: intervalNumber === 1 ? "day" : "days", value: "d"}, {label: intervalNumber === 1 ? "week" : "weeks", value: "w"}, {label: intervalNumber === 1 ? "month" : "months", value: "m"}, {label: intervalNumber ? "y" : "years", value: "years"}].find(interval => interval.value === repeat.intervalFrequency));
+      const options = [{label: intervalNumber === 1 ? "day" : "days", value: "d"}, {label: intervalNumber === 1 ? "week" : "weeks", value: "w"}, {label: intervalNumber === 1 ? "month" : "months", value: "m"}, {label: intervalNumber ? "y" : "years", value: "years"}];
+      setIntervalFrequency(options.find(interval => interval.value === repeat.intervalFrequency));
       setCustomInterval(repeat.customInterval);
       setUseCustomInterval(repeat.useCustomInterval);
       setRepeatUntil(repeat.repeatUntil);
@@ -65,8 +69,13 @@ export default function RepeatForm( props ) {
   return (
     <div>
 
+          <section>
+          <h3>{translations[language].setRepeat}</h3>
+        </section>
       <section className="inline">
-        <label >Repeat every</label>
+          <span className="icon-container" style={{width: "150px"}}>
+        {translations[language].repeatEvery}
+        </span>
         <Input
           id="intervalNumber"
           name="intervalNumber"
@@ -83,13 +92,15 @@ export default function RepeatForm( props ) {
             onChange={(e) => {
               setIntervalFrequency(e);
             }}
-            options={[{label: intervalNumber === 1 ? "day" : "days", value: "days"}, {label: intervalNumber === 1 ? "week" : "weeks", value: "weeks"}, {label: intervalNumber === 1 ? "month" : "months", value: "moths"}, {label: intervalNumber ? "year" : "years", value: "years"}]}
+            options={[{label: intervalNumber === 1 ? "day" : "days", value: "d"}, {label: intervalNumber === 1 ? "week" : "weeks", value: "w"}, {label: intervalNumber === 1 ? "month" : "months", value: "m"}, {label: intervalNumber ? "year" : "years", value: "y"}]}
             />
         </div>
       </section>
 
       <section className="inline">
-        <label >Repeat until</label>
+            <span className="icon-container" style={{width: "150px"}}>
+          {translations[language].repeatUntil}
+          </span>
         <Datetime
           className="full-width"
           dateFormat={"DD.MM.yyyy"}
@@ -98,7 +109,7 @@ export default function RepeatForm( props ) {
           name="repeatUntil"
           id="repeatUntil"
           inputProps={{
-          placeholder: 'Set date',
+          placeholder: translations[language].setDate,
           }}
           onChange={(date) => {
             if (typeof date !== "string"){
@@ -107,15 +118,26 @@ export default function RepeatForm( props ) {
                 setRepeatUntil(date);
               }
             }}
+            renderInput={(props) => {
+                return <Input
+                  {...props}
+                  disabled={closed}
+                   value={props.value}
+                  />
+            }}
               />
       </section>
 
-      <ButtonCol>
-        <FullButton colour="grey" onClick={(e) => {e.preventDefault(); }}>{translations[language].cancel}</FullButton>
-        {
-          true &&
-          <FullButton colour="red" onClick={(e) => {e.preventDefault(); }}>{translations[language].delete}</FullButton>
-        }
+      <ButtonRow>
+        <LinkButton
+          style={{marginRight: "auto", marginLeft: "0px"}}
+          onClick={(e) => {
+            e.preventDefault();
+            close();
+          }}
+          >
+          {translations[language].close}
+        </LinkButton>
         <FullButton
           colour=""
           onClick={(e) => {
@@ -125,7 +147,7 @@ export default function RepeatForm( props ) {
           >
           {translations[language].save}
         </FullButton>
-      </ButtonCol>
+      </ButtonRow>
 
     </div>
   );

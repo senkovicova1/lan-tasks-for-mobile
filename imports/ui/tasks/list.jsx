@@ -94,8 +94,10 @@ export default function TaskList( props ) {
   closedTasks,
   activeTasks,
   removedTasks,
+  addQuickTask,
   subtasks,
   comments,
+  allTasks,
 } = props;
 
 const [ showClosed, setShowClosed ] = useState( false );
@@ -118,36 +120,30 @@ const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
 
-const addQuickTask = () => {
-  const dateCreated = moment().unix();
-  addTask(
-    newTaskName,
-    [userId],
-    folderID,
-    dateCreated,
-    null,
-    (_id) => {
-      addNewHistory(
-        _id,
-        [ {
-            dateCreated,
-            user: user._id,
-            message: "created this task!",
-        } ]
-      );
-      setNewTaskName( "" );
-      setOpenNewTask( false );
-    },
-    () => console.log( error )
-  );
-}
-
 document.onkeydown = function( e ) {
   e = e || window.event;
   switch ( e.which || e.keyCode ) {
     case 13:
       if ( newTaskName.length > 0 ) {
-        addQuickTask();
+        const dateCreated = moment().unix();
+        addQuickTask(
+          newTaskName,
+          null,
+          dateCreated,
+          (_id) => {
+            addNewHistory(
+              _id,
+              [ {
+                  dateCreated,
+                  user: user._id,
+                  message: "created this task!",
+              } ]
+            );
+            setNewTaskName( "" );
+            setOpenNewTask( false );
+          },
+          () => console.log( error )
+         );
       }
       break;
   }
@@ -236,7 +232,28 @@ document.onkeydown = function( e ) {
           {
             newTaskName.length > 0 &&
             <LinkButton
-              onClick={(e) => {e.preventDefault(); addQuickTask();}}
+              onClick={(e) => {
+                e.preventDefault();
+                const dateCreated = moment().unix();
+                addQuickTask(
+                  newTaskName,
+                  null,
+                  dateCreated,
+                   (_id) => {
+                addNewHistory(
+                  _id,
+                  [ {
+                      dateCreated,
+                      user: user._id,
+                      message: "created this task!",
+                  } ]
+                );
+                setNewTaskName( "" );
+                setOpenNewTask( false );
+              },
+              () => console.log( error )
+            );
+          }}
               >
               <img
                 className="icon"
@@ -285,7 +302,7 @@ document.onkeydown = function( e ) {
               ))
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
               >
               <img
                 className="icon"
@@ -377,7 +394,7 @@ document.onkeydown = function( e ) {
               ))
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
               >
               <img
                 className="icon"

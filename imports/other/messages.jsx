@@ -21,6 +21,9 @@ export const ADD_SUBTASK = "add_subtask";
 export const ADD_COMMENT = "add_comment";
 export const EDIT_COMMENT = "edit_comment";
 export const REMOVE_COMMENT = "remove_comment";
+export const REMOVED_REPEAT = "remove_repeat";
+export const CHANGE_REPEAT = "change_repeat";
+export const SET_REPEAT = "set_repeat";
 
 export const historyEntryTypes = [
   {
@@ -182,6 +185,27 @@ export const historyEntryTypes = [
     message:{
       "en": "removed a comment.",
       "sk": "odstránil/a komentár.",
+    }
+  },
+  {
+    type: REMOVED_REPEAT,
+    message:{
+      "en": "removed repeat.",
+      "sk": "odstránil/a opakovanie úlohy.",
+    }
+  },
+  {
+    type: CHANGE_REPEAT,
+    message:{
+      "en": "changed repeat from '[0]' to '[1]'.",
+      "sk": "zmenil/a opakovanie úlohy z '[0]' na '[1]'.",
+    }
+  },
+  {
+    type: SET_REPEAT,
+    message:{
+      "en": "set repeat to '[0]'.",
+      "sk": "nastavil/a opakovanie úlohy na '[0]'.",
     }
   },
 ]
@@ -347,6 +371,27 @@ export const notificationTypes = [
     message:{
       "en": "removed a comment to the task '[0]'.",
       "sk": "odstránil/a komentár v úlohe '[0].",
+    }
+  },
+  {
+    type: REMOVED_REPEAT,
+    message:{
+      "en": "removed repeat of the task '[0]'.",
+      "sk": "odstránil/a opakovanie úlohy '[0]'.",
+    }
+  },
+  {
+    type: CHANGE_REPEAT,
+    message:{
+      "en": "changed repeat from '[0]' to '[1]' in the task '[2]'.",
+      "sk": "zmenil/a opakovanie z '[0]' na '[1]' úlohy '[2]'.",
+    }
+  },
+  {
+    type: SET_REPEAT,
+    message:{
+      "en": "set repeat to '[0]' in the task '[1]'.",
+      "sk": "nastavil/a opakovanie na '[0]' v úlohe '[1]'.",
     }
   },
 ]

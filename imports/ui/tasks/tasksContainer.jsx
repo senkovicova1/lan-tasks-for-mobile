@@ -12,6 +12,12 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import moment from 'moment';
+
+import {
+  addTask,
+} from './tasksHandlers';
+
 import TasksList from '/imports/ui/tasks/list';
 import Calendar from '/imports/ui/tasks/calendar';
 import Dnd from '/imports/ui/tasks/dnd';
@@ -213,6 +219,18 @@ export default function TasksContainer( props ) {
       return sortedTasks.filter( task => task.closed );
   }, [ sortedTasks, sortBy, sortDirection ] );
 
+  const addQuickTask = (newTaskName, container, dateCreated, onSuccess, onFail) => {
+    addTask(
+      newTaskName,
+      [userId],
+      folderID,
+      dateCreated,
+      container,
+      onSuccess,
+      onFail
+    );
+  }
+
   if ( !folder && !filter  ) {
     return <Loader />;
   }
@@ -226,7 +244,9 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          addQuickTask={addQuickTask}
           folder={folder}
+          allTasks={tasks}
           />
     );
   }
@@ -240,6 +260,7 @@ export default function TasksContainer( props ) {
           folder={folder}
           subtasks={subtasks}
           comments={comments}
+          allTasks={tasks}
           />
     );
   }
@@ -252,7 +273,9 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          addQuickTask={addQuickTask}
           folder={folder}
+          allTasks={tasks}
           />
     );
   }
@@ -267,7 +290,9 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          addQuickTask={addQuickTask}
           folder={folder}
+          allTasks={tasks}
           />
       </div>
       <div style={{width: "50%", borderLeft: "1px solid #d6d6d6", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>

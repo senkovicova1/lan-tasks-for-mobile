@@ -23,6 +23,7 @@ import {
 } from '/imports/api/notificationsCollection';
 
 import {
+  closeTask,
   updateSimpleAttribute,
   addRepeatToTask,
 } from './tasksHandlers';
@@ -40,7 +41,8 @@ import {
 } from './commentsHandlers';
 
 import {
-  editRepeatInTask
+  editRepeatInTask,
+  removeTaskFromRepeat
 } from '/imports/ui/repeats/repeatsHandlers';
 
 import {
@@ -71,6 +73,7 @@ import {
   PaperClipIcon,
   TextIcon,
   ColumnsIcon,
+  RestoreIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -133,6 +136,9 @@ import {
   ADD_COMMENT,
   EDIT_COMMENT,
  REMOVE_COMMENT,
+ REMOVED_REPEAT,
+ CHANGE_REPEAT,
+ SET_REPEAT,
  historyEntryTypes
 } from '/imports/other/messages';
 
@@ -194,6 +200,8 @@ export default function TaskForm( props ) {
   const [ hours, setHours ] = useState( "" );
 
   const [ repeat, setRepeat ] = useState( null);
+  const [ possibleRepeat, setPossibleRepeat ] = useState( null);
+  const [ openRepeat, setOpenRepeat ] = useState(false);
 
   const [ possibleSubtaskName, setPossibleSubtaskName ] = useState("");
   const [ editedSubtask, setEditedSubtask ] = useState("");
@@ -293,9 +301,26 @@ export default function TaskForm( props ) {
     }
 
     if ( taskRepeat ) {
-      setRepeat( taskRepeat );
+      setRepeat( {
+        ...taskRepeat,
+        intervalFrequency: [
+          {
+            label: parseInt(taskRepeat.intervalNumber) === 1 ? "day" : "days",
+            value: "d"
+          }, {
+            label: parseInt(taskRepeat.intervalNumber) === 1 ? "week" : "weeks",
+            value: "w"
+          }, {
+            label: parseInt(taskRepeat.intervalNumber) === 1 ? "month" : "months",
+            value: "m"
+          }, {
+            label: parseInt(taskRepeat.intervalNumber) ? "y" : "years",
+            value: "years"
+          }
+        ].find(interval => interval.value === taskRepeat.intervalFrequency)
+      } );
     } else {
-      setRepeat( [] );
+      setRepeat( null );
     }
 
   }, [ taskName, taskFolder, taskContainer, taskClosed, taskImportant, taskAssigned, taskDescription, taskDeadline, taskAllDay, taskStartDatetime, taskEndDatetime, taskHours, taskFiles, taskRepeat, dbUsers, userId ] );
@@ -321,6 +346,10 @@ export default function TaskForm( props ) {
       }
       setPossibleStartDatetime(now.unix());
       setPossibleEndDatetime(now.add(30, 'minutes').unix());
+    }
+
+    if (repeat){
+      setPossibleRepeat({...repeat});
     }
   }, [openDatetime]);
 
@@ -392,6 +421,24 @@ export default function TaskForm( props ) {
     }
     return options;
   };
+
+  const getLabelFromRepeatFrequency = (value, number) => {
+    switch (value) {
+      case "d":
+        return parseInt(number) === 1 ? "day" : "days";
+        break;
+          case "w":
+            return parseInt(number) === 1 ? "week" : "weeks";
+            break;
+              case "m":
+              return parseInt(number) === 1 ? "month" : "months";
+                break;
+        case "y":
+          return parseInt(number) === 1 ? "year" : "years";
+          break;
+
+    }
+  }
 
   document.onkeydown = function( e ) {
     e = e || window.event;
@@ -489,7 +536,25 @@ export default function TaskForm( props ) {
             const newClosed = !closed;
             setClosed(newClosed);
             if (!addNewTask){
-              updateSimpleAttribute(taskId, {closed: newClosed});
+              if (newClosed){
+                closeTask({
+                  _id: taskId,
+                  name,
+                  closed: !newClosed,
+                  important,
+                  assigned,
+                  startDatetime,
+                  endDatetime,
+                  allDay,
+                  hours,
+                  description,
+                  files,
+                  folder,
+                  repeat,
+                }, allSubtasks);
+              } else {
+                updateSimpleAttribute(taskId, {closed: newClosed});
+              }
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -814,12 +879,14 @@ export default function TaskForm( props ) {
           {
             (startDatetime || endDatetime) &&
             !allDay &&
-            `${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}`
+            (`${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}` + (repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+          )
           }
           {
             (startDatetime || endDatetime) &&
             allDay &&
-            `${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}`
+            (`${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}` + ( repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+          )
           }
         </span>
         {
@@ -835,35 +902,54 @@ export default function TaskForm( props ) {
             const oldEnd = endDatetime;
             setStartDatetime("");
             setEndDatetime("");
+            setRepeat(null);
             if ( !addNewTask ) {
               updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
-              const historyData = {
+              removeTaskFromRepeat(taskId, repeat._id, dbTasks);
+              updateSimpleAttribute(taskId, {repeat: null});
+
+              const historyData1 = {
                 dateCreated: moment().unix(),
                 user: userId,
                 type: REMOVED_START_END,
                 args: [],
               }
+              const historyData2 = {
+                dateCreated: moment().unix(),
+                user: userId,
+                type: REMOVED_REPEAT,
+                args: [],
+              }
               if (history.length === 0){
-                addNewHistory(taskId, [historyData]);
+                addNewHistory(taskId, [historyData1, historyData2]);
               } else {
-                editHistory(history[0]._id, historyData);
+                editHistory(history[0]._id, historyData1);
+                  editHistory(history[0]._id, historyData2);
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
                   let usersNotifications = NotificationsCollection.findOne( {
                     _id: assigned._id,
                   } );
-                  const notificationData = {
-                    ...historyData,
+                  const notificationData1 = {
+                    ...historyData1,
+                    args: [name],
+                    read: false,
+                    taskId,
+                    folderId: folder._id,
+                  };
+                  const notificationData2 = {
+                    ...historyData2,
                     args: [name],
                     read: false,
                     taskId,
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                    editNotifications(assigned._id, notificationData1);
+                       editNotifications(assigned._id, notificationData2);
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    addNewNotification(assigned._id, [notificationData1, notificationData2])
                   }
                 })
               }
@@ -918,7 +1004,7 @@ export default function TaskForm( props ) {
                       const newYear = date.year();
                       const newMonth = date.month();
                       const newDay = date.date();
-                      const newEndDatetime = moment(endDatetime*1000).year(newYear).month(newMonth).date(newDay);
+                      const newEndDatetime = moment(endDatetime ? endDatetime*1000 : date.unix()).year(newYear).month(newMonth).date(newDay);
                       setPossibleStartDatetime(date.unix());
                       setPossibleEndDatetime(newEndDatetime.unix());
                   } else {
@@ -1056,59 +1142,25 @@ export default function TaskForm( props ) {
                   <Datetime
                     className="full-width"
                     dateFormat={"DD.MM.yyyy"}
-                    value={moment.unix(possibleEndDatetime)}
+                    value={possibleEndDatetime ? moment.unix(possibleEndDatetime) : possibleEndDatetime}
                     timeFormat={false}
                     name="endDate"
                     id="endDate"
                     inputProps={{
-                    placeholder: 'Set date',
+                    placeholder: translations[language].setDate,
                     }}
                     onChange={(date) => {
                       if (typeof date !== "string"){
                           setPossibleEndDatetime(date.unix());
                       } else {
                           setPossibleEndDatetime(date);
-                          if ( !addNewTask ) {
-                            updateSimpleAttribute(taskId, {endDatetime: date});
-                            const historyData = {
-                                dateCreated: moment().unix(),
-                                user: userId,
-                                type: SET_END,
-                                args: [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
-                            }
-                            if (history.length === 0){
-                              addNewHistory(taskId, [historyData]);
-                            } else {
-                                editHistory(history[0]._id, historyData);
-                            }
-
-                            if (assigned.length > 0){
-                              assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                                let usersNotifications = NotificationsCollection.findOne( {
-                                  _id: assigned._id,
-                                } );
-                                const notificationData = {
-                                  ...historyData,
-                                  args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")],
-                                  read: false,
-                                  taskId,
-                                  folderId: folder._id,
-                                };
-                               if (usersNotifications.notifications.length > 0){
-                                   editNotifications(assigned._id, notificationData);
-                                } else {
-                                  addNewNotification(assigned._id, [notificationData]);
-                                }
-                              })
-                            }
-                          }
                       }
                     }}
                     renderInput={(props) => {
                         return <Input
                           {...props}
                           disabled={closed}
-                           value={endDatetime ? props.value : ''}
+                           value={possibleEndDatetime ? props.value : ''}
                           />
                     }}
                     />
@@ -1156,7 +1208,81 @@ export default function TaskForm( props ) {
               {translations[language].allDay}
             </span>
           </section>
-          <section>
+
+            <section>
+            <h3>{translations[language].setRepeat}</h3>
+          </section>
+        <section className="inline">
+            <span className="icon-container" style={{width: "150px"}}>
+          {translations[language].repeatEvery}
+          </span>
+          <Input
+            id="intervalNumber"
+            name="intervalNumber"
+            style={{width: "50%", marginRight: "0.6em"}}
+            type="number"
+            placeholder={translations[language].setRepeat}
+            value={possibleRepeat ? possibleRepeat.intervalNumber : ""}
+            onChange={(e) => setPossibleRepeat({...possibleRepeat, intervalNumber: e.target.value})}
+            />
+          <div style={{width: "50%"}}>
+            <Select
+              styles={selectStyle}
+              value={possibleRepeat ? possibleRepeat.intervalFrequency : ""}
+              onChange={(e) => {
+                setPossibleRepeat({...possibleRepeat, intervalFrequency: e})
+              }}
+              options={[
+                {
+                  label: possibleRepeat && parseInt(possibleRepeat.intervalNumber) === 1 ? "day" : "days",
+                  value: "d"
+                }, {
+                  label: possibleRepeat && parseInt(possibleRepeat.intervalNumber) === 1 ? "week" : "weeks",
+                  value: "w"
+                }, {
+                  label: possibleRepeat && parseInt(possibleRepeat.intervalNumber) === 1 ? "month" : "months",
+                  value: "m"
+                }, {
+                  label: possibleRepeat && parseInt(possibleRepeat.intervalNumber) ? "year" : "years",
+                   value: "y"
+                 }
+               ]}
+              />
+          </div>
+        </section>
+
+        <section className="inline">
+              <span className="icon-container" style={{width: "150px"}}>
+            {translations[language].repeatUntil}
+            </span>
+          <Datetime
+            className="full-width"
+            dateFormat={"DD.MM.yyyy"}
+            value={possibleRepeat ? moment.unix(possibleRepeat.repeatUntil) : ""}
+            timeFormat={false}
+            name="repeatUntil"
+            id="repeatUntil"
+            inputProps={{
+            placeholder: translations[language].setDate,
+            }}
+            onChange={(date) => {
+              if (typeof date !== "string"){
+                  setPossibleRepeat({...possibleRepeat, repeatUntil: date.unix()});
+                } else {
+                  setPossibleRepeat({...possibleRepeat, repeatUntil: date});
+                }
+              }}
+              renderInput={(props) => {
+                  return <Input
+                    {...props}
+                    disabled={closed}
+                     value={props.value}
+                    />
+              }}
+                />
+        </section>
+
+        <section>
           <ButtonRow>
           <LinkButton
             style={{marginRight: "auto", marginLeft: "0px"}}
@@ -1171,11 +1297,29 @@ export default function TaskForm( props ) {
             disabled={closed}
             onClick={(e) => {
               e.preventDefault();
+
               const oldStart = startDatetime;
               const oldEnd = endDatetime;
+
+              const oldRepeat = repeat ? `Repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
+              const newHistoryRepeat = `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}`;
+
               setStartDatetime(possibleStartDatetime);
               setEndDatetime(possibleEndDatetime);
+
+              if (oldRepeat !== newHistoryRepeat){
+                setRepeat({...possibleRepeat});
+              }
+
               if ( !addNewTask ) {
+                if (oldRepeat !== newHistoryRepeat){
+                  if (repeat && repeat._id ){
+                    editRepeatInTask(taskRepeat, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value , repeatStart: startDatetime ? startDatetime: possibleStartDatetime}, allTasks);
+                  } else {
+                    addRepeatToTask(taskId, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value, repeatStart: startDatetime ? startDatetime: possibleStartDatetime});
+                  }
+                }
+
                 updateSimpleAttribute(taskId, {allDay: allDay, startDatetime: possibleStartDatetime, endDatetime: possibleEndDatetime});
 
                 const historyData1 = {
@@ -1190,11 +1334,29 @@ export default function TaskForm( props ) {
                   type: SET_END,
                   args: [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
                 };
+
+                let historyData3 = null;
+                if (oldRepeat !== newHistoryRepeat){
+                  historyData3 = {
+                    dateCreated: moment().unix(),
+                    user: userId,
+                    type: repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT,
+                    args: repeat && repeat._id ? [oldRepeat, possibleRepeat] : [possibleRepeat],
+                  }
+                }
+
                 if (history.length === 0){
-                  addNewHistory(taskId, [ historyData1, historyData2]);
+                  if (oldRepeat !== newHistoryRepeat){
+                    addNewHistory(taskId, [ historyData1, historyData2, historyData3]);
+                  } else {
+                    addNewHistory(taskId, [ historyData1, historyData2]);
+                  }
                 } else {
                   editHistory(history[0]._id, historyData1);
                   editHistory(history[0]._id, historyData2);
+                  if (oldRepeat !== newHistoryRepeat){
+                    editHistory(history[0]._id, historyData3);
+                  }
                 }
 
                 if (assigned.length > 0){
@@ -1216,11 +1378,29 @@ export default function TaskForm( props ) {
                       taskId,
                       folderId: folder._id,
                     };
-                   if (usersNotifications.notifications.length > 0){
+
+                    let notificationData3 = null;
+                    if (oldRepeat !== newHistoryRepeat){
+                      notificationData3 = {
+                        ...historyData3,
+                        args: repeat && repeat._id ? [oldRepeat, possibleRepeat, name] : [possibleRepeat, name],
+                        read: false,
+                        taskId,
+                        folderId: folder._id,
+                      };
+                    }
+                   if (usersNotifications && usersNotifications.notifications.length > 0){
                       editNotifications(assigned._id, notificationData1);
                        editNotifications(assigned._id, notificationData2);
+                       if (oldRepeat !== newHistoryRepeat){
+                        editNotifications(assigned._id, notificationData3);
+                      }
+                    } else {
+                      if (oldRepeat !== newHistoryRepeat){
+                      addNewNotification(assigned._id, [notificationData1, notificationData2, notificationData3]);
                     } else {
                       addNewNotification(assigned._id, [notificationData1, notificationData2]);
+                    }
                     }
                   })
                 }
@@ -1294,23 +1474,7 @@ export default function TaskForm( props ) {
           }}
           />
       </section>
-{
-  false &&
-      <Repeat
-        {...props}
-        taskId={taskId ? taskId : null}
-        repeat={repeat}
-        setRepeat={(newRepeat) => {
-          if (repeat._id){
-            editRepeatInTask(taskRepeat, {...newRepeat, repeatStart: startDatetime}, allTasks) ;
-          } else {
-            addRepeatToTask(taskId, {...newRepeat, repeatStart: startDatetime});
-          }
-          setRepeat(newRepeat);
-        }
-      }
-        />
-    }
+
 
       <section className="inline">
         <span className="icon-container">

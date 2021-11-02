@@ -97,6 +97,7 @@ export default function CalendarList( props ) {
   removedTasks,
   subtasks,
   comments,
+  allTasks
 } = props;
 
 const {
@@ -200,7 +201,7 @@ document.onkeydown = function( e ) {
                 ))
               }
               <LinkButton
-                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
                 >
                 <img
                   className="icon"
@@ -294,7 +295,7 @@ document.onkeydown = function( e ) {
                 ))
               }
               <LinkButton
-                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments)}}
+                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
                 >
                 <img
                   className="icon"

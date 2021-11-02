@@ -120,6 +120,8 @@ export default function DND( props ) {
   removedTasks,
   subtasks,
   comments,
+  addQuickTask,
+  allTasks,
 } = props;
 
 const {
@@ -152,29 +154,6 @@ const containers = useMemo( () => {
   }
   return [{_id: 0, label: "New", order: 0}];
 }, [ folder ] );
-
-const addQuickTask = (containerId) => {
-  const dateCreated = moment().unix();
-  addTask(
-    openNewTask.find(t => t.container === containerId).name,
-    [userId],
-    folderID,
-    dateCreated,
-    containerId,
-    (_id) => {
-      addNewHistory(
-        _id,
-        [ {
-            dateCreated,
-            user: userId,
-            message: "created this task!",
-        } ]
-      );
-      setOpenNewTask([...openNewTask.filter(open => open.container !== containerId)]);
-    },
-    () => console.log( error )
-  );
-}
 
   const groupBy = (arr, key) => {
     const initialValue = {};
@@ -363,7 +342,24 @@ const addQuickTask = (containerId) => {
                               <LinkButton
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  addQuickTask(container._id);
+                                  const dateCreated = moment().unix();
+                                  addQuickTask(
+                                    openNewTask.find(t => t.container === container._id).name,
+                                    container._id,
+                                    dateCreated,
+                                    (_id) => {
+                                      addNewHistory(
+                                        _id,
+                                        [ {
+                                            dateCreated,
+                                            user: userId,
+                                            message: "created this task!",
+                                        } ]
+                                      );
+                                      setOpenNewTask([...openNewTask.filter(open => open.container !== container._id)]);
+                                    },
+                                    () => console.log( error )
+                                  );
                                 }}
                                 className="connected-btn"
                                 >
@@ -435,7 +431,7 @@ const addQuickTask = (containerId) => {
                                           <LinkButton
                                             onClickCapture={(e) => {
                                               e.preventDefault();
-                                              removeTask(task, removedTasks, subtasks, comments);
+                                              removeTask(task, removedTasks, subtasks, comments, allTasks);
                                               e.stopPropagation();
                                             }}
                                             >
@@ -541,7 +537,7 @@ const addQuickTask = (containerId) => {
                                         <LinkButton
                                           onClickCapture={(e) => {
                                             e.preventDefault();
-                                            removeTask(task, removedTasks, subtasks, comments);
+                                            removeTask(task, removedTasks, subtasks, comments, allTasks);
                                             e.stopPropagation();
                                           }}
                                           >

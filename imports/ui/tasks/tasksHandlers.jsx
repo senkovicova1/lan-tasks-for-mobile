@@ -173,6 +173,7 @@ export const editTask = ( _id, name, important, assigned, deadline, hours, descr
 }
 
 export const closeTask = ( task, subtasks ) => {
+  console.log("HIIII", task);
   let data = {
     closed: !task.closed,
   };
@@ -181,6 +182,8 @@ export const closeTask = ( task, subtasks ) => {
       ...data
     }
   } );
+
+  console.log("HI");
 
   let addAmount = task.repeat.intervalNumber;
   let addTimeType = task.repeat.intervalFrequency;
@@ -193,6 +196,7 @@ export const closeTask = ( task, subtasks ) => {
       assigned: task.assigned.map(user => user._id),
       startDatetime: newStartDatetime,
       endDatetime: moment(task.endDatetime*1000).add(addAmount, addTimeType).unix(),
+      allDay: task.allDay,
       hours: task.hours,
       description: task.description,
       files: [...task.files],
@@ -202,9 +206,11 @@ export const closeTask = ( task, subtasks ) => {
       dateCreated: moment().unix(),
       repeat: task.repeat._id
     };
+    console.log("INSERT");
     TasksCollection.insert({
         ...data
     }, (error, _id) => {
+      console.log("EH");
       if (error){
         console.log(error);
       } else {
@@ -213,6 +219,7 @@ export const closeTask = ( task, subtasks ) => {
           addNewSubtask( subtask.name, false, _id, moment().unix() );
         } );
 
+        console.log("ADD REP");
         addRepeatTask(task.repeat._id, _id);
       }
     } );
@@ -230,7 +237,7 @@ export const restoreLatestTask = ( removedTasks ) => {
   } );
 }
 
-export const removeTask = ( task, removedTasks, subtasks, comments ) => {
+export const removeTask = ( task, removedTasks, subtasks, comments, allTasks ) => {
   if ( removedTasks.length >= 5 ) {
     let difference = removedTasks.length - 4;
     const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
@@ -241,7 +248,7 @@ export const removeTask = ( task, removedTasks, subtasks, comments ) => {
         _id: idsToDelete[ difference - 1 ]
       } );
       if (task.repeat){
-        removeTaskFromRepeat(task._id, task.repeat._id);
+        removeTaskFromRepeat(task._id, task.repeat._id, allTasks);
       }
       subtasksToDelete.forEach( ( subtask, i ) => {
         removeSubtask( subtask._id );
