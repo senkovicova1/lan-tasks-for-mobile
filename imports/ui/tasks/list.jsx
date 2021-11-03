@@ -149,26 +149,26 @@ document.onkeydown = function( e ) {
   }
 };
 
-/*
-
-<FullButton
-  onClick={(e) => {
-    e.preventDefault();
-    Meteor.call(
-      'sendEmail',
-      'Sonka <sona.senkovicova@gmail.com>',
-      '',
-      'Hello from Meteor!',
-      'This is a test of Email.send.'
-    );
-  }}
-  >
-  Send mail
-</FullButton>
-*/
 
   return (
     <List>
+      {
+        (user.profile.name === "Soňa" || user.profile.name === "Anabeth") &&
+      <FullButton
+      onClick={(e) => {
+      e.preventDefault();
+      Meteor.call(
+      'sendEmail',
+      '<sona.senkovicova@gmail.com>',
+      'lan-task@webmon.sk',
+      'Hello from Meteor!',
+      'This is a test of Email.send.'
+      );
+      }}
+      >
+      Send mail
+      </FullButton>
+    }
 
       <FilterSummary
         {...props}

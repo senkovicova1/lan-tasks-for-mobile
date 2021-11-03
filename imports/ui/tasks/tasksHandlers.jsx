@@ -173,7 +173,6 @@ export const editTask = ( _id, name, important, assigned, deadline, hours, descr
 }
 
 export const closeTask = ( task, subtasks ) => {
-  console.log("HIIII", task);
   let data = {
     closed: !task.closed,
   };
@@ -183,46 +182,43 @@ export const closeTask = ( task, subtasks ) => {
     }
   } );
 
-  console.log("HI");
+  if (task.repeat){
+    let addAmount = task.repeat.intervalNumber;
+    let addTimeType = task.repeat.intervalFrequency;
+    const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
+    if (!task.closed && task.repeat && (newStartDatetime <= task.repeat.repeatUntil || !repeatUntil)){
 
-  let addAmount = task.repeat.intervalNumber;
-  let addTimeType = task.repeat.intervalFrequency;
-  const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
-  if (!task.closed && task.repeat && (newStartDatetime <= task.repeat.repeatUntil || !repeatUntil)){
+      let data = {
+        name: task.name,
+        important: task.important,
+        assigned: task.assigned.map(user => user._id),
+        startDatetime: newStartDatetime,
+        endDatetime: moment(task.endDatetime*1000).add(addAmount, addTimeType).unix(),
+        allDay: task.allDay,
+        hours: task.hours,
+        description: task.description,
+        files: [...task.files],
+        closed: false,
+        folder: task.folder._id,
+        container: 0,
+        dateCreated: moment().unix(),
+        repeat: task.repeat._id
+      };
+      TasksCollection.insert({
+          ...data
+      }, (error, _id) => {
+        if (error){
+          console.log(error);
+        } else {
 
-    let data = {
-      name: task.name,
-      important: task.important,
-      assigned: task.assigned.map(user => user._id),
-      startDatetime: newStartDatetime,
-      endDatetime: moment(task.endDatetime*1000).add(addAmount, addTimeType).unix(),
-      allDay: task.allDay,
-      hours: task.hours,
-      description: task.description,
-      files: [...task.files],
-      closed: false,
-      folder: task.folder._id,
-      container: 0,
-      dateCreated: moment().unix(),
-      repeat: task.repeat._id
-    };
-    console.log("INSERT");
-    TasksCollection.insert({
-        ...data
-    }, (error, _id) => {
-      console.log("EH");
-      if (error){
-        console.log(error);
-      } else {
+          subtasks.filter( subtask => subtask.task === task._id ).forEach( ( subtask, i ) => {
+            addNewSubtask( subtask.name, false, _id, moment().unix() );
+          } );
 
-        subtasks.filter( subtask => subtask.task === task._id ).forEach( ( subtask, i ) => {
-          addNewSubtask( subtask.name, false, _id, moment().unix() );
-        } );
-
-        console.log("ADD REP");
-        addRepeatTask(task.repeat._id, _id);
-      }
-    } );
+          addRepeatTask(task.repeat._id, _id);
+        }
+      } );
+    }
   }
 }
 

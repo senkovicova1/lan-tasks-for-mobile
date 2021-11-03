@@ -37,6 +37,7 @@ import {
 
 Meteor.methods( {
   sendEmail( to, from, subject, text ) {
+    console.log( "START SEND" );
     // Make sure that all arguments are strings.
     check( [ to, from, subject, text ], [ String ] );
 
@@ -51,6 +52,10 @@ Meteor.methods( {
       text
     } );
   }
+} );
+
+Meteor.startup( () => {
+  process.env.MAIL_URL = "smtp://lan-task:ghx8R@3wRS@webmon.sk:25";
 } );
 
 WebApp.rawConnectHandlers.use( function( req, res, next ) {

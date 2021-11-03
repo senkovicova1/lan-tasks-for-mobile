@@ -527,6 +527,7 @@ export default function TaskForm( props ) {
         </CircledButton>
       }
 
+
       <section className="inline" style={{marginTop: "0.3em"}}>
         <TitleCheckbox
           id="task-checked"
@@ -636,6 +637,7 @@ export default function TaskForm( props ) {
           />
       </section>
 
+            <div style={{position: "relative"}}>
       <section className="inline fit">
         <LinkButton
           style={{color: "#f3d053"}}
@@ -879,13 +881,13 @@ export default function TaskForm( props ) {
           {
             (startDatetime || endDatetime) &&
             !allDay &&
-            (`${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}` + (repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+            (`${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}` + (repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
           )
           }
           {
             (startDatetime || endDatetime) &&
             allDay &&
-            (`${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}` + ( repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+            (`${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}` + ( repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
           )
           }
         </span>
@@ -971,7 +973,7 @@ export default function TaskForm( props ) {
         {
           !closed &&
           openDatetime &&
-          <div style={{position: "relative"}}>
+          <div>
           <DatetimePicker>
             <section>
             <h3>{translations[language].setScheduled}</h3>
@@ -1302,7 +1304,7 @@ export default function TaskForm( props ) {
               const oldEnd = endDatetime;
 
               const oldRepeat = repeat ? `Repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
-              const newHistoryRepeat = `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}`;
+              const newHistoryRepeat = repeat ?  `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
 
               setStartDatetime(possibleStartDatetime);
               setEndDatetime(possibleEndDatetime);
@@ -1753,6 +1755,9 @@ export default function TaskForm( props ) {
         }
         </div>
       </section>
+
+
+      </div>
 
       <section className="subtasks">
         <label htmlFor="subtasks">{translations[language].subtasks}</label>

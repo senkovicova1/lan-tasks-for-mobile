@@ -63,7 +63,6 @@ export const removeTaskFromRepeat = ( taskId, repeatId, allTasks ) => {
 }
 
 export const editRepeatInTask = ( oldRepeat, newRepeat, allTasks ) => {
-  console.log("KURVA", oldRepeat, newRepeat);
   const tasksWithThisRepeat = allTasks.filter(task => oldRepeat.tasks.includes(task._id));
 
   if (tasksWithThisRepeat.some(task => task.closed)){

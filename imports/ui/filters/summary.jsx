@@ -26,7 +26,8 @@ import {
   ClockIcon,
   CalendarIcon,
   FolderIcon,
-  AsteriskIcon
+  AsteriskIcon,
+  MenuIcon,
 } from "/imports/other/styles/icons";
 
 import {
@@ -57,16 +58,18 @@ export default function FilterSummary( props ) {
   const dbUsers = useSelector( ( state ) => state.users.value );
 
   const {
-    filter
+    filter,
+    search
   } = useSelector( ( state ) => state.metadata.value );
 
   const numberOfFilters = useMemo(() => {
-    return ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
+    return (search ? 1 : 0) +
+              ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
               (filter.important ? 1 : 0) +
               (filter.assigned.length > 0 ? 1 : 0) +
               (filter.datetimeMin || filter.datetimeMax ? 1 : 0) +
               (filter.dateCreatedMin || filter.dateCreatedMax ? 1 : 0);
-  }, [filter]);
+  }, [filter, search]);
 
   const language = useMemo( () => {
     if (dbUsers.length > 0){
@@ -79,6 +82,31 @@ export default function FilterSummary( props ) {
 
   return (
     <AppliedFilter style={style}>
+      {
+      search &&
+        <section className="filter">
+          <div className="filter-container">
+          <img
+            className="label-icon"
+            src={MenuIcon}
+            alt="MenuIcon icon not found"
+            />
+          <label>{search}</label>
+            <LinkButton
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(setSearch(""));
+              }}
+              >
+              <img
+                className="icon"
+                src={CloseIcon}
+                alt="Close icon not found"
+                />
+            </LinkButton>
+        </div>
+        </section>
+      }
       {
       (  ["all", "important"].includes(folderID) || filterID ) &&
         filter.folders.length > 0 &&

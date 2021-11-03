@@ -24,3 +24,5 @@ react-meteor-data       # React higher-order component for reactively tracking M
 accounts-base
 accounts-password
 nathantreid:static-assets
+email
+check

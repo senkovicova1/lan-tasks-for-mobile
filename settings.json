@@ -9,7 +9,7 @@
     "galaxy.meteor.com": {
         "env": {
             "MONGO_URL": "mongodb://senkovicovasona:TyFzdBoCfsfBbEaey@SG-galaxycluster-38726.servers.mongodirector.com:27017,SG-galaxycluster-38727.servers.mongodirector.com:27017/lan-tasks-meteorapp-com?replicaSet=RS-galaxycluster-0&ssl=true",
-            "MAIL_URL": "smtp://username:password@lan-tasks.meteorapp.com:587"
+            "MAIL_URL": "smtp://lan-task:ghx8R@3wRS@mail.webmon.sk:25"
         }
     }
 }

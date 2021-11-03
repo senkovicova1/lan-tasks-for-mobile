@@ -86,7 +86,7 @@ export default function Filter( props ) {
           setNewFilter({...filter});
         }
         if (!newSearch){
-          setSearch(search);
+          setNewSearch(search);
         }
       }, [newFilter, newSearch])
 

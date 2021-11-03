@@ -141,6 +141,7 @@ const [ isDropDisabled, setIsDropDisabled ] = useState(false);
 const [ showClosed, setShowClosed ] = useState( [] );
 const [ newContainerName, setNewContainerName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( [] );
+const [ openNewName, setOpenNewName ] = useState( [] );
 
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
@@ -150,6 +151,7 @@ const language = useMemo( () => {
 
 const containers = useMemo( () => {
   if ( folder.containers && folder.containers.length > 0) {
+    setOpenNewName(Array(folder.containers.length).fill(""));
     return [{_id: 0, label: "New", order: 0}, ...folder.containers.map((container, index) => ({...container, order: container.order ? container.order: index + 1 })).sort((c1, c2) => c1.order < c2.order ? -1 : 1)];
   }
   return [{_id: 0, label: "New", order: 0}];
@@ -273,20 +275,51 @@ const containers = useMemo( () => {
                         >
                         <div style={{display: "flex", alignItems: "baseline"}}>
                         <HiddenInput
-                          style={{fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em", width: container._id !== 0 ? "300px" : "400px"}}
+                          style={{marginRight: "auto", fontSize: "2em", padding: "0px", height: "fit-content", fontWeight: "200", marginBottom: "0.6em", width: container._id !== 0 ? "300px" : "400px"}}
                           className="thin-placeholder truly-invisible"
                           id={`header-${container.label}-${container._id}`}
                           placeholder={translations[language].addContainer}
                           disabled={container._id === 0}
                           type="text"
-                          value={container.label}
-                          onChange={(e) => {}}
+                          value={openNewName[container._id - 1] ? openNewName[container._id - 1] : container.label}
+                          onChange={(e) => {
+                            if (container._id != 0){
+                              let newNames = [...openNewName];
+                              newNames[container._id - 1] = e.target.value;
+                              setOpenNewName(newNames);
+                            }
+                          }}
                           />
+                        {
+                          openNewName[container._id - 1] &&
+                        <LinkButton
+                          onClick={(e) => {
+                            e.preventDefault();
+                            editContianers(folder.containers.map(c => {
+                              if (c._id !== container._id){
+                                return c;
+                              }
+                              return ({
+                                _id: c._id,
+                                label: openNewName[container._id - 1],
+                                order: c.order,
+                              })
+                            }), folder._id);
+                          }}
+                          >
+                            <img
+                              className="icon"
+                              style={{marginLeft: "2px", marginRight: "0.8em"}}
+                              src={SendIcon}
+                              alt="SendIcon icon not found"
+                              />
+                          </LinkButton>
+                        }
                           {
                             container._id !== 0 &&
                             <img
                               className="icon"
-                              style={{  marginLeft: "auto", cursor: "grab", width: "1.5em",  height: "1.5em", marginRight: "0px" }}
+                              style={{  cursor: "grab", width: "1.5em",  height: "1.5em", marginRight: "0px" }}
                               src={MoveIcon}
                               alt="MoveIcon icon not found"
                               />
@@ -584,7 +617,9 @@ const containers = useMemo( () => {
           placeholder="Add new container"
           type="text"
           value={newContainerName}
-          onChange={(e) => setNewContainerName(e.target.value)}
+          onChange={(e) => {
+            setNewContainerName(e.target.value);
+          }}
           />
         {
           newContainerName &&
