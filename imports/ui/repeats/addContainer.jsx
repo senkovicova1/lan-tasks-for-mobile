@@ -6,10 +6,20 @@ import {
   addRepeat
 } from './repeatsHandlers';
 
-export default function AddFolderContainer( props ) {
+export default function AddRepeatContainer( props ) {
 
   const submit = (intervalNumber, intervalFrequency, customInterval, useCustomInterval, repeatUntil, tasks) => {
-    addRepeat( intervalNumber, intervalFrequency, customInterval, useCustomInterval, repeatUntil, tasks, (_id) => {console.log("_id");}, (error) => {console.log(error);} );
+    Meteor.call(
+      'repeats.addRepeat',
+      intervalNumber,
+      intervalFrequency,
+      customInterval,
+      useCustomInterval,
+      repeatUntil,
+      tasks,
+      (_id) => {console.log("_id");},
+      (error) => {console.log(error);}
+    );
   }
 
   return (

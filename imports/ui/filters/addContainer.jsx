@@ -89,7 +89,8 @@ export default function AddFilterContainer( props ) {
             disabled={newFilterName.length === 0}
             onClick={(e) => {
               e.preventDefault();
-              addFilter(
+              Meteor.call(
+                'filters.addFilter',
                 newFilterName,
                 userId,
                 title,

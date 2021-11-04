@@ -56,25 +56,22 @@ export default function EditFolderContainer( props ) {
 
 
   const editFolder = ( name, colour, archived, users ) => {
-    let data = {
+    Meteor.call(
+      'folders.editFolder',
       name,
       colour,
       archived,
       users
-    };
-    FoldersCollection.update( folderID, {
-      $set: {
-        ...data
-      }
-    } );
+    );
     cancel();
   };
 
   const removeFolder = ( folderId ) => {
     if ( window.confirm( translations[language].confirmRemoveFolder ) ) {
-      FoldersCollection.remove( {
-        _id: folderId
-      } );
+      Meteor.call(
+        'folders.removeFolder',
+        folderId
+      )
       props.history.push( `/all/list` );
     }
   }

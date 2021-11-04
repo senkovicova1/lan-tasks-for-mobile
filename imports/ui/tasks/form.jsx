@@ -19,10 +19,6 @@ import {
 import Datetime from 'react-datetime';
 
 import {
-  NotificationsCollection
-} from '/imports/api/notificationsCollection';
-
-import {
   closeTask,
   updateSimpleAttribute,
   addRepeatToTask,
@@ -44,16 +40,6 @@ import {
   editRepeatInTask,
   removeTaskFromRepeat
 } from '/imports/ui/repeats/repeatsHandlers';
-
-import {
-  addNewHistory,
-  editHistory
-} from './historyHandlers';
-
-import {
-  addNewNotification,
-  editNotifications
-} from '/imports/ui/other/notificationsHandlers';
 
 import Repeat from '/imports/ui/repeats/form';
 //import EditRepeat from '/imports/ui/repeats/editContainer';
@@ -179,6 +165,7 @@ export default function TaskForm( props ) {
   const dbUsers = useSelector( ( state ) => state.users.value );
   const allSubtasks = useSelector( ( state ) => state.subtasks.value );
   const allComments = useSelector( ( state ) => state.comments.value );
+  const notifications = useSelector( ( state ) => state.notifications.value );
   const folders = useSelector( ( state ) => state.folders.value ).active;
 
   const [ name, setName ] = useState( "" );
@@ -453,9 +440,19 @@ export default function TaskForm( props ) {
             args: [newSubtaskName],
           };
           if (history.length === 0){
-            addNewHistory(taskId, [ historyData ]);
+            Meteor.call(
+              'history.addNewHistory',
+              taskId,
+              [
+                historyData
+              ]
+            );
           } else {
-            editHistory(history[0]._id, historyData);
+            Meteor.call(
+              'history.editHistory',
+              history[0]._id,
+              historyData
+            )
           }
           const notificationData = {
             ...historyData,
@@ -466,13 +463,23 @@ export default function TaskForm( props ) {
           };
           if (assigned.length > 0){
             assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-              let usersNotifications = NotificationsCollection.findOne( {
-                _id: assigned._id,
-              } );
-             if (usersNotifications.notifications.length > 0){
-                editNotifications(assigned._id, notificationData)
+              let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+             if (usersNotifications && usersNotifications.notifications.length > 0){
+               Meteor.call(
+                 'notifications.editNotifications',
+                  assigned._id,
+                  assigned.email,
+                  notificationData
+                );
               } else {
-                addNewNotification(assigned._id, [ notificationData ])
+                Meteor.call(
+                  'notifications.addNewNotification',
+                  assigned._id,
+                  assigned.email,
+                  [
+                    notificationData
+                   ]
+                 );
               }
             })
           }
@@ -538,7 +545,9 @@ export default function TaskForm( props ) {
             setClosed(newClosed);
             if (!addNewTask){
               if (newClosed){
-                closeTask({
+                Meteor.call(
+                  'tasks.closeTask',
+                  {
                   _id: taskId,
                   name,
                   closed: !newClosed,
@@ -552,9 +561,15 @@ export default function TaskForm( props ) {
                   files,
                   folder,
                   repeat,
-                }, allSubtasks);
+                },
+                allSubtasks
+              );
               } else {
-                updateSimpleAttribute(taskId, {closed: newClosed});
+                Meteor.call(
+                  'tasks.updateSimpleAttribute',
+                  taskId,
+                  {closed: newClosed}
+                );
               }
               const historyData = {
                 dateCreated: moment().unix(),
@@ -563,15 +578,23 @@ export default function TaskForm( props ) {
                 args: [],
               };
               if (history.length === 0){
-                addNewHistory(taskId, [ historyData ]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData = {
                     ...historyData,
                     args: [name],
@@ -580,9 +603,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                      Meteor.call(
+                        'notifications.editNotifications',
+                         assigned._id,
+                         assigned.email,
+                         notificationData
+                       );
                   } else {
-                    addNewNotification(assigned._id, [ notificationData ])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -599,9 +634,13 @@ export default function TaskForm( props ) {
             const oldName = name;
             setName(e.target.value);
             if ( !addNewTask ) {
-              updateSimpleAttribute( taskId, {
-                name: e.target.value
-              } );
+              Meteor.call(
+                'tasks.updateSimpleAttribute',
+                taskId,
+                {
+                  name: e.target.value
+                }
+              );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -609,15 +648,23 @@ export default function TaskForm( props ) {
                 args: [oldName, e.target.value],
               };
               if (history.length === 0){
-                addNewHistory(taskId, [ historyData ]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData = {
                     ...historyData,
                     args: [oldName, e.target.value],
@@ -626,9 +673,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData);
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData
+                    );
                   } else {
-                    addNewNotification(assigned._id, [ notificationData ]);
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -648,7 +707,13 @@ export default function TaskForm( props ) {
             const newImportant = !important;
             setImportant(newImportant);
             if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {important: newImportant});
+              Meteor.call(
+                'tasks.updateSimpleAttribute',
+                taskId,
+                {
+                  important: newImportant
+                }
+              );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -656,16 +721,24 @@ export default function TaskForm( props ) {
                 args: [],
               };
               if (history.length === 0){
-                addNewHistory(taskId, [historyData]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
 
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData = {
                     ...historyData,
                     args: [name],
@@ -674,9 +747,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   }
                  if (usersNotifications && usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData
+                    );
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -754,7 +839,13 @@ export default function TaskForm( props ) {
             const oldContainer = container ? container : {value: 0, _id: 0, label: "New"};
             setContainer(e);
             if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {container: e._id});
+              Meteor.call(
+                'tasks.updateSimpleAttribute',
+                taskId,
+                {
+                  container: e._id
+                }
+              );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -762,15 +853,23 @@ export default function TaskForm( props ) {
                 args: [oldContainer.label, e.label],
               }
               if (history.length === 0){
-                addNewHistory(taskId, [historyData]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                  if (usersNotifications.notifications.length > 0){
                      const notificationData = {
                        ...historyData,
@@ -779,9 +878,21 @@ export default function TaskForm( props ) {
                        taskId,
                        folderId: folder._id,
                      }
-                    editNotifications(assigned._id, notificationData)
+                       Meteor.call(
+                         'notifications.editNotifications',
+                          assigned._id,
+                          assigned.email,
+                          notificationData
+                        );
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -813,7 +924,13 @@ export default function TaskForm( props ) {
               const oldAssigned = assigned;
               setAssigned(e);
               if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {assigned: e.map(user => user._id)});
+                Meteor.call(
+                  'tasks.updateSimpleAttribute',
+                  taskId,
+                  {
+                    assigned: e.map(user => user._id)
+                  }
+                );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -821,15 +938,23 @@ export default function TaskForm( props ) {
                 args: [oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]
               }
               if (history.length === 0){
-                addNewHistory(taskId, [ historyData ]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData = {
                     ...historyData,
                     args: [name, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")],
@@ -838,9 +963,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData
+                    );
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -906,9 +1043,17 @@ export default function TaskForm( props ) {
             setEndDatetime("");
             setRepeat(null);
             if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {startDatetime: "", endDatetime: ""});
+              Meteor.call(
+                'tasks.updateSimpleAttribute',
+                taskId,
+                {
+                  name: e.target.value,
+                  startDatetime: "",
+                  endDatetime: "",
+                  repeat: null
+                }
+              );
               removeTaskFromRepeat(taskId, repeat._id, dbTasks);
-              updateSimpleAttribute(taskId, {repeat: null});
 
               const historyData1 = {
                 dateCreated: moment().unix(),
@@ -923,16 +1068,29 @@ export default function TaskForm( props ) {
                 args: [],
               }
               if (history.length === 0){
-                addNewHistory(taskId, [historyData1, historyData2]);
+                  Meteor.call(
+                    'history.addNewHistory',
+                    taskId,
+                    [
+                      historyData1,
+                      historyData2
+                    ]
+                  );
               } else {
-                editHistory(history[0]._id, historyData1);
-                  editHistory(history[0]._id, historyData2);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData1
+                )
+                  Meteor.call(
+                    'history.editHistory',
+                    history[0]._id,
+                    historyData2
+                  )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData1 = {
                     ...historyData1,
                     args: [name],
@@ -948,10 +1106,28 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData1);
-                       editNotifications(assigned._id, notificationData2);
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData1
+                    );
+                      Meteor.call(
+                        'notifications.editNotifications',
+                         assigned._id,
+                         assigned.email,
+                         notificationData2
+                       );
                   } else {
-                    addNewNotification(assigned._id, [notificationData1, notificationData2])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData1,
+                        notificationData2
+                       ]
+                     );
                   }
                 })
               }
@@ -1322,7 +1498,15 @@ export default function TaskForm( props ) {
                   }
                 }
 
-                updateSimpleAttribute(taskId, {allDay: allDay, startDatetime: possibleStartDatetime, endDatetime: possibleEndDatetime});
+                  Meteor.call(
+                    'tasks.updateSimpleAttribute',
+                    taskId,
+                    {
+                      allDay: allDay,
+                      startDatetime: possibleStartDatetime,
+                      endDatetime: possibleEndDatetime
+                    }
+                  );
 
                 const historyData1 = {
                   dateCreated: moment().unix(),
@@ -1349,23 +1533,48 @@ export default function TaskForm( props ) {
 
                 if (history.length === 0){
                   if (oldRepeat !== newHistoryRepeat){
-                    addNewHistory(taskId, [ historyData1, historyData2, historyData3]);
+                    Meteor.call(
+                      'history.addNewHistory',
+                      taskId,
+                      [
+                        historyData1,
+                        historyData2,
+                        historyData3
+                      ]
+                    );
                   } else {
-                    addNewHistory(taskId, [ historyData1, historyData2]);
+                    Meteor.call(
+                      'history.addNewHistory',
+                      taskId,
+                      [
+                        historyData1,
+                        historyData2
+                      ]
+                    );
                   }
                 } else {
-                  editHistory(history[0]._id, historyData1);
-                  editHistory(history[0]._id, historyData2);
+                  Meteor.call(
+                    'history.editHistory',
+                    history[0]._id,
+                    historyData1
+                  )
+                    Meteor.call(
+                      'history.editHistory',
+                      history[0]._id,
+                      historyData2
+                    )
                   if (oldRepeat !== newHistoryRepeat){
-                    editHistory(history[0]._id, historyData3);
+                    Meteor.call(
+                      'history.editHistory',
+                      history[0]._id,
+                      historyData3
+                    )
                   }
                 }
 
                 if (assigned.length > 0){
                   assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = NotificationsCollection.findOne( {
-                      _id: assigned._id,
-                    } );
+                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                     const notificationData1 = {
                       ...historyData1,
                       args: [name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
@@ -1392,16 +1601,48 @@ export default function TaskForm( props ) {
                       };
                     }
                    if (usersNotifications && usersNotifications.notifications.length > 0){
-                      editNotifications(assigned._id, notificationData1);
-                       editNotifications(assigned._id, notificationData2);
+                     Meteor.call(
+                       'notifications.editNotifications',
+                        assigned._id,
+                        assigned.email,
+                        notificationData1
+                      );
+                        Meteor.call(
+                          'notifications.editNotifications',
+                           assigned._id,
+                           assigned.email,
+                           notificationData2
+                         );
                        if (oldRepeat !== newHistoryRepeat){
-                        editNotifications(assigned._id, notificationData3);
+                         Meteor.call(
+                           'notifications.editNotifications',
+                            assigned._id,
+                            assigned.email,
+                            notificationData3
+                          );
                       }
                     } else {
                       if (oldRepeat !== newHistoryRepeat){
-                      addNewNotification(assigned._id, [notificationData1, notificationData2, notificationData3]);
+                        Meteor.call(
+                          'notifications.addNewNotification',
+                          assigned._id,
+                          assigned.email,
+                          [
+                            notificationData1,
+                            notificationData2,
+                            notificationData3
+                           ]
+                         );
                     } else {
-                      addNewNotification(assigned._id, [notificationData1, notificationData2]);
+                      Meteor.call(
+                        'notifications.addNewNotification',
+                        assigned._id,
+                        assigned.email,
+                        [
+                          notificationData1,
+                          notificationData2
+                         ]
+                       );
                     }
                     }
                   })
@@ -1439,7 +1680,13 @@ export default function TaskForm( props ) {
             const oldHours = hours;
             setHours(e.target.value);
             if ( !addNewTask ) {
-              updateSimpleAttribute(taskId, {hours: e.target.value});
+              Meteor.call(
+                'tasks.updateSimpleAttribute',
+                taskId,
+                {
+                  hours: e.target.value
+                }
+              );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
@@ -1447,16 +1694,24 @@ export default function TaskForm( props ) {
                 args: oldHours ? [oldHours, e.target.value] : [e.target.value],
               }
               if (history.length === 0){
-                addNewHistory(taskId, [historyData]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
 
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
 
                   const notificationData = {
                     ...historyData,
@@ -1466,9 +1721,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData
+                    );
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -1504,7 +1771,13 @@ export default function TaskForm( props ) {
               timeout  = setTimeout(() => {
                 if (newDescription){
                   setDescription(newDescription);
-                  updateSimpleAttribute(taskId, {description: newDescription});
+                    Meteor.call(
+                      'tasks.updateSimpleAttribute',
+                      taskId,
+                      {
+                        description: newDescription
+                      }
+                    );
                   setDescriptionInFocus(false);
                   const historyData = {
                     dateCreated: moment().unix(),
@@ -1513,15 +1786,23 @@ export default function TaskForm( props ) {
                     args: [newDescription],
                   };
                   if (history.length === 0){
-                    addNewHistory(taskId, [ historyData ]);
+                    Meteor.call(
+                      'history.addNewHistory',
+                      taskId,
+                      [
+                        historyData
+                      ]
+                    );
                   } else {
-                    editHistory(history[0]._id, historyData);
+                    Meteor.call(
+                      'history.editHistory',
+                      history[0]._id,
+                      historyData
+                    )
                   }
                   if (assigned.length > 0){
                     assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                      let usersNotifications = NotificationsCollection.findOne( {
-                        _id: assigned._id,
-                      } );
+                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                       const notificationData = {
                         ...historyData,
                         args: [name],
@@ -1530,9 +1811,21 @@ export default function TaskForm( props ) {
                         folderId: folder._id,
                       };
                      if (usersNotifications.notifications.length > 0){
-                        editNotifications(assigned._id, notificationData);
+                       Meteor.call(
+                         'notifications.editNotifications',
+                          assigned._id,
+                          assigned.email,
+                          notificationData
+                        );
                       } else {
-                        addNewNotification(assigned._id, [notificationData]);
+                        Meteor.call(
+                          'notifications.addNewNotification',
+                          assigned._id,
+                          assigned.email,
+                          [
+                            notificationData
+                           ]
+                         );
                       }
                     })
                   }
@@ -1572,7 +1865,13 @@ export default function TaskForm( props ) {
               const oldDesc = description;
               clearTimeout(timeout);
               setDescription(newDescription);
-              updateSimpleAttribute(taskId, {description: newDescription});
+                Meteor.call(
+                  'tasks.updateSimpleAttribute',
+                  taskId,
+                  {
+                    description: newDescription
+                  }
+                );
               setDescriptionInFocus(false);
               const historyData = {
                 dateCreated: moment().unix(),
@@ -1581,15 +1880,23 @@ export default function TaskForm( props ) {
                 args: [newDescription],
               };
               if (history.length === 0){
-                addNewHistory(taskId, [historyData]);
+                Meteor.call(
+                  'history.addNewHistory',
+                  taskId,
+                  [
+                    historyData
+                  ]
+                );
               } else {
-                editHistory(history[0]._id, historyData);
+                Meteor.call(
+                  'history.editHistory',
+                  history[0]._id,
+                  historyData
+                )
               }
               if (assigned.length > 0){
                 assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = NotificationsCollection.findOne( {
-                    _id: assigned._id,
-                  } );
+                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                   const notificationData = {
                     ...historyData,
                     args: [name],
@@ -1598,9 +1905,21 @@ export default function TaskForm( props ) {
                     folderId: folder._id,
                   };
                  if (usersNotifications.notifications.length > 0){
-                    editNotifications(assigned._id, notificationData)
+                   Meteor.call(
+                     'notifications.editNotifications',
+                      assigned._id,
+                      assigned.email,
+                      notificationData
+                    );
                   } else {
-                    addNewNotification(assigned._id, [notificationData])
+                    Meteor.call(
+                      'notifications.addNewNotification',
+                      assigned._id,
+                      assigned.email,
+                      [
+                        notificationData
+                       ]
+                     );
                   }
                 })
               }
@@ -1637,7 +1956,13 @@ export default function TaskForm( props ) {
                     e.preventDefault();
                     if ( !addNewTask ) {
                       const oldFile = file;
-                      updateSimpleAttribute(taskId, {files: files.filter(f => f.dateCreated !== file.dateCreated)});
+                        Meteor.call(
+                          'tasks.updateSimpleAttribute',
+                          taskId,
+                          {
+                            files: files.filter(f => f.dateCreated !== file.dateCreated)
+                          }
+                        );
                       const historyData = {
                         dateCreated: moment().unix(),
                         user: userId,
@@ -1645,15 +1970,23 @@ export default function TaskForm( props ) {
                         args: [oldFile.name],
                       };
                       if (history.length === 0){
-                        addNewHistory(taskId, [historyData]);
+                        Meteor.call(
+                          'history.addNewHistory',
+                          taskId,
+                          [
+                            historyData
+                          ]
+                        );
                       } else {
-                        editHistory(history[0]._id, historyData);
+                        Meteor.call(
+                          'history.editHistory',
+                          history[0]._id,
+                          historyData
+                        )
                       }
                       if (assigned.length > 0){
                         assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                          let usersNotifications = NotificationsCollection.findOne( {
-                            _id: assigned._id,
-                          } );
+                          let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                           const notificationData = {
                             ...historyData,
                             args: [oldFile.name, name],
@@ -1662,9 +1995,21 @@ export default function TaskForm( props ) {
                             folderId: folder._id,
                           };
                          if (usersNotifications.notifications.length > 0){
-                            editNotifications(assigned._id, notificationData)
+                           Meteor.call(
+                             'notifications.editNotifications',
+                              assigned._id,
+                              assigned.email,
+                              notificationData
+                            );
                           } else {
-                            addNewNotification(assigned._id, [notificationData])
+                            Meteor.call(
+                              'notifications.addNewNotification',
+                              assigned._id,
+                              assigned.email,
+                              [
+                                notificationData
+                               ]
+                             );
                           }
                         })
                       }
@@ -1714,7 +2059,13 @@ export default function TaskForm( props ) {
                 };
                 setShowSpinner(false);
                 if ( !addNewTask ) {
-                  updateSimpleAttribute(taskId, {files: [...files, newFile]});
+                  Meteor.call(
+                    'tasks.updateSimpleAttribute',
+                    taskId,
+                    {
+                      files: [...files, newFile]
+                    }
+                  );
                   const historyData = {
                     dateCreated: moment().unix(),
                     user: userId,
@@ -1722,15 +2073,23 @@ export default function TaskForm( props ) {
                     args: [newFile.name]
                   };
                   if (history.length === 0){
-                    addNewHistory(taskId, [ historyData ]);
+                    Meteor.call(
+                      'history.addNewHistory',
+                      taskId,
+                      [
+                        historyData
+                      ]
+                    );
                   } else {
-                    editHistory(history[0]._id, historyData);
+                    Meteor.call(
+                      'history.editHistory',
+                      history[0]._id,
+                      historyData
+                    )
                   }
                   if (assigned.length > 0){
                     assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                      let usersNotifications = NotificationsCollection.findOne( {
-                        _id: assigned._id,
-                      } );
+                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                       const notificationData = {
                         ...historyData,
                         args: [newFile.name, name],
@@ -1739,9 +2098,21 @@ export default function TaskForm( props ) {
                         folderId: folder._id,
                       };
                      if (usersNotifications.notifications.length > 0){
-                        editNotifications(assigned._id, notificationData)
+                       Meteor.call(
+                         'notifications.editNotifications',
+                          assigned._id,
+                          assigned.email,
+                          notificationData
+                        );
                       } else {
-                        addNewNotification(assigned._id, [notificationData])
+                        Meteor.call(
+                          'notifications.addNewNotification',
+                          assigned._id,
+                          assigned.email,
+                          [
+                            notificationData
+                           ]
+                         );
                       }
                     })
                   }
@@ -1785,15 +2156,23 @@ export default function TaskForm( props ) {
                       args: [subtask.name],
                     };
                     if (history.length === 0){
-                      addNewHistory(taskId, [ historyData ]);
+                      Meteor.call(
+                        'history.addNewHistory',
+                        taskId,
+                        [
+                          historyData
+                        ]
+                      );
                     } else {
-                      editHistory(history[0]._id, historyData);
+                      Meteor.call(
+                        'history.editHistory',
+                        history[0]._id,
+                        historyData
+                      )
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = NotificationsCollection.findOne( {
-                          _id: assigned._id,
-                        } );
+                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                         const notificationData = {
                           ...historyData,
                           args: [subtask.name, name],
@@ -1802,9 +2181,21 @@ export default function TaskForm( props ) {
                           folderId: folder._id,
                         };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, notificationData);
+                         Meteor.call(
+                           'notifications.editNotifications',
+                            assigned._id,
+                            assigned.email,
+                            notificationData
+                          );
                         } else {
-                          addNewNotification(assigned._id, [notificationData]);
+                          Meteor.call(
+                            'notifications.addNewNotification',
+                            assigned._id,
+                            assigned.email,
+                            [
+                              notificationData
+                             ]
+                           );
                         }
                       })
                     }
@@ -1848,15 +2239,23 @@ export default function TaskForm( props ) {
                         args: [oldName],
                       };
                       if (history.length === 0){
-                        addNewHistory(taskId, [ historyData ]);
+                        Meteor.call(
+                          'history.addNewHistory',
+                          taskId,
+                          [
+                            historyData
+                          ]
+                        );
                       } else {
-                        editHistory(history[0]._id, historyData);
+                        Meteor.call(
+                          'history.editHistory',
+                          history[0]._id,
+                          historyData
+                        )
                       }
                       if (assigned.length > 0){
                         assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                          let usersNotifications = NotificationsCollection.findOne( {
-                            _id: assigned._id,
-                          } );
+                          let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                           const notificationData = {
                             ...historyData,
                             args: [oldName, name],
@@ -1865,9 +2264,21 @@ export default function TaskForm( props ) {
                             folderId: folder._id,
                           };
                           if (usersNotifications.notifications.length > 0){
-                            editNotifications(assigned._id, notificationData);
+                            Meteor.call(
+                              'notifications.editNotifications',
+                               assigned._id,
+                               assigned.email,
+                               notificationData
+                             );
                           } else {
-                            addNewNotification(assigned._id, [notificationData]);
+                            Meteor.call(
+                              'notifications.addNewNotification',
+                              assigned._id,
+                              assigned.email,
+                              [
+                                notificationData
+                               ]
+                             );
                           }
                         })
                       }
@@ -1900,15 +2311,23 @@ export default function TaskForm( props ) {
                       args: [oldName, newName],
                     };
                     if (history.length === 0){
-                      addNewHistory(taskId, [ historyData ]);
+                      Meteor.call(
+                        'history.addNewHistory',
+                        taskId,
+                        [
+                          historyData
+                        ]
+                      );
                     } else {
-                      editHistory(history[0]._id, historyData);
+                      Meteor.call(
+                        'history.editHistory',
+                        history[0]._id,
+                        historyData
+                      )
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = NotificationsCollection.findOne( {
-                          _id: assigned._id,
-                        } );
+                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                         const notificationData = {
                           ...historyData,
                           args: [oldName, name, newName],
@@ -1917,9 +2336,21 @@ export default function TaskForm( props ) {
                           folderId: folder._id,
                         };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, notificationData);
+                         Meteor.call(
+                           'notifications.editNotifications',
+                            assigned._id,
+                            assigned.email,
+                            notificationData
+                          );
                         } else {
-                          addNewNotification(assigned._id, [notificationData]);
+                          Meteor.call(
+                            'notifications.addNewNotification',
+                            assigned._id,
+                            assigned.email,
+                            [
+                              notificationData
+                             ]
+                           );
                         }
                       })
                     }
@@ -2001,15 +2432,23 @@ export default function TaskForm( props ) {
                       args: [newSubtaskName],
                     };
                     if (history.length === 0){
-                      addNewHistory(taskId, [historyData]);
+                      Meteor.call(
+                        'history.addNewHistory',
+                        taskId,
+                        [
+                          historyData
+                        ]
+                      );
                     } else {
-                      editHistory(history[0]._id, historyData);
+                      Meteor.call(
+                        'history.editHistory',
+                        history[0]._id,
+                        historyData
+                      )
                     }
                     if (assigned.length > 0){
                       assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = NotificationsCollection.findOne( {
-                          _id: assigned._id,
-                        } );
+                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                         const notificationData = {
                           ...historyData,
                           args: [newSubtaskName, name],
@@ -2018,9 +2457,21 @@ export default function TaskForm( props ) {
                           folderId: folder._id,
                         };
                        if (usersNotifications.notifications.length > 0){
-                          editNotifications(assigned._id, notificationData);
+                         Meteor.call(
+                           'notifications.editNotifications',
+                            assigned._id,
+                            assigned.email,
+                            notificationData
+                          );
                         } else {
-                          addNewNotification(assigned._id, [notificationData])
+                          Meteor.call(
+                            'notifications.addNewNotification',
+                            assigned._id,
+                            assigned.email,
+                            [
+                              notificationData
+                             ]
+                           );
                         }
                       })
                     }
@@ -2106,15 +2557,23 @@ export default function TaskForm( props ) {
                   args: [],
                 };
                 if (history.length === 0){
-                  addNewHistory(taskId, [historyData]);
+                  Meteor.call(
+                    'history.addNewHistory',
+                    taskId,
+                    [
+                      historyData
+                    ]
+                  );
                 } else {
-                  editHistory(history[0]._id, historyData);
+                  Meteor.call(
+                    'history.editHistory',
+                    history[0]._id,
+                    historyData
+                  )
                 }
                 if (assigned.length > 0){
                   assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = NotificationsCollection.findOne( {
-                      _id: assigned._id,
-                    } );
+                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                     const notificationData = {
                       ...historyData,
                       args: [name],
@@ -2123,9 +2582,21 @@ export default function TaskForm( props ) {
                       folderId: folder._id,
                     };
                    if (usersNotifications.notifications.length > 0){
-                      editNotifications(assigned._id, notificationData);
+                     Meteor.call(
+                       'notifications.editNotifications',
+                        assigned._id,
+                        assigned.email,
+                        notificationData
+                      );
                     } else {
-                      addNewNotification(assigned._id, [notificationData]);
+                      Meteor.call(
+                        'notifications.addNewNotification',
+                        assigned._id,
+                        assigned.email,
+                        [
+                          notificationData
+                         ]
+                       );
                     }
                   })
                 }
@@ -2175,15 +2646,23 @@ export default function TaskForm( props ) {
                           args: [],
                         };
                         if (history.length === 0){
-                          addNewHistory(taskId, historyData);
+                          Meteor.call(
+                            'history.addNewHistory',
+                            taskId,
+                            [
+                              historyData
+                            ]
+                          );
                         } else {
-                          editHistory(history[0]._id, historyData);
+                          Meteor.call(
+                            'history.editHistory',
+                            history[0]._id,
+                            historyData
+                          )
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = NotificationsCollection.findOne( {
-                              _id: assigned._id,
-                            } );
+                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                             const notificationData = {
                               ...historyData,
                               args: [name],
@@ -2192,9 +2671,21 @@ export default function TaskForm( props ) {
                               folderId: folder._id,
                             };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, notificationData);
+                             Meteor.call(
+                               'notifications.editNotifications',
+                                assigned._id,
+                                assigned.email,
+                                notificationData
+                              );
                             } else {
-                              addNewNotification(assigned._id, [notificationData]);
+                              Meteor.call(
+                                'notifications.addNewNotification',
+                                assigned._id,
+                                assigned.email,
+                                [
+                                  notificationData
+                                 ]
+                               );
                             }
                           })
                         }
@@ -2222,15 +2713,23 @@ export default function TaskForm( props ) {
                           args: [],
                         };
                         if (history.length === 0){
-                          addNewHistory(taskId, [historyData]);
+                          Meteor.call(
+                            'history.addNewHistory',
+                            taskId,
+                            [
+                              historyData
+                            ]
+                          );
                         } else {
-                          editHistory(history[0]._id, historyData);
+                          Meteor.call(
+                            'history.editHistory',
+                            history[0]._id,
+                            historyData
+                          )
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = NotificationsCollection.findOne( {
-                              _id: assigned._id,
-                            } );
+                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                             const notificationData = {
                               ...historyData,
                               args: [name],
@@ -2239,9 +2738,21 @@ export default function TaskForm( props ) {
                               folderId: folder._id,
                             };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, notificationData);
+                             Meteor.call(
+                               'notifications.editNotifications',
+                                assigned._id,
+                                assigned.email,
+                                notificationData
+                              );
                             } else {
-                              addNewNotification(assigned._id, [notificationData]);
+                              Meteor.call(
+                                'notifications.addNewNotification',
+                                assigned._id,
+                                assigned.email,
+                                [
+                                  notificationData
+                                 ]
+                               );
                             }
                           })
                         }
@@ -2305,15 +2816,23 @@ export default function TaskForm( props ) {
                           args: [],
                         }
                         if (history.length === 0){
-                          addNewHistory(taskId, [historyData]);
+                          Meteor.call(
+                            'history.addNewHistory',
+                            taskId,
+                            [
+                              historyData
+                            ]
+                          );
                         } else {
-                          editHistory(history[0]._id, historyData);
+                          Meteor.call(
+                            'history.editHistory',
+                            history[0]._id,
+                            historyData
+                          )
                         }
                         if (assigned.length > 0){
                           assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = NotificationsCollection.findOne( {
-                              _id: assigned._id,
-                            } );
+                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
                             const notificationData = {
                               ...historyData,
                               args: [name],
@@ -2322,9 +2841,21 @@ export default function TaskForm( props ) {
                               folderId: folder._id,
                             };
                            if (usersNotifications.notifications.length > 0){
-                              editNotifications(assigned._id, notificationData);
+                             Meteor.call(
+                               'notifications.editNotifications',
+                                assigned._id,
+                                assigned.email,
+                                notificationData
+                              );
                             } else {
-                              addNewNotification(assigned._id, [notificationData])
+                              Meteor.call(
+                                'notifications.addNewNotification',
+                                assigned._id,
+                                assigned.email,
+                                [
+                                  notificationData
+                                 ]
+                               );
                             }
                           })
                         }

@@ -136,7 +136,13 @@ export default function NotificationsList( props ) {
       <LinkButton
         fit={true}
         className="left"
-        onClick={() => {markAllRead(userId, notifications)}}
+        onClick={() => {
+          Meteor.call(
+            'notifications.markAllRead',
+            userId,
+            notifications
+          )
+        }}
         >
           {translations[language].markRead}
       </LinkButton>
@@ -155,7 +161,12 @@ export default function NotificationsList( props ) {
                 type="checkbox"
                 checked={notification.read}
                 onChange={() => {
-                  markReadOne(userId, notification, notifications);
+                  Meteor.call(
+                    'notifications.markReadOne',
+                    userId,
+                    notification,
+                    notifications
+                  )
                 }}
                 onClickCapture={(e) => {
                   e.stopPropagation();

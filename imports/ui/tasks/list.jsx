@@ -126,12 +126,14 @@ document.onkeydown = function( e ) {
     case 13:
       if ( newTaskName.length > 0 ) {
         const dateCreated = moment().unix();
+
         addQuickTask(
           newTaskName,
           null,
           dateCreated,
           (_id) => {
-            addNewHistory(
+            Meteor.call(
+              'history.addNewHistory',
               _id,
               [ {
                   dateCreated,
@@ -152,24 +154,6 @@ document.onkeydown = function( e ) {
 
   return (
     <List>
-      {
-        (user.profile.name === "Soňa" || user.profile.name === "Anabeth") &&
-      <FullButton
-      onClick={(e) => {
-      e.preventDefault();
-      Meteor.call(
-      'sendEmail',
-      '<sona.senkovicova@gmail.com>',
-      'lan-task@webmon.sk',
-      'Hello from Meteor!',
-      'This is a test of Email.send.'
-      );
-      }}
-      >
-      Send mail
-      </FullButton>
-    }
-
       <FilterSummary
         {...props}
         />
@@ -240,14 +224,15 @@ document.onkeydown = function( e ) {
                   null,
                   dateCreated,
                    (_id) => {
-                addNewHistory(
-                  _id,
-                  [ {
-                      dateCreated,
-                      user: user._id,
-                      message: "created this task!",
-                  } ]
-                );
+                     Meteor.call(
+                       'history.addNewHistory',
+                       _id,
+                       [ {
+                           dateCreated,
+                           user: user._id,
+                           message: "created this task!",
+                       } ]
+                     );
                 setNewTaskName( "" );
                 setOpenNewTask( false );
               },
@@ -275,7 +260,7 @@ document.onkeydown = function( e ) {
               id={`task_name ${task._id}`}
               type="checkbox"
               checked={task.closed}
-              onChange={() => closeTask(task, subtasks)}
+              onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
               />
             {
               task.important &&
@@ -302,7 +287,7 @@ document.onkeydown = function( e ) {
               ))
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
+              onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask', task, removedTasks, subtasks, comments, allTasks)}}
               >
               <img
                 className="icon"
@@ -337,7 +322,7 @@ document.onkeydown = function( e ) {
           removedTasks.length > 0 &&
           <LinkButton
             style={{marginLeft: "auto"}}
-            onClick={(e) => {e.preventDefault(); restoreLatestTask(removedTasks)}}
+            onClick={(e) => {e.preventDefault(); Meteor.call('tasks.restoreLatestTask', removedTasks)}}
             >
             <img
               className="icon"
@@ -367,7 +352,7 @@ document.onkeydown = function( e ) {
               id={`task_name ${task._id}`}
               type="checkbox"
               checked={task.closed}
-              onChange={() => closeTask(task, subtasks)}
+              onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
               />
             {
               task.important &&
@@ -394,7 +379,7 @@ document.onkeydown = function( e ) {
               ))
             }
             <LinkButton
-              onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
+              onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask', task, removedTasks, subtasks, comments, allTasks)}}
               >
               <img
                 className="icon"

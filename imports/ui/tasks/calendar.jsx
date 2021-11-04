@@ -145,12 +145,20 @@ document.onkeydown = function( e ) {
 
   const onEventResize = (data) => {
     const { start, end, event } = data;
-    updateSimpleAttribute(event._id, {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000});
+    Meteor.call(
+      'tasks.updateSimpleAttribute',
+      event._id,
+      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
+    );
   };
 
   const onEventDrop = (data) => {
     const { start, end, event } = data;
-    updateSimpleAttribute(event._id, {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000});
+    Meteor.call(
+      'tasks.updateSimpleAttribute',
+      event._id,
+      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
+    );
   };
 
   return (
@@ -177,7 +185,7 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => closeTask(task, subtasks)}
+                onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
                 />
               {
                 task.important &&
@@ -201,7 +209,7 @@ document.onkeydown = function( e ) {
                 ))
               }
               <LinkButton
-                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
+                onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask' , task, removedTasks, subtasks, comments, allTasks)}}
                 >
                 <img
                   className="icon"
@@ -241,7 +249,7 @@ document.onkeydown = function( e ) {
           removedTasks.length > 0 &&
           <LinkButton
             style={{marginLeft: "auto"}}
-            onClick={(e) => {e.preventDefault(); restoreLatestTask(removedTasks)}}
+            onClick={(e) => {e.preventDefault(); Meteor.call('tasks.restoreLatestTask', removedTasks)}}
             >
             <img
               className="icon"
@@ -271,7 +279,7 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => closeTask(task, subtasks)}
+                onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
                 />
               {
                 task.important &&
@@ -295,7 +303,7 @@ document.onkeydown = function( e ) {
                 ))
               }
               <LinkButton
-                onClick={(e) => {e.preventDefault(); removeTask(task, removedTasks, subtasks, comments, allTasks)}}
+                onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask', task, removedTasks, subtasks, comments, allTasks)}}
                 >
                 <img
                   className="icon"

@@ -45,7 +45,20 @@ export default function EditFilterContainer( props ) {
   const filters = useSelector( ( state ) => state.filters.value );
 
   const submit = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) => {
-    editFilter(_id, name, user, title, folders.map(folder => folder._id), important, assigned.map(a => a._id), datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, () => {
+    Meteor.call(
+      'filters.editFilter',
+      _id,
+      name,
+      user,
+      title,
+      folders.map(folder => folder._id),
+      important,
+      assigned.map(a => a._id),
+      datetimeMin,
+      datetimeMax,
+      dateCreatedMin,
+      dateCreatedMax,
+      () => {
         setEditFilter(null);
       },
       (error) => {console.log(error)}
@@ -54,7 +67,10 @@ export default function EditFilterContainer( props ) {
 
   const remove = () => {
     if ( window.confirm( "Are you sure you want to permanently remove this filter?" ) ) {
-      removeFilter(filterId);
+      Meteor.call(
+        'filters.removeFilter',
+        filterId
+      )
       setEditFilter(null);
     }
   }

@@ -220,7 +220,8 @@ export default function TasksContainer( props ) {
   }, [ sortedTasks, sortBy, sortDirection ] );
 
   const addQuickTask = (newTaskName, container, dateCreated, onSuccess, onFail) => {
-    addTask(
+    Meteor.call(
+      'tasks.addTask',
       newTaskName,
       [userId],
       folderID,

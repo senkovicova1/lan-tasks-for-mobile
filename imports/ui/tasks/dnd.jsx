@@ -193,7 +193,11 @@ const containers = useMemo( () => {
       const [removed] = newContainers.splice(source.index-1, 1);
       newContainers.splice(destination.index-1, 0, removed);
       newContainers = newContainers.map((container, index) => ({...container, order: index + 1}));
-      editContianers(newContainers, folder._id);
+      Meteor.call(
+        'folders.editContianers',
+        newContainers,
+        folder._id,
+      )
 
     } else if (destination.droppableId === source.droppableId){
 
@@ -202,7 +206,11 @@ const containers = useMemo( () => {
       newTasks.splice(destination.index, 0, removed);
 
       newTasks.forEach((task, i) => {
-        updateSimpleAttribute(task._id, {order: i});
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          task._id,
+          {order: i}
+        );
       });
 
     } else {
@@ -215,10 +223,18 @@ const containers = useMemo( () => {
       newDestinationTasks.splice(destination.index, 0, removed);
 
       newSourceTasks.forEach((task, i) => {
-        updateSimpleAttribute(task._id, {order: i});
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          task._id,
+          {order: i}
+        );
       });
       newDestinationTasks.forEach((task, i) => {
-        updateSimpleAttribute(task._id, {container: parseInt(destination.droppableId), order: i});
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          task._id,
+          {container: parseInt(destination.droppableId), order: i}
+        );
       });
 
     }
@@ -295,7 +311,9 @@ const containers = useMemo( () => {
                         <LinkButton
                           onClick={(e) => {
                             e.preventDefault();
-                            editContianers(folder.containers.map(c => {
+                            Meteor.call(
+                              'folders.editContianers',
+                              folder.containers.map(c => {
                               if (c._id !== container._id){
                                 return c;
                               }
@@ -304,7 +322,9 @@ const containers = useMemo( () => {
                                 label: openNewName[container._id - 1],
                                 order: c.order,
                               })
-                            }), folder._id);
+                            }),
+                            folder._id
+                          );
                           }}
                           >
                             <img
@@ -436,7 +456,11 @@ const containers = useMemo( () => {
                                             type="checkbox"
                                             checked={task.closed}
                                             onClickCapture={(e) => {
-                                              closeTask(task, subtasks);
+                                              Meteor.call(
+                                                'tasks.closeTask',
+                                                task,
+                                                subtasks
+                                              )
                                               e.stopPropagation();
                                             }}
                                             />
@@ -464,7 +488,14 @@ const containers = useMemo( () => {
                                           <LinkButton
                                             onClickCapture={(e) => {
                                               e.preventDefault();
-                                              removeTask(task, removedTasks, subtasks, comments, allTasks);
+                                              Meteor.call(
+                                                'tasks.removeTask',
+                                                task,
+                                                removedTasks,
+                                                subtasks,
+                                                comments,
+                                                allTasks
+                                              );
                                               e.stopPropagation();
                                             }}
                                             >
@@ -542,7 +573,11 @@ const containers = useMemo( () => {
                                           type="checkbox"
                                           checked={task.closed}
                                           onClickCapture={(e) => {
-                                            closeTask(task, subtasks);
+                                            Meteor.call(
+                                              'tasks.closeTask',
+                                              task,
+                                              subtasks
+                                            );
                                             e.stopPropagation();
                                           }}
                                           />
@@ -570,7 +605,14 @@ const containers = useMemo( () => {
                                         <LinkButton
                                           onClickCapture={(e) => {
                                             e.preventDefault();
-                                            removeTask(task, removedTasks, subtasks, comments, allTasks);
+                                            Meteor.call(
+                                              'tasks.removeTask',
+                                            task,
+                                            removedTasks,
+                                            subtasks,
+                                            comments,
+                                            allTasks
+                                          );
                                             e.stopPropagation();
                                           }}
                                           >
@@ -626,7 +668,11 @@ const containers = useMemo( () => {
           <LinkButton
             onClick={(e) => {
               e.preventDefault();
-              editContianers(folder.containers ? [...folder.containers, {_id: folder.containers.length + 1, label: newContainerName, order: folder.containers.length + 1}] : [{_id: 1, label: newContainerName, order: 1}], folder._id);
+              Meteor.call(
+                'folders.editContianers',
+                folder.containers ? [...folder.containers, {_id: folder.containers.length + 1, label: newContainerName, order: folder.containers.length + 1}] : [{_id: 1, label: newContainerName, order: 1}],
+                folder._id
+              );
               setNewContainerName("");
             }}
             >

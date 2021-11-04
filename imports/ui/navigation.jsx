@@ -120,72 +120,53 @@ export default function MainPage( props ) {
     sidebarOpen
   } = useSelector( ( state ) => state.metadata.value );
 
-  const notifications = useTracker( () => NotificationsCollection.find( {
-    _id: userId
-  } ).fetch() );
-  useEffect( () => {
-    if (notifications.length === 0){
-      dispatch( setNotifications( [] ) );
-    } else {
-      dispatch( setNotifications( notifications[0] ) );
+  const { folders, tasks, users, repeats, isLoading } = useTracker(() => {
+    const noDataAvailable = { folders: [], tasks: [], users: [], repeats: [] };
+    if (!Meteor.user()) {
+      return noDataAvailable;
     }
-  }, [ notifications ] );
+    const foldersHandler = Meteor.subscribe('folders');
+    const tasksHandler = Meteor.subscribe('tasks');
+    const usersHandler = Meteor.subscribe('users');
+    const repeatsHandler = Meteor.subscribe('repeats');
 
-  const folders = useTracker( () => FoldersCollection.find( {
-    users: {
-      $elemMatch: {
-        _id: userId
+    if (!foldersHandler.ready() || !tasksHandler.ready() || !tasksHandler.ready() || !repeatsHandler.ready()) {
+      return { ...noDataAvailable, isLoading: true };
+    }
+
+    const folders = FoldersCollection.find(
+      {}, {
+        sort: { name: 1 },
       }
-    }
-  } ).fetch() );
-  useEffect( () => {
-    const newMyFolders = folders.map( folder => ( {
-      ...folder,
-      label: folder.name,
-      value: folder._id
-    } ) ).sort( ( f1, f2 ) => f1.name > f2.name ? 1 : -1 );
-    const activeFolders = newMyFolders.filter( folder => !folder.archived );
-    const archivedFolders = newMyFolders.filter( folder => folder.archived );
-    dispatch( setActive( activeFolders ) );
-    dispatch( setArchived( archivedFolders ) );
-  }, [ folders ] );
+    ).fetch();
+    const foldersIds = folders.map( folder => folder._id );
 
-  const users = useTracker( () => Meteor.users.find( {} )
-    .fetch() );
-  useEffect( () => {
-    dispatch(
-      setUsers(
-        users.map( user => ( {
-          _id: user._id,
-          ...user.profile,
-          label: `${user.profile.name} ${user.profile.surname}`,
-          value: user._id,
-          img: user.profile.avatar ? uint8ArrayToImg( user.profile.avatar ) : UserIcon
-        } ) )
-      )
-    );
-  }, [ users ] );
+    const users = Meteor.users.find( {} ).fetch();
+    const repeats = RepeatsCollection.find({}).fetch();
+    let tasks = TasksCollection.find(
+      {
+        folder: {
+          $in: foldersIds
+        }
+      }
+    ).fetch();
 
-  const repeats = useTracker( () => RepeatsCollection.find( {} ).fetch() );
-  const foldersIds = folders.map( folder => folder._id );
-  const tasks = useTracker( () => TasksCollection.find( {
-    folder: {
-      $in: foldersIds
-    }
-  } ).fetch() );
-  useEffect( () => {
-    if ( folders.length > 0 && users.length > 0 ) {
-      let newTasks = tasks.map( task => {
+      tasks = tasks.map( task => {
+        let newTask = {
+          ...task,
+          folder: folders.find( folder => folder._id === task.folder ),
+          repeat: repeats.find(repeat => repeat._id === task.repeat),
+          container: task.container ? task.container : 0,
+          assigned: []
+        }
         if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
           const newAssigned = Array.isArray(task.assigned) ? users.filter( user => task.assigned.includes(user._id) ) : [users.find( user => user._id === task.assigned )];
           return {
-            ...task,
-            folder: folders.find( folder => folder._id === task.folder ),
-            repeat: repeats.find(repeat => repeat._id === task.repeat),
-            container: task.container ? task.container : 0,
+            ...newTask,
             assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.map(user => ({
               _id: user._id,
               ...user.profile,
+              email: user.emails[0].address,
               label: `${user.profile.name} ${user.profile.surname}`,
               value: user._id,
               img: user.profile.avatar ? uint8ArrayToImg( user.profile.avatar ) : UserIcon
@@ -199,52 +180,123 @@ export default function MainPage( props ) {
             ],
           };
         }
-        return {
-          ...task,
-          folder: folders.find( folder => folder._id === task.folder ),
-          container: task.container ? task.container : 0,
-          assigned: [],
-        }
+        return newTask;
       } );
-      dispatch( setTasks( newTasks ) );
-    } else {
-      dispatch( setTasks( [] ) );
-    }
-  }, [ folders, tasks, users, repeats ] );
 
-  const tasksIds = tasks.map( task => task._id );
-  const subtasks = useTracker( () => SubtasksCollection.find( {
-    task: {
-      $in: tasksIds
-    }
-  } ).fetch() );
-  useEffect( () => {
-    if ( subtasks.length > 0 ) {
-      dispatch( setSubtasks( subtasks ) );
+    return { folders, tasks, users, repeats };
+  });
+
+
+    const { notifications, filters } = useTracker(() => {
+      const noDataAvailable = { notifications: [], filters: []};
+      if (!Meteor.user()) {
+        return noDataAvailable;
+      }
+
+      const notificationsHandler = Meteor.subscribe('notifications');
+      const filtersHandler = Meteor.subscribe('filters');
+
+      if (!notificationsHandler.ready() || !filtersHandler.ready()) {
+        return { ...noDataAvailable };
+      }
+
+      const notifications = NotificationsCollection.find(
+        {}, {
+          sort: { dateCreated: 1 },
+        }
+      ).fetch();
+      const filters = FiltersCollection.find(
+        {}, {
+          sort: { name: 1 },
+        }
+      ).fetch();
+
+      return { notifications, filters };
+    });
+
+        const { comments, subtasks } = useTracker(() => {
+          const noDataAvailable = { comments: [], subtasks: []};
+          if (!Meteor.user()) {
+            return noDataAvailable;
+          }
+
+          const commentsHandler = Meteor.subscribe('comments');
+          const subtasksHandler = Meteor.subscribe('subtasks');
+
+          if (!commentsHandler.ready() || !subtasksHandler.ready() || tasks.length === 0) {
+            return { ...noDataAvailable };
+          }
+
+          const tasksIds = tasks.map( task => task._id );
+          const comments = CommentsCollection.find( {
+            task: {
+              $in: tasksIds
+            }
+          }, {
+          sort: {
+            dateCreated: -1
+          }
+        } ).fetch();
+          const subtasks = SubtasksCollection.find( {
+            task: {
+              $in: tasksIds
+            }
+          } ).fetch();
+
+          return { comments, subtasks };
+        });
+
+      useEffect( () => {
+        dispatch( setFilters( filters ) );
+      }, [ filters ] );
+
+    useEffect( () => {
+    if (notifications.length === 0){
+      dispatch( setNotifications( [] ) );
     } else {
-      dispatch( setSubtasks( [] ) );
+      dispatch( setNotifications( notifications ) );
     }
+    }, [notifications]);
+
+  useEffect( () => {
+    const newMyFolders = folders.map( folder => ( {
+      ...folder,
+      label: folder.name,
+      value: folder._id
+    } ) );
+    const activeFolders = newMyFolders.filter( folder => !folder.archived );
+    const archivedFolders = newMyFolders.filter( folder => folder.archived );
+    dispatch( setActive( activeFolders ) );
+    dispatch( setArchived( archivedFolders ) );
+  }, [ folders ] );
+
+  useEffect( () => {
+    dispatch(
+      setUsers(
+        users.map( user => ( {
+          _id: user._id,
+          ...user.profile,
+          email: user.emails[0].address,
+          label: `${user.profile.name} ${user.profile.surname}`,
+          value: user._id,
+          img: user.profile.avatar ? uint8ArrayToImg( user.profile.avatar ) : UserIcon
+        } ) )
+      )
+    );
+  }, [ users ] );
+
+  useEffect( () => {
+      dispatch( setTasks( tasks ) );
+    }, [ tasks ] );
+
+  useEffect( () => {
+      dispatch( setSubtasks( subtasks ) );
   }, [ subtasks ] );
 
-  const comments = useTracker( () => CommentsCollection.find( {
-    task: {
-      $in: tasksIds
-    }
-  } ).fetch() );
   useEffect( () => {
-    if ( comments.length > 0 ) {
       dispatch( setComments( comments ) );
-    } else {
-      dispatch( setComments( [] ) );
-    }
   }, [ comments ] );
 
-  const filters = useTracker( () => FiltersCollection.find( {
-    user: userId
-  } ).fetch() );
-  useEffect( () => {
-    dispatch( setFilters( filters ) );
-  }, [ filters ] );
 
   return (
     <div style={{height: "100vh"}}>
