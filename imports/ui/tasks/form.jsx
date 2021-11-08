@@ -341,7 +341,7 @@ export default function TaskForm( props ) {
   }, [openDatetime]);
 
   const mappedHistory = useMemo( () => {
-    if (history.length === 0 || dbUsers.length === 0){
+    if (!history || history.length === 0 || !dbUsers || dbUsers.length === 0){
       return [];
     }
     return history[0].changes.map(change => ({...change, user: dbUsers.find(dbUser => dbUser._id === change.user)})).reverse();
@@ -469,7 +469,8 @@ export default function TaskForm( props ) {
                  'notifications.editNotifications',
                   assigned._id,
                   assigned.email,
-                  notificationData
+                  notificationData,
+                  dbUsers
                 );
               } else {
                 Meteor.call(
@@ -478,7 +479,8 @@ export default function TaskForm( props ) {
                   assigned.email,
                   [
                     notificationData
-                   ]
+                   ],
+                   dbUsers
                  );
               }
             })
@@ -607,7 +609,8 @@ export default function TaskForm( props ) {
                         'notifications.editNotifications',
                          assigned._id,
                          assigned.email,
-                         notificationData
+                         notificationData,
+                         dbUsers
                        );
                   } else {
                     Meteor.call(
@@ -616,7 +619,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -677,7 +681,8 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData
+                      notificationData,
+                      dbUsers
                     );
                   } else {
                     Meteor.call(
@@ -686,7 +691,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -751,7 +757,8 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData
+                      notificationData,
+                      dbUsers
                     );
                   } else {
                     Meteor.call(
@@ -760,7 +767,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -882,7 +890,8 @@ export default function TaskForm( props ) {
                          'notifications.editNotifications',
                           assigned._id,
                           assigned.email,
-                          notificationData
+                          notificationData,
+                          dbUsers
                         );
                   } else {
                     Meteor.call(
@@ -891,7 +900,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -967,7 +977,8 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData
+                      notificationData,
+                      dbUsers
                     );
                   } else {
                     Meteor.call(
@@ -976,7 +987,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -1110,13 +1122,15 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData1
+                      notificationData1,
+                      dbUsers
                     );
                       Meteor.call(
                         'notifications.editNotifications',
                          assigned._id,
                          assigned.email,
-                         notificationData2
+                         notificationData2,
+                         dbUsers
                        );
                   } else {
                     Meteor.call(
@@ -1126,7 +1140,8 @@ export default function TaskForm( props ) {
                       [
                         notificationData1,
                         notificationData2
-                       ]
+                      ],
+                      dbUsers
                      );
                   }
                 })
@@ -1480,7 +1495,7 @@ export default function TaskForm( props ) {
               const oldEnd = endDatetime;
 
               const oldRepeat = repeat ? `Repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
-              const newHistoryRepeat = repeat ?  `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
+              const newHistoryRepeat = possibleRepeat ?  `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
 
               setStartDatetime(possibleStartDatetime);
               setEndDatetime(possibleEndDatetime);
@@ -1527,7 +1542,7 @@ export default function TaskForm( props ) {
                     dateCreated: moment().unix(),
                     user: userId,
                     type: repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT,
-                    args: repeat && repeat._id ? [oldRepeat, possibleRepeat] : [possibleRepeat],
+                    args: repeat && repeat._id ? [oldRepeat, newHistoryRepeat] : [newHistoryRepeat],
                   }
                 }
 
@@ -1605,20 +1620,23 @@ export default function TaskForm( props ) {
                        'notifications.editNotifications',
                         assigned._id,
                         assigned.email,
-                        notificationData1
+                        notificationData1,
+                        dbUsers
                       );
                         Meteor.call(
                           'notifications.editNotifications',
                            assigned._id,
                            assigned.email,
-                           notificationData2
+                           notificationData2,
+                           dbUsers
                          );
                        if (oldRepeat !== newHistoryRepeat){
                          Meteor.call(
                            'notifications.editNotifications',
                             assigned._id,
                             assigned.email,
-                            notificationData3
+                            notificationData3,
+                            dbUsers
                           );
                       }
                     } else {
@@ -1631,7 +1649,8 @@ export default function TaskForm( props ) {
                             notificationData1,
                             notificationData2,
                             notificationData3
-                           ]
+                           ],
+                           dbUsers
                          );
                     } else {
                       Meteor.call(
@@ -1641,7 +1660,8 @@ export default function TaskForm( props ) {
                         [
                           notificationData1,
                           notificationData2
-                         ]
+                         ],
+                         dbUsers
                        );
                     }
                     }
@@ -1725,7 +1745,8 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData
+                      notificationData,
+                      dbUsers
                     );
                   } else {
                     Meteor.call(
@@ -1734,7 +1755,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -1815,7 +1837,8 @@ export default function TaskForm( props ) {
                          'notifications.editNotifications',
                           assigned._id,
                           assigned.email,
-                          notificationData
+                          notificationData,
+                          dbUsers
                         );
                       } else {
                         Meteor.call(
@@ -1824,7 +1847,8 @@ export default function TaskForm( props ) {
                           assigned.email,
                           [
                             notificationData
-                           ]
+                           ],
+                           dbUsers
                          );
                       }
                     })
@@ -1909,7 +1933,8 @@ export default function TaskForm( props ) {
                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
-                      notificationData
+                      notificationData,
+                      dbUsers
                     );
                   } else {
                     Meteor.call(
@@ -1918,7 +1943,8 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ]
+                       ],
+                       dbUsers
                      );
                   }
                 })
@@ -1999,7 +2025,8 @@ export default function TaskForm( props ) {
                              'notifications.editNotifications',
                               assigned._id,
                               assigned.email,
-                              notificationData
+                              notificationData,
+                              dbUsers
                             );
                           } else {
                             Meteor.call(
@@ -2008,7 +2035,8 @@ export default function TaskForm( props ) {
                               assigned.email,
                               [
                                 notificationData
-                               ]
+                               ],
+                               dbUsers
                              );
                           }
                         })
@@ -2102,7 +2130,8 @@ export default function TaskForm( props ) {
                          'notifications.editNotifications',
                           assigned._id,
                           assigned.email,
-                          notificationData
+                          notificationData,
+                          dbUsers
                         );
                       } else {
                         Meteor.call(
@@ -2111,7 +2140,8 @@ export default function TaskForm( props ) {
                           assigned.email,
                           [
                             notificationData
-                           ]
+                           ],
+                           dbUsers
                          );
                       }
                     })
@@ -2185,7 +2215,8 @@ export default function TaskForm( props ) {
                            'notifications.editNotifications',
                             assigned._id,
                             assigned.email,
-                            notificationData
+                            notificationData,
+                            dbUsers
                           );
                         } else {
                           Meteor.call(
@@ -2194,7 +2225,8 @@ export default function TaskForm( props ) {
                             assigned.email,
                             [
                               notificationData
-                             ]
+                             ],
+                             dbUsers
                            );
                         }
                       })
@@ -2231,7 +2263,7 @@ export default function TaskForm( props ) {
                       setEditedSubtask(null);
                     } else {
                       const oldName = subtask.name;
-                      removeSubtask(subtask._id);
+                      Meteor.call('subtasks.removeSubtask', subtask._id);
                       const historyData =  {
                         dateCreated: moment().unix(),
                         user: userId,
@@ -2268,7 +2300,8 @@ export default function TaskForm( props ) {
                               'notifications.editNotifications',
                                assigned._id,
                                assigned.email,
-                               notificationData
+                               notificationData,
+                               dbUsers
                              );
                           } else {
                             Meteor.call(
@@ -2277,7 +2310,8 @@ export default function TaskForm( props ) {
                               assigned.email,
                               [
                                 notificationData
-                               ]
+                               ],
+                               dbUsers
                              );
                           }
                         })
@@ -2301,7 +2335,7 @@ export default function TaskForm( props ) {
                     e.preventDefault();
                     const oldName = subtask.name;
                     const newName = possibleSubtaskName;
-                    editSubtask(subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
+                    Meteor.call('subtasks.editSubtask', subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
                     setPossibleSubtaskName("");
                     setEditedSubtask(null);
                     const historyData = {
@@ -2340,7 +2374,8 @@ export default function TaskForm( props ) {
                            'notifications.editNotifications',
                             assigned._id,
                             assigned.email,
-                            notificationData
+                            notificationData,
+                            dbUsers
                           );
                         } else {
                           Meteor.call(
@@ -2349,7 +2384,8 @@ export default function TaskForm( props ) {
                             assigned.email,
                             [
                               notificationData
-                             ]
+                             ],
+                             dbUsers
                            );
                         }
                       })
@@ -2424,9 +2460,10 @@ export default function TaskForm( props ) {
                 onClick={(e) => {
                   e.preventDefault();
                   if (!addNewTask){
-                    addNewSubtask( newSubtaskName, false, taskId, moment().unix() );
+                    const dateCreated = moment().unix();
+                    Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
                     const historyData = {
-                      dateCreated: moment().unix(),
+                      dateCreated,
                       user: userId,
                       type: ADD_SUBTASK,
                       args: [newSubtaskName],
@@ -2461,7 +2498,8 @@ export default function TaskForm( props ) {
                            'notifications.editNotifications',
                             assigned._id,
                             assigned.email,
-                            notificationData
+                            notificationData,
+                            dbUsers
                           );
                         } else {
                           Meteor.call(
@@ -2470,7 +2508,8 @@ export default function TaskForm( props ) {
                             assigned.email,
                             [
                               notificationData
-                             ]
+                             ],
+                             dbUsers
                            );
                         }
                       })
@@ -2586,7 +2625,8 @@ export default function TaskForm( props ) {
                        'notifications.editNotifications',
                         assigned._id,
                         assigned.email,
-                        notificationData
+                        notificationData,
+                        dbUsers
                       );
                     } else {
                       Meteor.call(
@@ -2595,7 +2635,8 @@ export default function TaskForm( props ) {
                         assigned.email,
                         [
                           notificationData
-                         ]
+                        ],
+                        dbUsers
                        );
                     }
                   })
@@ -2675,7 +2716,8 @@ export default function TaskForm( props ) {
                                'notifications.editNotifications',
                                 assigned._id,
                                 assigned.email,
-                                notificationData
+                                notificationData,
+                                dbUsers
                               );
                             } else {
                               Meteor.call(
@@ -2684,7 +2726,8 @@ export default function TaskForm( props ) {
                                 assigned.email,
                                 [
                                   notificationData
-                                 ]
+                                 ],
+                                 dbUsers
                                );
                             }
                           })
@@ -2742,7 +2785,8 @@ export default function TaskForm( props ) {
                                'notifications.editNotifications',
                                 assigned._id,
                                 assigned.email,
-                                notificationData
+                                notificationData,
+                                dbUsers
                               );
                             } else {
                               Meteor.call(
@@ -2751,7 +2795,8 @@ export default function TaskForm( props ) {
                                 assigned.email,
                                 [
                                   notificationData
-                                 ]
+                                 ],
+                                 dbUsers
                                );
                             }
                           })
@@ -2845,7 +2890,8 @@ export default function TaskForm( props ) {
                                'notifications.editNotifications',
                                 assigned._id,
                                 assigned.email,
-                                notificationData
+                                notificationData,
+                                dbUsers
                               );
                             } else {
                               Meteor.call(
@@ -2854,7 +2900,8 @@ export default function TaskForm( props ) {
                                 assigned.email,
                                 [
                                   notificationData
-                                 ]
+                                 ],
+                                 dbUsers
                                );
                             }
                           })
@@ -2927,7 +2974,7 @@ export default function TaskForm( props ) {
                 taskRepeat,
                 repeat,
                 folder._id,
-                e._id,
+                container ? container._id : 0,
                 moment().unix()
               );
             }}

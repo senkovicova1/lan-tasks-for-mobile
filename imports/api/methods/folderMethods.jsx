@@ -14,18 +14,12 @@ Meteor.methods({
       throw new Meteor.Error('Not authorized.');
     }
 
-    FoldersCollection.insert( {
+    return FoldersCollection.insert( {
       name,
       colour,
       archived,
       users,
-    }, ( error, _id ) => {
-      if ( error ) {
-        console.log( error );
-      } else {
-        props.history.push( `/${_id}/list` );
-      }
-    } );
+    });
   },
 
   'folders.editContianers'( containers, folderId) {
@@ -42,7 +36,7 @@ Meteor.methods({
     } );
   },
 
-  'folders.editFolder'( name, colour, archived, users ) {
+  'folders.editFolder'( folderId, name, colour, archived, users ) {
   //  check(taskId, String);
   //  check(isChecked, Boolean);
 
@@ -56,14 +50,14 @@ Meteor.methods({
       archived,
       users
     };
-    FoldersCollection.update( folderID, {
+    FoldersCollection.update( folderId, {
       $set: {
         ...data
       }
     } );
   },
 
-  'folders.removeComment'(folderId) {
+  'folders.removeFolder'(folderId) {
   //  check(taskId, String);
   //  check(isChecked, Boolean);
 

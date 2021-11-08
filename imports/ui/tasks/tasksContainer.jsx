@@ -227,15 +227,20 @@ export default function TasksContainer( props ) {
       folderID,
       dateCreated,
       container,
-      onSuccess,
-      onFail
+      (err, response) => {
+      if (err) {
+        onFail(err);
+      } else if (response) {
+        onSuccess(response);
+      }
+    }
     );
   }
 
   if ( !folder && !filter  ) {
     return <Loader />;
   }
-
+  
   if ( window.innerWidth <= 820 || layout === PLAIN ) {
     return (
       <TasksList

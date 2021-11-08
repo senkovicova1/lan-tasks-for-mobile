@@ -13,14 +13,14 @@ import {
 } from '/imports/api/repeatsCollection';
 
 Meteor.methods({
-  'repeats.addRepeat'(  intervalNumber, intervalFrequency, customInterval, useCustomInterval, repeatStart, repeatUntil, tasks, onSuccess, onFail ) {
+  'repeats.addRepeat'(  intervalNumber, intervalFrequency, customInterval, useCustomInterval, repeatStart, repeatUntil, tasks ) {
   //  check(text, String);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
 
-    RepeatsCollection.insert( {
+    return RepeatsCollection.insert( {
       intervalNumber,
       intervalFrequency,
       customInterval,
@@ -28,12 +28,6 @@ Meteor.methods({
       repeatStart,
       repeatUntil,
       tasks
-    }, ( error, _id ) => {
-      if ( error ) {
-        onFail( error );
-      } else {
-        onSuccess( _id );
-      }
     } );
   },
 

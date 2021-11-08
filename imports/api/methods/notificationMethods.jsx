@@ -45,7 +45,7 @@ folderId: string,
 */
 
 Meteor.methods({
-  'notifications.addNewNotification'( userId, email, notifications) {
+  'notifications.addNewNotification'( userId, email, notifications, dbUsers) {
   //  check(text, String);
 
     if (!this.userId) {
@@ -62,13 +62,13 @@ Meteor.methods({
         messageEn = messageEn.replace(`[${i}]`, arg);
         messageSk = messageSk.replace(`[${i}]`, arg);
       });
-
-        let subject = "LanTasks Notifications";
-        let object = `${messageEn}
+      const user = dbUsers.find(user => user._id === notification.user);
+      const subject = "LanTasks Notifications";
+      const object = `${user.label} ${messageEn}
 
         -----------------------------------------
 
-        ${messageSk}
+${user.label} ${messageSk}
         `;
 
         Meteor.call(
@@ -86,13 +86,12 @@ Meteor.methods({
     } );
   },
 
-  'notifications.editNotifications'(notificationId, email, additionalNotification ) {
+  'notifications.editNotifications'(notificationId, email, additionalNotification, dbUsers ) {
   //  check(taskId, String);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
-
 
       const notificationType = notificationTypes.find(type => type.type === additionalNotification.type);
       let messageEn = notificationType.message['en'];
@@ -103,12 +102,13 @@ Meteor.methods({
         messageSk = messageSk.replace(`[${i}]`, arg);
       });
 
-        let subject = "LanTasks Notifications";
-        let object = `${messageEn}
+      const user = dbUsers.find(user => user._id === additionalNotification.user);
+      const subject = "LanTasks Notifications";
+      const object = `${user.label} ${messageEn}
 
         -----------------------------------------
 
-        ${messageSk}
+${user.label} ${messageSk}
         `;
 
         Meteor.call(

@@ -47,8 +47,11 @@ export default function AddTaskContainer( props ) {
     return user.profile.language;
   }, [ user ] );
 
-  const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, folder, dateCreated ) => {
+  const notifications = useSelector( ( state ) => state.notifications.value );
+    const dbUsers = useSelector( ( state ) => state.users.value );
 
+  const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, newRepeat, folder, container, dateCreated ) => {
+    
     Meteor.call(
       'tasks.addFullTask',
       name,
@@ -61,54 +64,13 @@ export default function AddTaskContainer( props ) {
       subtasks,
       comments,
       files,
+      oldRepeat,
+      newRepeat,
       folder,
+      container,
       dateCreated,
-      ( _id ) => {
-        Meteor.call(
-          'history.addNewHistory',
-          _id,
-          [ {
-            dateCreated,
-            user: user._id,
-            message: "created this task!",
-          } ]
-        );
-            assigned.filter(assigned => assigned !== userId).map(assigned => {
-              let usersNotifications = NotificationsCollection.findOne( {
-                _id: assigned,
-              } );
-             if (usersNotifications.notifications.length > 0){
-               Meteor.call(
-                 'notifications.editNotifications',
-                 assigned,
-                 {
-                  date: dateCreated,
-                  from: user._id,
-                  message: `created task ${name} and assigned it to you!`,
-                  read: false,
-                  taskId: _id,
-                  folderId: folder,
-                }
-              )
-              } else {
-                Meteor.call(
-                  'notifications.addNewNotification',
-                  assigned,
-                  [{
-                  date: dateCreated,
-                  from: user._id,
-                  message: `created task ${name} and assigned it to you!`,
-                  read: false,
-                  taskId: _id,
-                  folderId: folder,
-                }]
-              )
-              }
-            });
-      },
-      ( error ) => {
-        console.log( error );
-      }
+      notifications,
+      dbUsers
     );
 
     close();

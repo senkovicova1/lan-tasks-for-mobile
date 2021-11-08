@@ -33,38 +33,37 @@ import {
   DELETED
 } from '/imports/other/constants';
 
+import {
+  ADD_TASK,
+  ADD_AND_ASSIGN
+} from '/imports/other/messages';
+
 Meteor.methods({
-  'tasks.addTask'(name, assigned, folder, dateCreated, container, onSuccess, onFail) {
+  'tasks.addTask'(name, assigned, folder, dateCreated, container) {
   //  check([name, assig], String);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
 
-    TasksCollection.insert( {
+    return TasksCollection.insert( {
       name,
       assigned,
       folder,
       dateCreated,
       closed: false,
       container
-    }, ( error, _id ) => {
-      if ( error ) {
-        onFail( error );
-      } else {
-        onSuccess(_id);
-      }
-    } );
+    });
   },
 
-  'tasks.addFullTask'(name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, repeat, folder, container, dateCreated, onSuccess, onFail) {
+  'tasks.addFullTask'(name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, repeat, folder, container, dateCreated, notifications, dbUsers) {
 //    check(text, String);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
 
-    let repeatId = null;
+    var repeatId = null;
     if (repeat){
       Meteor.call(
         'repeats.addRepeat',
@@ -75,8 +74,13 @@ Meteor.methods({
         repeat.repeatStart,
         repeat.repeatUntil,
         [],
-        (_id) => { repeatId = _id;},
-        (error) => console.log(error)
+        (error, response) => {
+          if (error) {
+            console.log(error);
+          } else {
+            repeatId = response;
+          }
+        }
       );
     }
 
@@ -95,11 +99,12 @@ Meteor.methods({
         dateCreated,
         repeatId
       };
+
       TasksCollection.insert({
           ...data
       }, (error, _id) => {
         if (error){
-          onFail(error);
+          console.log(error);
         } else {
 
           const addedSubtasks = subtasks.filter( subtask => subtask.change === ADDED );
@@ -122,7 +127,50 @@ Meteor.methods({
             )
           }
 
-          onSuccess(_id);
+          const historyData = {
+            dateCreated,
+            user: this.userId,
+            type: ADD_TASK,
+            args: [],
+          };
+
+          Meteor.call(
+            'history.addNewHistory',
+            _id,
+            [ historyData ]
+          );
+
+          assigned.filter(assigned => assigned !== this.userId).map(assigned => {
+            let usersNotifications = notifications.find( notif => notif._id === assigned );
+            const user = dbUsers.find(user => user._id === assigned);
+            const notificationData = {
+              ...historyData,
+              type: ADD_AND_ASSIGN,
+              read: false,
+              args: [name],
+              taskId: _id,
+              folderId: folder,
+            }
+           if (usersNotifications && usersNotifications.notifications.length > 0){
+             Meteor.call(
+               'notifications.editNotifications',
+               assigned,
+               user.email,
+               notificationData,
+               dbUsers
+            )
+            } else {
+              Meteor.call(
+                'notifications.addNewNotification',
+                assigned,
+                user.email,
+                [
+                  notificationData
+                ],
+                dbUsers
+            )
+            }
+          });
 
         }
       } );

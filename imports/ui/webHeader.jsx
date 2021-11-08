@@ -101,8 +101,11 @@ export default function WebHeader( props ) {
   const canEditFolder = useMemo( () => {
     if ( folderID && !['all', 'important'].includes(folderID) && [ ...folders.active, ...folders.archived ].length > 0 ) {
       const folder = [ ...folders.active, ...folders.archived ].find( f => f._id === folderID );
-      const user = folder.users.find( user => user._id === userId );
-      return user.admin;
+      if (folder){
+        const user = folder.users.find( user => user._id === userId );
+        return user.admin;
+      }
+      return false;
     }
   }, [ folders, folderID, userId ] );
 

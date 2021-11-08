@@ -43,24 +43,24 @@ export default function EditTaskContainer( props ) {
     return tasks.length > 0 ? tasks.find( task => task._id === taskId ) : {};
   }, [ taskId, tasks ] );
 
-          const { history } = useTracker(() => {
-            const noDataAvailable = { history: []};
-            if (!Meteor.user()) {
-              return noDataAvailable;
-            }
+  const { history } = useTracker(() => {
+    const noDataAvailable = { history: []};
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
 
-            const historyHandler = Meteor.subscribe('history');
+    const historyHandler = Meteor.subscribe('history');
 
-            if (!historyHandler.ready()) {
-              return { ...noDataAvailable };
-            }
+    if (!historyHandler.ready()) {
+      return { ...noDataAvailable };
+    }
 
-            const history = HistoryCollection.find(  {
-              task: ( task ? task._id : null)
-            }  ).fetch();
+    const history = HistoryCollection.find(  {
+      task: ( task ? task._id : null)
+    }  ).fetch();
 
-            return { history };
-          });
+    return { history };
+  });
 
   if (!task){
     return <div></div>;

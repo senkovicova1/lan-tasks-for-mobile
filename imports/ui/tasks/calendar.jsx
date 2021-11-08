@@ -13,6 +13,10 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import {
+  HistoryCollection
+} from '/imports/api/historyCollection';
+
 import moment from 'moment';
 
 import Select from 'react-select';
@@ -82,6 +86,11 @@ import {
   translations
 } from '/imports/other/translations';
 
+import {
+  CLOSED_STATUS,
+  OPEN_STATUS,
+} from '/imports/other/messages';
+
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -91,7 +100,6 @@ export default function CalendarList( props ) {
 
   const {
   match,
-  history,
   folder,
   tasksWithAdvancedFilters,
   removedTasks,
@@ -131,6 +139,26 @@ const activeTasksWithoutDatetimes = useMemo( () => {
 const inactiveTasksWithoutDatetimes = useMemo( () => {
   return tasksWithAdvancedFilters.filter( task => !task.startDatetime && task.closed );
 }, [ tasksWithAdvancedFilters ] );
+
+const dbUsers = useSelector( ( state ) => state.users.value );
+const notifications = useSelector( ( state ) => state.notifications.value );
+
+const { history } = useTracker(() => {
+  const noDataAvailable = { history: []};
+  if (!Meteor.user()) {
+    return noDataAvailable;
+  }
+
+  const historyHandler = Meteor.subscribe('history');
+
+  if (!historyHandler.ready()) {
+    return { ...noDataAvailable };
+  }
+
+  const history = HistoryCollection.find(  {}  ).fetch();
+
+  return { history };
+});
 
 document.onkeydown = function( e ) {
   e = e || window.event;
@@ -185,7 +213,64 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
+                onChange={() => {
+                  Meteor.call('tasks.closeTask', task, subtasks);
+                  const taskHistory = history.find(entry => entry.task === task._id);
+                  const historyData = {
+                    dateCreated: moment().unix(),
+                    user: userId,
+                    type: CLOSED_STATUS,
+                    args: [],
+                  };
+                  if (taskHistory.length === 0){
+                    Meteor.call(
+                      'history.addNewHistory',
+                      task._id,
+                      [
+                        historyData
+                      ]
+                    );
+                  } else {
+                    Meteor.call(
+                      'history.editHistory',
+                      taskHistory._id,
+                      historyData
+                    )
+                  }
+
+                  if (task.assigned.length > 0){
+                    task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                      const notificationData = {
+                        ...historyData,
+                        args: [name],
+                        read: false,
+                        taskId: task._id,
+                        folderId: folder._id,
+                      };
+                     if (usersNotifications.notifications.length > 0){
+                          Meteor.call(
+                            'notifications.editNotifications',
+                             assigned._id,
+                             assigned.email,
+                             notificationData,
+                             dbUsers
+                           );
+                      } else {
+                        Meteor.call(
+                          'notifications.addNewNotification',
+                          assigned._id,
+                          assigned.email,
+                          [
+                            notificationData
+                           ],
+                           dbUsers
+                         );
+                      }
+                    })
+                  }
+
+                }}
                 />
               {
                 task.important &&
@@ -279,7 +364,9 @@ document.onkeydown = function( e ) {
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
-                onChange={() => Meteor.call('tasks.closeTask', task, subtasks)}
+                onChange={() => {
+                  Meteor.call('tasks.updateSimpleAttribute', task._id, {closed: false})
+                }}
                 />
               {
                 task.important &&

@@ -15,13 +15,12 @@ export default function AddFolderContainer( props ) {
       colour,
       archived,
       users,
-     ( error, _id ) => {
-        if ( error ) {
-          console.log( error );
-        } else {
-          props.history.push( `/${_id}/list` );
-        }
+      (err, response) => {
+      if (err) {
+      } else if (response) {
+        props.history.push( `/${response}/list` );
       }
+    }
     );
   }
 

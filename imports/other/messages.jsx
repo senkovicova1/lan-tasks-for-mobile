@@ -1,3 +1,5 @@
+export const ADD_TASK = 'add_task';
+export const ADD_AND_ASSIGN = 'add_and_assign';
 export const CLOSED_STATUS = "closed_status";
 export const OPEN_STATUS = "open_status";
 export const TITLE = "title";
@@ -26,6 +28,20 @@ export const CHANGE_REPEAT = "change_repeat";
 export const SET_REPEAT = "set_repeat";
 
 export const historyEntryTypes = [
+  {
+    type: ADD_TASK,
+    message:{
+      "en": "created this task!",
+      "sk": "vytvorila úlohu.",
+    }
+  },
+    {
+      type: ADD_AND_ASSIGN,
+      message:{
+        "en": "created this task and assigned it to [0]!",
+        "sk": "vytvoril/a úlohu a nastavil/a riešiteľa na [0].",
+      }
+    },
   {
     type: CLOSED_STATUS,
     message:{
@@ -212,6 +228,20 @@ export const historyEntryTypes = [
 
 
 export const notificationTypes = [
+  {
+    type: ADD_TASK,
+    message:{
+      "en": "created this task '[0]'!",
+      "sk": "vytvorila úlohu '[0]'!",
+    }
+  },
+    {
+      type: ADD_AND_ASSIGN,
+      message:{
+        "en": "created the task '[0]' and assigned it to you!",
+        "sk": "vytvoril/a úlohu '[0]' a nastavil/a riešiteľa na vás.",
+      }
+    },
   {
     type: CLOSED_STATUS,
     message:{

@@ -13,6 +13,10 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
+import {
+  HistoryCollection
+} from '/imports/api/historyCollection';
+
 import moment from 'moment';
 
 import Select from 'react-select';
@@ -97,6 +101,11 @@ import {
   translations
 } from '/imports/other/translations';
 
+import {
+  CLOSED_STATUS,
+  OPEN_STATUS,
+} from '/imports/other/messages';
+
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
@@ -114,7 +123,6 @@ export default function DND( props ) {
 
   const {
   match,
-  history,
   folder,
   sortedTasks,
   removedTasks,
@@ -148,6 +156,26 @@ const user = useTracker( () => Meteor.user() );
 const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
+
+const dbUsers = useSelector( ( state ) => state.users.value );
+const notifications = useSelector( ( state ) => state.notifications.value );
+
+const { history } = useTracker(() => {
+  const noDataAvailable = { history: []};
+  if (!Meteor.user()) {
+    return noDataAvailable;
+  }
+
+  const historyHandler = Meteor.subscribe('history');
+
+  if (!historyHandler.ready()) {
+    return { ...noDataAvailable };
+  }
+
+  const history = HistoryCollection.find(  {}  ).fetch();
+
+  return { history };
+});
 
 const containers = useMemo( () => {
   if ( folder.containers && folder.containers.length > 0) {
@@ -401,7 +429,7 @@ const containers = useMemo( () => {
                                     container._id,
                                     dateCreated,
                                     (_id) => {
-                                      addNewHistory(
+                                      Meteor.call(
                                         _id,
                                         [ {
                                             dateCreated,
@@ -460,7 +488,63 @@ const containers = useMemo( () => {
                                                 'tasks.closeTask',
                                                 task,
                                                 subtasks
-                                              )
+                                              );
+
+                                              const taskHistory = history.find(entry => entry.task === task._id);
+                                              const historyData = {
+                                                dateCreated: moment().unix(),
+                                                user: userId,
+                                                type: CLOSED_STATUS,
+                                                args: [],
+                                              };
+                                              if (taskHistory.length === 0){
+                                                Meteor.call(
+                                                  'history.addNewHistory',
+                                                  task._id,
+                                                  [
+                                                    historyData
+                                                  ]
+                                                );
+                                              } else {
+                                                Meteor.call(
+                                                  'history.editHistory',
+                                                  taskHistory._id,
+                                                  historyData
+                                                )
+                                              }
+
+                                              if (task.assigned.length > 0){
+                                                task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+                                                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                                                  const notificationData = {
+                                                    ...historyData,
+                                                    args: [name],
+                                                    read: false,
+                                                    taskId: task._id,
+                                                    folderId: folder._id,
+                                                  };
+                                                 if (usersNotifications.notifications.length > 0){
+                                                      Meteor.call(
+                                                        'notifications.editNotifications',
+                                                         assigned._id,
+                                                         assigned.email,
+                                                         notificationData,
+                                                         dbUsers
+                                                       );
+                                                  } else {
+                                                    Meteor.call(
+                                                      'notifications.addNewNotification',
+                                                      assigned._id,
+                                                      assigned.email,
+                                                      [
+                                                        notificationData
+                                                       ],
+                                                       dbUsers
+                                                     );
+                                                  }
+                                                })
+                                              };
+
                                               e.stopPropagation();
                                             }}
                                             />

@@ -58,6 +58,7 @@ export default function EditFolderContainer( props ) {
   const editFolder = ( name, colour, archived, users ) => {
     Meteor.call(
       'folders.editFolder',
+      folderID,
       name,
       colour,
       archived,
