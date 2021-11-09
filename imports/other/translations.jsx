@@ -74,7 +74,7 @@ export const translations = {
     'dnd': "Planner",
     'customOrder': "Custom order",
 
-    'unscheduled': "Unscheduled",
+    'unscheduled': "Unscheduled tasks",
     'noOpenTasks': "You have no open tasks.",
     'noClosedTasks': "You have no closed tasks.",
 
@@ -174,7 +174,7 @@ export const translations = {
     'dnd': "Plánovač",
     'customOrder': "Vlastné poradie",
 
-    'unscheduled': "Nenaplánované",
+    'unscheduled': "Nenaplánované úlohy",
     'noOpenTasks': "Namáte žiadne otvorené úlohy.",
     'noClosedTasks': "Nemáte žiadne uzavreté úlohy.",
 

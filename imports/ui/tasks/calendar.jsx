@@ -199,7 +199,7 @@ document.onkeydown = function( e ) {
 
   <div style={{display: "flex", width: "100%"}}>
     <div className="task-list">
-      <h2>{translations[language].unscheduled}</h2>
+      <h2 style={{fontSize: "1.5em", height: "35px", marginBottom: "11px"}}>{translations[language].unscheduled}</h2>
       {
         activeTasksWithoutDatetimes.length === 0 &&
         <span className="message">{translations[language].noOpenTasks}</span>
@@ -207,7 +207,7 @@ document.onkeydown = function( e ) {
       {
         activeTasksWithoutDatetimes.length > 0 &&
         activeTasksWithoutDatetimes.map(task => (
-          <ItemCard>
+          <ItemCard key={task._id}>
             <div className="info-bar">
               <Input
                 id={`task_name ${task._id}`}
@@ -358,7 +358,7 @@ document.onkeydown = function( e ) {
         showClosed &&
         inactiveTasksWithoutDatetimes.length > 0 &&
         inactiveTasksWithoutDatetimes.map(task => (
-          <ItemCard>
+          <ItemCard key={task._id}>
             <div className="info-bar">
               <Input
                 id={`task_name ${task._id}`}

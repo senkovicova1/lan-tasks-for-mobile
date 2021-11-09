@@ -2588,7 +2588,13 @@ export default function TaskForm( props ) {
               onClick={(e) => {
                 e.preventDefault();
                 const dateCreated = moment().unix();
-                addNewComment(userId, taskId, dateCreated, newCommentBody);
+                Meteor.call(
+                  'comments.addComment',
+                  userId,
+                  taskId,
+                  dateCreated,
+                  newCommentBody
+                );
                 const historyData = {
                   dateCreated,
                   user: userId,
@@ -2680,58 +2686,6 @@ export default function TaskForm( props ) {
                       onClick={(e) => {
                         e.preventDefault();
                         setEditedComment(comment._id ? comment._id : comment.dateCreated);
-                        const historyData = {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          type: EDIT_COMMENT,
-                          args: [],
-                        };
-                        if (history.length === 0){
-                          Meteor.call(
-                            'history.addNewHistory',
-                            taskId,
-                            [
-                              historyData
-                            ]
-                          );
-                        } else {
-                          Meteor.call(
-                            'history.editHistory',
-                            history[0]._id,
-                            historyData
-                          )
-                        }
-                        if (assigned.length > 0){
-                          assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                            const notificationData = {
-                              ...historyData,
-                              args: [name],
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            };
-                           if (usersNotifications.notifications.length > 0){
-                             Meteor.call(
-                               'notifications.editNotifications',
-                                assigned._id,
-                                assigned.email,
-                                notificationData,
-                                dbUsers
-                              );
-                            } else {
-                              Meteor.call(
-                                'notifications.addNewNotification',
-                                assigned._id,
-                                assigned.email,
-                                [
-                                  notificationData
-                                 ],
-                                 dbUsers
-                               );
-                            }
-                          })
-                        }
                       }}
                       >
                       <img
@@ -2748,7 +2702,10 @@ export default function TaskForm( props ) {
                     disabled={closed}
                       onClick={(e) => {
                         e.preventDefault();
-                        removeComment(comment._id);
+                        Meteor.call(
+                          'comments.removeComment',
+                          comment._id
+                        )
                         const historyData = {
                           dateCreated: moment().unix(),
                           user: userId,
@@ -2853,7 +2810,14 @@ export default function TaskForm( props ) {
                       disabled={editedCommentBody.length === 0}
                       onClick={(e) => {
                         e.preventDefault();
-                        editComment(comment._id, comment.author._id, comment.task, comment.dateCreated, editedCommentBody);
+                        Meteor.call(
+                          'comments.editComment',
+                          comment._id,
+                          comment.author._id,
+                          comment.task,
+                          comment.dateCreated,
+                          editedCommentBody
+                        );
                         const historyData = {
                           dateCreated: moment().unix(),
                           user: userId,

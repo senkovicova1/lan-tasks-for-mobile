@@ -91,7 +91,7 @@ export default function TasksContainer( props ) {
 
   const removedTasks = useMemo( () => {
     if ( folderID ) {
-      return tasks.filter( t => t.folderID === folderID && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
+      return tasks.filter( t => t.folder._id === folderID && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
     }
     return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
   }, [ tasks, folderID ] );
@@ -240,7 +240,7 @@ export default function TasksContainer( props ) {
   if ( !folder && !filter  ) {
     return <Loader />;
   }
-  
+
   if ( window.innerWidth <= 820 || layout === PLAIN ) {
     return (
       <TasksList

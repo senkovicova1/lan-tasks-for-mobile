@@ -58,10 +58,13 @@ export default function EditFilterContainer( props ) {
       datetimeMax,
       dateCreatedMin,
       dateCreatedMax,
-      () => {
+      (err, response) => {
+      if (err) {
+        console.log(err);
+      } else if (response) {
         setEditFilter(null);
-      },
-      (error) => {console.log(error)}
+      }
+    }
     )
   }
 

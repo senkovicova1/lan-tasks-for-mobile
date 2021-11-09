@@ -7,14 +7,14 @@ import {
 } from '/imports/api/filtersCollection';
 
 Meteor.methods({
-  'filters.addFilter'( name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, onSuccess, onFail) {
+  'filters.addFilter'( name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) {
   //  check(text, String);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
 
-    FiltersCollection.insert( {
+    return FiltersCollection.insert( {
       name,
       user,
       title,
@@ -25,16 +25,10 @@ Meteor.methods({
       datetimeMax,
       dateCreatedMin,
       dateCreatedMax
-    }, ( error, _id ) => {
-      if ( error ) {
-        onFail( error );
-      } else {
-        onSuccess();
-      }
-    } );
+    });
   },
 
-  'filters.editFilter'( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, onSuccess, onFail ) {
+  'filters.editFilter'( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax ) {
   //  check(taskId, String);
 
     if (!this.userId) {
@@ -53,17 +47,11 @@ Meteor.methods({
       dateCreatedMin,
       dateCreatedMax
     };
-    FiltersCollection.update( _id, {
+    return FiltersCollection.update( _id, {
       $set: {
         ...data
       }
-    }, (error) => {
-      if ( error ) {
-        onFail( error );
-      } else {
-        onSuccess();
-      }
-    } );
+    });
   },
 
   'filters.removeFilter'( _id ) {

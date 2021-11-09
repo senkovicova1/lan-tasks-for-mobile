@@ -43,7 +43,7 @@ Meteor.methods({
     } )
   },
 
-  'comments.removeComment'(taskId) {
+  'comments.removeComment'(commentId) {
   //  check(taskId, String);
   //  check(isChecked, Boolean);
 

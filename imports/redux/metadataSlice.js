@@ -17,6 +17,7 @@ export const metadataSlice = createSlice( {
       layout: PLAIN,
       chosenTask: null,
       search: "",
+      searchInFilter: true,
       sidebarOpen: true,
       sortBy: sortByOptions[ 0 ].value,
       sortDirection: sortDirectionOptions[ 0 ].value,
@@ -48,6 +49,12 @@ export const metadataSlice = createSlice( {
       state.value = {
         ...state.value,
         search: action.payload,
+      }
+    },
+    setSearchInFilter: ( state, action ) => {
+      state.value = {
+        ...state.value,
+        searchInFilter: action.payload,
       }
     },
     setSidebarOpen: ( state, action ) => {
@@ -85,6 +92,7 @@ export const {
   setChosenTask,
   setSidebarOpen,
   setSearch,
+  setSearchInFilter,
   setSortBy,
   setSortDirection,
   setFilter

@@ -101,23 +101,26 @@ export default function AddFilterContainer( props ) {
                 datetimeMax,
                 dateCreatedMin,
                 dateCreatedMax,
-                () => {
+                (err, response) => {
+                if (err) {
+                  console.log(err);
+                } else if (response) {
                   setSaveFilter(false);
                   dispatch(setSearch(title));
                   dispatch(setFilter({
-                      title,
-                      folders,
-                      important,
-                      assigned,
-                      datetimeMin,
-                      datetimeMax,
-                      dateCreatedMin,
-                      dateCreatedMax,
-                    }));
+                    title,
+                    folders,
+                    important,
+                    assigned,
+                    datetimeMin,
+                    datetimeMax,
+                    dateCreatedMin,
+                    dateCreatedMax,
+                  }));
                   setOpenFilter(false);
-                },
-                (error) => {console.log(error)}
-              );
+                }
+              }
+            );
             }}
             >
             {translations[language].save}

@@ -59,11 +59,12 @@ export default function FilterSummary( props ) {
 
   const {
     filter,
-    search
+    search,
+    searchInFilter,
   } = useSelector( ( state ) => state.metadata.value );
 
   const numberOfFilters = useMemo(() => {
-    return (search ? 1 : 0) +
+    return (search && searchInFilter ? 1 : 0) +
               ((["all", "important"].includes(folderID) && filter.folders.length > 0) ? 1 : 0) +
               (filter.important ? 1 : 0) +
               (filter.assigned.length > 0 ? 1 : 0) +
@@ -84,6 +85,7 @@ export default function FilterSummary( props ) {
     <AppliedFilter style={style}>
       {
       search &&
+      searchInFilter &&
         <section className="filter">
           <div className="filter-container">
           <img

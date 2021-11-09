@@ -9,6 +9,7 @@ import {
 
 import {
   setSearch,
+  setSearchInFilter
 } from '/imports/redux/metadataSlice';
 
 import Filter from '/imports/ui/other/filter';
@@ -54,7 +55,10 @@ export default function Search( props ) {
       <Input
         placeholder="Search"
         value={search}
-        onChange={(e) => dispatch(setSearch(e.target.value))}
+        onChange={(e) => {
+          dispatch(setSearch(e.target.value));
+          dispatch(setSearchInFilter(false));
+        }}
         />
       <LinkButton
         font="#0078d4"
@@ -62,6 +66,7 @@ export default function Search( props ) {
         onClick={(e) => {
           e.preventDefault();
           dispatch(setSearch(""));
+          dispatch(setSearchInFilter(true));
         }}
         >
         <img
@@ -80,6 +85,7 @@ export default function Search( props ) {
         if (!filterState){
           setNewFilter({...filter});
           setNewSearch(search);
+          dispatch(setSearchInFilter(true));
         }
       }}
       >
