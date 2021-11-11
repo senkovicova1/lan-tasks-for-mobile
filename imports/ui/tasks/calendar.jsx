@@ -23,7 +23,7 @@ import Select from 'react-select';
 
 import Switch from "react-switch";
 
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 
@@ -89,6 +89,8 @@ import {
 import {
   CLOSED_STATUS,
   OPEN_STATUS,
+  SET_START,
+  SET_END,
 } from '/imports/other/messages';
 
 const localizer = momentLocalizer(moment);
@@ -120,6 +122,13 @@ const {
 
 const [ selectedInterval, setSelectedInterval ] = useState(null);
 const [ showClosed, setShowClosed ] = useState( false );
+
+
+
+const [ draggedEvent, setDraggedEvent ] = useState( null );
+const [ displayDragItemInCell, setDisplayDragItemInCell ] = useState( true );
+
+
 
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
@@ -189,6 +198,96 @@ document.onkeydown = function( e ) {
     );
   };
 
+  const handleDragStart = (event) => {
+    setDraggedEvent(event);
+  }
+
+  const handleDisplayDragItemInCell  = (event) => {
+    setDisplayDragItemInCell(!displayDragItemInCell);
+  }
+
+  const dragFromOutsideItem = () => {
+    return draggedEvent;
+  }
+
+  const onDropFromOutside = ({ start, end, allDay }) => {
+    const oldStart = draggedEvent.startDatetime;
+    const oldEnd = draggedEvent.endDatetime;
+    Meteor.call('tasks.updateSimpleAttribute', draggedEvent._id, {startDatetime: start.getTime() / 1000, endDatetime: moment.unix(end.getTime() / 1000).add('h', 23).add('m', 59).add('s', 59).unix()});
+
+    const taskHistory = history.find(entry => entry.task === draggedEvent._id);
+    const historyData1 = {
+      dateCreated: moment().unix(),
+      user: userId,
+      type: SET_START,
+      args: [],
+    };
+    const historyData2 = {
+      dateCreated: moment().unix(),
+      user: userId,
+      type: SET_END,
+      args: [],
+    };
+    if (taskHistory.length === 0){
+      Meteor.call(
+        'history.addNewHistory',
+        draggedEvent._id,
+        [
+          historyData1,
+          historyData2
+        ]
+      );
+    } else {
+      Meteor.call(
+        'history.editHistory',
+        taskHistory._id,
+        historyData1
+      );
+      Meteor.call(
+        'history.editHistory',
+        taskHistory._id,
+        historyData2
+      );
+    }
+
+    if (draggedEvent.assigned.length > 0){
+      draggedEvent.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+        const notificationData1 = {
+          ...historyData1,
+          args: [name, moment.unix(oldStart).format("D.M.YYYY HH:mm"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm")],
+          read: false,
+          taskId: draggedEvent._id,
+        };
+        const notificationData2 = {
+          ...historyData2,
+          args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm")],
+          read: false,
+          taskId: draggedEvent._id,
+        };
+       if (usersNotifications.notifications.length > 0){
+            Meteor.call(
+              'notifications.editNotifications',
+               assigned._id,
+               assigned.email,
+               notificationData,
+               dbUsers
+             );
+        } else {
+          Meteor.call(
+            'notifications.addNewNotification',
+            assigned._id,
+            assigned.email,
+            [
+              notificationData
+             ],
+             dbUsers
+           );
+        }
+      })
+    }
+  }
+
   return (
     <CalendarContainer>
 
@@ -207,7 +306,14 @@ document.onkeydown = function( e ) {
       {
         activeTasksWithoutDatetimes.length > 0 &&
         activeTasksWithoutDatetimes.map(task => (
-          <ItemCard key={task._id}>
+          <ItemCard
+            key={task._id}
+            dragga="true"
+            onDragStart={() => {
+              console.log("DRAG START");
+              handleDragStart(task);
+            }}
+            >
             <div className="info-bar">
               <Input
                 id={`task_name ${task._id}`}
@@ -431,6 +537,13 @@ document.onkeydown = function( e ) {
       onEventDrop={onEventDrop}
       resizable
       onEventResize={onEventResize}
+      dragFromOutsideItem={() => {
+        if (displayDragItemInCell){
+          return dragFromOutsideItem();
+        }
+        return null;
+      }}
+      onDropFromOutside={onDropFromOutside}
     />
 </div>
 
