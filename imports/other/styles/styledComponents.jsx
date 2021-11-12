@@ -514,7 +514,7 @@ export const ItemCard = styled.section`
   padding: 0.6em;
 
   &:hover{
-    cursor: pointer;
+    cursor: grab;
   }
 
   .info-bar{

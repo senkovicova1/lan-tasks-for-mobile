@@ -25,6 +25,14 @@ import Switch from "react-switch";
 
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 
+import {
+  DndProvider
+} from 'react-dnd';
+
+import {
+  HTML5Backend
+} from 'react-dnd-html5-backend';
+
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 
 import {
@@ -213,7 +221,7 @@ document.onkeydown = function( e ) {
   const onDropFromOutside = ({ start, end, allDay }) => {
     const oldStart = draggedEvent.startDatetime;
     const oldEnd = draggedEvent.endDatetime;
-    Meteor.call('tasks.updateSimpleAttribute', draggedEvent._id, {startDatetime: start.getTime() / 1000, endDatetime: moment.unix(end.getTime() / 1000).add('h', 23).add('m', 59).add('s', 59).unix()});
+    Meteor.call('tasks.updateSimpleAttribute', draggedEvent._id, {startDatetime: start.getTime() / 1000, endDatetime: moment.unix(end.getTime() / 1000).subtract('s', 1).unix()});
 
     const taskHistory = history.find(entry => entry.task === draggedEvent._id);
     const historyData1 = {
@@ -298,125 +306,128 @@ document.onkeydown = function( e ) {
 
   <div style={{display: "flex", width: "100%"}}>
     <div className="task-list">
-      <h2 style={{fontSize: "1.5em", height: "35px", marginBottom: "11px"}}>{translations[language].unscheduled}</h2>
-      {
-        activeTasksWithoutDatetimes.length === 0 &&
-        <span className="message">{translations[language].noOpenTasks}</span>
-      }
-      {
-        activeTasksWithoutDatetimes.length > 0 &&
-        activeTasksWithoutDatetimes.map(task => (
-          <ItemCard
-            key={task._id}
-            dragga="true"
-            onDragStart={() => {
-              console.log("DRAG START");
-              handleDragStart(task);
-            }}
-            >
-            <div className="info-bar">
-              <Input
-                id={`task_name ${task._id}`}
-                type="checkbox"
-                checked={task.closed}
-                onChange={() => {
-                  Meteor.call('tasks.closeTask', task, subtasks);
-                  const taskHistory = history.find(entry => entry.task === task._id);
-                  const historyData = {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    type: CLOSED_STATUS,
-                    args: [],
-                  };
-                  if (taskHistory.length === 0){
-                    Meteor.call(
-                      'history.addNewHistory',
-                      task._id,
-                      [
-                        historyData
-                      ]
-                    );
-                  } else {
-                    Meteor.call(
-                      'history.editHistory',
-                      taskHistory._id,
-                      historyData
-                    )
-                  }
 
-                  if (task.assigned.length > 0){
-                    task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                      const notificationData = {
-                        ...historyData,
-                        args: [name],
-                        read: false,
-                        taskId: task._id,
-                        folderId: folder._id,
-                      };
-                     if (usersNotifications.notifications.length > 0){
+      <DndProvider backend={HTML5Backend}>
+        <h2 style={{fontSize: "1.5em", height: "35px", marginBottom: "11px"}}>{translations[language].unscheduled}</h2>
+        {
+          activeTasksWithoutDatetimes.length === 0 &&
+          <span className="message">{translations[language].noOpenTasks}</span>
+        }
+        {
+          activeTasksWithoutDatetimes.length > 0 &&
+          activeTasksWithoutDatetimes.map(task => (
+            <ItemCard
+              key={task._id}
+              draggable="true"
+              onDragStart={() => {
+                handleDragStart(task);
+              }}
+              >
+              <div className="info-bar">
+                <Input
+                  id={`task_name ${task._id}`}
+                  type="checkbox"
+                  checked={task.closed}
+                  onChange={() => {
+                    Meteor.call('tasks.closeTask', task, subtasks);
+                    const taskHistory = history.find(entry => entry.task === task._id);
+                    const historyData = {
+                      dateCreated: moment().unix(),
+                      user: userId,
+                      type: CLOSED_STATUS,
+                      args: [],
+                    };
+                    if (taskHistory.length === 0){
+                      Meteor.call(
+                        'history.addNewHistory',
+                        task._id,
+                        [
+                          historyData
+                        ]
+                      );
+                    } else {
+                      Meteor.call(
+                        'history.editHistory',
+                        taskHistory._id,
+                        historyData
+                      )
+                    }
+
+                    if (task.assigned.length > 0){
+                      task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                        const notificationData = {
+                          ...historyData,
+                          args: [name],
+                          read: false,
+                          taskId: task._id,
+                          folderId: folder._id,
+                        };
+                        if (usersNotifications.notifications.length > 0){
                           Meteor.call(
                             'notifications.editNotifications',
-                             assigned._id,
-                             assigned.email,
-                             notificationData,
-                             dbUsers
-                           );
-                      } else {
-                        Meteor.call(
-                          'notifications.addNewNotification',
-                          assigned._id,
-                          assigned.email,
-                          [
-                            notificationData
-                           ],
-                           dbUsers
-                         );
-                      }
-                    })
-                  }
+                            assigned._id,
+                            assigned.email,
+                            notificationData,
+                            dbUsers
+                          );
+                        } else {
+                          Meteor.call(
+                            'notifications.addNewNotification',
+                            assigned._id,
+                            assigned.email,
+                            [
+                              notificationData
+                            ],
+                            dbUsers
+                          );
+                        }
+                      })
+                    }
 
-                }}
-                />
-              {
-                task.important &&
-                <img
-                  className="icon star"
-                  src={FullStarIcon}
-                  alt="Full star icon not found"
+                  }}
                   />
-              }
-              {
-                !task.important &&
-                <img
-                  className="icon star"
-                  src={EmptyStarIcon}
-                  alt="Empty star icon not found"
-                  />
-              }
-              {
-                task.assigned.map(assigned => (
-                  <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
-                ))
-              }
-              <LinkButton
-                onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask' , task, removedTasks, subtasks, comments, allTasks)}}
-                >
-                <img
-                  className="icon"
-                  src={CloseIcon}
-                  alt="Close icon not found"
-                  />
-              </LinkButton>
-            </div>
-            <div>
-              <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
-                {task.name}
-              </span>
-            </div>
-          </ItemCard>
-        ))
-      }
+                {
+                  task.important &&
+                  <img
+                    className="icon star"
+                    src={FullStarIcon}
+                    alt="Full star icon not found"
+                    />
+                }
+                {
+                  !task.important &&
+                  <img
+                    className="icon star"
+                    src={EmptyStarIcon}
+                    alt="Empty star icon not found"
+                    />
+                }
+                {
+                  task.assigned.map(assigned => (
+                    <img key={assigned._id} className="avatar" src={assigned.img} alt="" title={assigned.label}/>
+                  ))
+                }
+                <LinkButton
+                  onClick={(e) => {e.preventDefault(); Meteor.call('tasks.removeTask' , task, removedTasks, subtasks, comments, allTasks)}}
+                  >
+                  <img
+                    className="icon"
+                    src={CloseIcon}
+                    alt="Close icon not found"
+                    />
+                </LinkButton>
+              </div>
+              <div>
+                <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
+                  {task.name}
+                </span>
+              </div>
+            </ItemCard>
+          ))
+        }
+      </DndProvider>
+
       <hr style={{marginTop: "7px", marginBottom: "7px"}}/>
 
       <ItemContainer key="commands" style={{padding: "0px"}} >
