@@ -29,6 +29,7 @@ export const metadataSlice = createSlice( {
         assigned: [],
         dateCreatedMin: "",
         dateCreatedMax: "",
+        showClosed: "",
       },
     },
   },

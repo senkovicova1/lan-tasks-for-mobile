@@ -550,6 +550,11 @@ export const ItemCard = styled.section`
       margin-right: 0.6em;
       filter: invert(32%) sepia(81%) saturate(4601%) hue-rotate(210deg) brightness(90%) contrast(101%);
     }
+
+    .dnd-task-title{
+      color: ${basicBlueColour};
+      cursor: pointer;
+    }
 `;
 
 export const Form = styled.form `

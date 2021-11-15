@@ -15,6 +15,8 @@ import {
   useSelector
 } from 'react-redux';
 
+import Switch from "react-switch";
+
 import {
   setSearch,
   setFilter
@@ -76,6 +78,8 @@ export default function Filter( props ) {
       }, [ userId, users ] );
 
       const folders = useSelector( ( state ) => state.folders.value );
+
+      const [ showClosed, setShowClosed ] = useState( false );
 
       const [ newFilter, setNewFilter] = useState();
       const [ newSearch, setNewSearch] = useState("");
@@ -396,6 +400,32 @@ export default function Filter( props ) {
                     alt="CloseIcon star icon not found"
                     />
               </LinkButton>
+        </section>
+
+        <section className="inline">
+          <Switch
+            id="show-closed"
+            name="show-closed"
+            onChange={() => {
+              setNewFilter({...newFilter, showClosed: !newFilter.showClosed});
+            }}
+            checked={newFilter.showClosed ? newFilter.showClosed : false}
+            onColor="#0078d4"
+            uncheckedIcon={false}
+            checkedIcon={false}
+            style={{
+              marginRight: "0.6em",
+              display: "none"
+            }}
+            />
+          <span
+            htmlFor="show-closed"
+            style={{
+              marginLeft: "0.6em",
+            }}
+            >
+            {translations[language].showClosed}
+          </span>
         </section>
 
         <ButtonRow>

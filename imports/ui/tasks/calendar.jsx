@@ -223,7 +223,10 @@ document.onkeydown = function( e ) {
     const oldEnd = draggedEvent.endDatetime;
     Meteor.call('tasks.updateSimpleAttribute', draggedEvent._id, {startDatetime: start.getTime() / 1000, endDatetime: moment.unix(end.getTime() / 1000).subtract('s', 1).unix()});
 
-    const taskHistory = history.find(entry => entry.task === draggedEvent._id);
+    let taskHistory = history.find(entry => entry.task === draggedEvent._id);
+    if (!taskHistory){
+      taskHistory = [];
+    }
     const historyData1 = {
       dateCreated: moment().unix(),
       user: userId,
@@ -419,7 +422,11 @@ document.onkeydown = function( e ) {
                 </LinkButton>
               </div>
               <div>
-                <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
+                <span
+                  className="dnd-task-title"
+                  htmlFor={`task_name ${task._id}`}
+                  onClick={() => dispatch(setChosenTask(task._id))}
+                  >
                   {task.name}
                 </span>
               </div>
@@ -525,6 +532,7 @@ document.onkeydown = function( e ) {
         ))
       }
     </div>
+
     <DnDCalendar
       selectable
       localizer={localizer}
@@ -535,12 +543,15 @@ document.onkeydown = function( e ) {
       titleAccessor="name"
       tooltipAccessor="tooltip"
       resourceAccessor="name"
-      style={{ height: "auto", minHeight: "500px", maxHeight: "1000px", width: "80%" }}
+      style={{ height: "800px", width: "80%" }}
       defaultDate={moment().toDate()}
-      defaultView="month"
-      onSelectEvent={(data) => {
+      scrollToTime={moment().hours(8).minutes(0).seconds(0).toDate()}
+      defaultView="week"
+      onSelectEvent={(task) => {
+        dispatch(setChosenTask(task._id));
       }}
       onSelecting={(data) => {
+        dispatch(setChosenTask(null));
       }}
       onSelectSlot={(data) => {
         setSelectedInterval(data);

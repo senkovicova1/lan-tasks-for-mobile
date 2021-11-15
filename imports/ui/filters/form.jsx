@@ -17,6 +17,9 @@ import {
   useDispatch,
   useSelector
 } from 'react-redux';
+
+import Switch from "react-switch";
+
 import {
   Modal,
   ModalBody
@@ -419,6 +422,33 @@ export default function FilterForm( props ) {
             </LinkButton>
       </section>
 
+      <section className="inline">
+        <Switch
+          id="show-closed"
+          name="show-closed"
+          onChange={() => {
+            setNewFilter({...newFilter, dateCreatedMax: !newFilter.showClosed});
+          }}
+          checked={newFilter.showClosed}
+          onColor="#0078d4"
+          uncheckedIcon={false}
+          checkedIcon={false}
+          style={{
+            marginRight: "0.6em",
+            display: "none"
+          }}
+          />
+        <span
+          htmlFor="show-closed"
+          style={{
+            marginLeft: "0.6em",
+          }}
+          >
+          {translations[language].showClosed}
+        </span>
+      </section>
+
+
       <ButtonRow>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); cancel();}}>{translations[language].cancel}</FullButton>
         <FullButton colour="red" onClick={(e) => {e.preventDefault(); remove();}}>{translations[language].delete}</FullButton>
@@ -438,7 +468,8 @@ export default function FilterForm( props ) {
               newFilter.datetimeMin,
               newFilter.datetimeMax,
               newFilter.dateCreatedMin,
-              newFilter.dateCreatedMax
+              newFilter.dateCreatedMax,
+              newFilter.showClosed,
             );
           }}
           >

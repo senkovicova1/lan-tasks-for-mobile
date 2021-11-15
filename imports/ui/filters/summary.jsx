@@ -28,6 +28,7 @@ import {
   FolderIcon,
   AsteriskIcon,
   MenuIcon,
+  CheckMarkIcon
 } from "/imports/other/styles/icons";
 
 import {
@@ -69,7 +70,8 @@ export default function FilterSummary( props ) {
               (filter.important ? 1 : 0) +
               (filter.assigned.length > 0 ? 1 : 0) +
               (filter.datetimeMin || filter.datetimeMax ? 1 : 0) +
-              (filter.dateCreatedMin || filter.dateCreatedMax ? 1 : 0);
+              (filter.dateCreatedMin || filter.dateCreatedMax ? 1 : 0) +
+              (filter.showClosed ? 1 : 0);
   }, [filter, search]);
 
   const language = useMemo( () => {
@@ -238,6 +240,33 @@ export default function FilterSummary( props ) {
       }
 
       {
+        filter.showClosed  &&
+        <section className="filter">
+          <div className="filter-container">
+          <img
+            style={{width: "auto", marginLeft: "0.3em"}}
+            className="label-icon"
+            src={CheckMarkIcon}
+            alt="CheckMarkIcon icon not found"
+            />
+          <label>{translations[language].showClosed}</label>
+            <LinkButton
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(setFilter({...filter, showClosed: false}));
+              }}
+              >
+              <img
+                className="icon"
+                src={CloseIcon}
+                alt="Close icon not found"
+                />
+            </LinkButton>
+        </div>
+        </section>
+      }
+
+      {
         numberOfFilters >= 2 &&
         <LinkButton
           onClick={(e) => {
@@ -251,6 +280,7 @@ export default function FilterSummary( props ) {
               assigned: [],
               dateCreatedMin: "",
               dateCreatedMax: "",
+              showClosed: false,
             }));
           }}
           >

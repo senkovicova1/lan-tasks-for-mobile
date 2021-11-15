@@ -44,7 +44,7 @@ export default function EditFilterContainer( props ) {
   const userId = Meteor.userId();
   const filters = useSelector( ( state ) => state.filters.value );
 
-  const submit = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) => {
+  const submit = ( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, showClosed) => {
     Meteor.call(
       'filters.editFilter',
       _id,
@@ -58,6 +58,7 @@ export default function EditFilterContainer( props ) {
       datetimeMax,
       dateCreatedMin,
       dateCreatedMax,
+      showClosed,
       (err, response) => {
       if (err) {
         console.log(err);

@@ -409,6 +409,9 @@ export default function FormIndex( props ) {
     possibleRepeat={possibleRepeat}
     setPossibleRepeat={setPossibleRepeat}
 
+    description={description}
+    setDescription={setDescription}
+
     folders={folders}
     dbUsers={dbUsers}
     usersWithRights={usersWithRights}

@@ -105,6 +105,7 @@ export default function TaskList( props ) {
   addQuickTask,
   subtasks,
   comments,
+  sidebarFilter,
   allTasks,
 } = props;
 
@@ -391,7 +392,7 @@ document.onkeydown = function( e ) {
           id="show-closed"
           name="show-closed"
           onChange={() => setShowClosed(!showClosed)}
-          checked={showClosed}
+          checked={sidebarFilter.showClosed || filter.showClosed || showClosed}
           onColor="#0078d4"
           uncheckedIcon={false}
           checkedIcon={false}
@@ -422,13 +423,15 @@ document.onkeydown = function( e ) {
       </ItemContainer>
 
       {
-        showClosed &&
+        !sidebarFilter.showClosed &&
+        !filter.showClosed &&
+        !showClosed &&
         closedTasks.length === 0 &&
         <span className="message">{translations[language].noClosedTasks}</span>
       }
 
       {
-        showClosed &&
+        (sidebarFilter.showClosed || filter.showClosed || showClosed) &&
         closedTasks.map((task) => (
           <ItemContainer
             key={task._id}

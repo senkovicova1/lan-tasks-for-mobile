@@ -476,7 +476,6 @@ const containers = useMemo( () => {
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
                                         {...provided.dragHandleProps}
-                                         onClick={() => dispatch(setChosenTask(task._id))}
                                         >
                                         <div className="info-bar">
                                           <Input
@@ -591,7 +590,11 @@ const containers = useMemo( () => {
                                           </LinkButton>
                                         </div>
                                         <div>
-                                          <span htmlFor={`task_name ${task._id}`}>
+                                          <span
+                                            className="dnd-task-title"
+                                           onClick={() => dispatch(setChosenTask(task._id))}
+                                            htmlFor={`task_name ${task._id}`}
+                                            >
                                             {task.name}
                                           </span>
                                         </div>

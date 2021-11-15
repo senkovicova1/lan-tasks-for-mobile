@@ -51,7 +51,7 @@ export default function AddTaskContainer( props ) {
     const dbUsers = useSelector( ( state ) => state.users.value );
 
   const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, newRepeat, folder, container, dateCreated ) => {
-    
+
     Meteor.call(
       'tasks.addFullTask',
       name,

@@ -7,6 +7,7 @@ import Select from 'react-select';
 import moment from 'moment';
 
 import Scheduled from './scheduled';
+import Description from './description';
 
 import {
   EmptyStarIcon,
@@ -75,6 +76,8 @@ export default function TaskForm( props ) {
     setAssigned,
     hours,
     setHours,
+    description,
+    setDescription,
     folders,
     containers,
     dbUsers,
@@ -664,10 +667,15 @@ export default function TaskForm( props ) {
           />
       </section>
 
-
-      <section className="inline">
-        description
-      </section>
+      <Description
+        taskId={taskId}
+        assigned={assigned}
+        description={description}
+        setDescription={setDescription}
+        history={history}
+        language={language}
+        addNewTask={addNewTask}
+        />
 
       <section  className="inline">
         files

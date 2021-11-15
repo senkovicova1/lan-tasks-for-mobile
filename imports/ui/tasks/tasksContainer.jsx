@@ -250,6 +250,7 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
           allTasks={tasks}
@@ -266,6 +267,7 @@ export default function TasksContainer( props ) {
           folder={folder}
           subtasks={subtasks}
           comments={comments}
+          sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           allTasks={tasks}
           />
     );
@@ -279,6 +281,7 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
           allTasks={tasks}
@@ -296,6 +299,7 @@ export default function TasksContainer( props ) {
           removedTasks={removedTasks}
           subtasks={subtasks}
           comments={comments}
+          sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
           allTasks={tasks}

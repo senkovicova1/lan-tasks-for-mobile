@@ -51,6 +51,7 @@ export default function AddFilterContainer( props ) {
     datetimeMax,
     dateCreatedMin,
     dateCreatedMax,
+    showClosed,
     setSaveFilter,
     setOpenFilter,
   } = props;
@@ -101,6 +102,7 @@ export default function AddFilterContainer( props ) {
                 datetimeMax,
                 dateCreatedMin,
                 dateCreatedMax,
+                showClosed,
                 (err, response) => {
                 if (err) {
                   console.log(err);
@@ -116,6 +118,7 @@ export default function AddFilterContainer( props ) {
                     datetimeMax,
                     dateCreatedMin,
                     dateCreatedMax,
+                    showClosed
                   }));
                   setOpenFilter(false);
                 }

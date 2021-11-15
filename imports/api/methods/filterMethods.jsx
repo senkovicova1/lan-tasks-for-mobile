@@ -7,7 +7,7 @@ import {
 } from '/imports/api/filtersCollection';
 
 Meteor.methods({
-  'filters.addFilter'( name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax) {
+  'filters.addFilter'( name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, showClosed) {
   //  check(text, String);
 
     if (!this.userId) {
@@ -24,11 +24,12 @@ Meteor.methods({
       datetimeMin,
       datetimeMax,
       dateCreatedMin,
-      dateCreatedMax
+      dateCreatedMax,
+      showClosed
     });
   },
 
-  'filters.editFilter'( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax ) {
+  'filters.editFilter'( _id, name, user, title, folders, important, assigned, datetimeMin, datetimeMax, dateCreatedMin, dateCreatedMax, showClosed ) {
   //  check(taskId, String);
 
     if (!this.userId) {
@@ -45,7 +46,8 @@ Meteor.methods({
       datetimeMin,
       datetimeMax,
       dateCreatedMin,
-      dateCreatedMax
+      dateCreatedMax,
+      showClosed
     };
     return FiltersCollection.update( _id, {
       $set: {
