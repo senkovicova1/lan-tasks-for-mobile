@@ -346,7 +346,7 @@ export default function FilterForm( props ) {
         <Datetime
           className="full-width"
           dateFormat={"DD.MM.yyyy"}
-          timeFormat={"HH:mm"}
+          timeFormat={false}
           name="dateCreated"
           id="dateCreated"
           inputProps={{
@@ -385,7 +385,7 @@ export default function FilterForm( props ) {
           <Datetime
             className="full-width"
             dateFormat={"DD.MM.yyyy"}
-            timeFormat={"HH:mm"}
+            timeFormat={false}
             name="dateCreated"
             id="dateCreated"
             inputProps={{

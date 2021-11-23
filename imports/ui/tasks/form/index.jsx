@@ -113,19 +113,11 @@ export default function FormIndex( props ) {
   const [ possibleRepeat, setPossibleRepeat ] = useState( null );
   const [ openRepeat, setOpenRepeat ] = useState( false );
 
-  const [ possibleSubtaskName, setPossibleSubtaskName ] = useState( "" );
-  const [ editedSubtask, setEditedSubtask ] = useState( "" );
   const [ addedSubtasks, setAddedSubtasks ] = useState( [] );
-  const [ newSubtaskName, setNewSubtaskName ] = useState( "" );
-  const [ openNewSubtask, setOpenNewSubtask ] = useState( false );
 
   const [ comments, setComments ] = useState( [] );
-  const [ newCommentBody, setNewCommentBody ] = useState( "" );
-  const [ editedComment, setEditedComment ] = useState( null );
-  const [ editedCommentBody, setEditedCommentBody ] = useState( "" );
 
   const [ files, setFiles ] = useState( [] );
-  const [ showSpinner, setShowSpinner ] = useState( false );
 
   useEffect( () => {
 
@@ -411,6 +403,20 @@ export default function FormIndex( props ) {
 
     description={description}
     setDescription={setDescription}
+
+    files={files}
+    setFiles={setFiles}
+
+    displayedSubtasks={displayedSubtasks}
+    addedSubtasks={addedSubtasks}
+    setAddedSubtasks={setAddedSubtasks}
+
+    displayedComments={displayedComments}
+    comments={comments}
+    setComments={setComments}
+
+    mappedHistory={mappedHistory}
+    history={history}
 
     folders={folders}
     dbUsers={dbUsers}

@@ -8,6 +8,10 @@ import moment from 'moment';
 
 import Scheduled from './scheduled';
 import Description from './description';
+import Files from './files';
+import Subtasks from './subtasks';
+import Comments from './comments';
+import History from './history';
 
 import {
   EmptyStarIcon,
@@ -59,7 +63,6 @@ export default function TaskForm( props ) {
     language,
     addNewTask,
     wholeTask,
-    history,
     taskId,
     closed,
     setClosed,
@@ -78,6 +81,16 @@ export default function TaskForm( props ) {
     setHours,
     description,
     setDescription,
+    files,
+    setFiles,
+    displayedSubtasks,
+    addedSubtasks,
+    setAddedSubtasks,
+    displayedComments,
+    comments,
+    setComments,
+    mappedHistory,
+    history,
     folders,
     containers,
     dbUsers,
@@ -668,6 +681,7 @@ export default function TaskForm( props ) {
       </section>
 
       <Description
+        userId={userId}
         taskId={taskId}
         assigned={assigned}
         description={description}
@@ -677,16 +691,28 @@ export default function TaskForm( props ) {
         addNewTask={addNewTask}
         />
 
-      <section  className="inline">
-        files
-      </section>
+      <Files
+          userId={userId}
+          taskId={taskId}
+          files={files}
+          setFiles={setFiles}
+          history={history}
+          language={language}
+          addNewTask={addNewTask}
+          />
 
 
+        <Subtasks
+            userId={userId}
+            taskId={taskId}
+            displayedSubtasks={displayedSubtasks}
+            addedSubtasks={addedSubtasks}
+            setAddedSubtasks={setAddedSubtasks}
+            history={history}
+            language={language}
+            addNewTask={addNewTask}
+            />
       </div>
-
-      <section className="subtasks">
-        subtasks
-      </section>
 
       <section className="pipe">
         <LinkButton
@@ -713,16 +739,25 @@ export default function TaskForm( props ) {
       {
         showComments &&
         !addNewTask &&
-        <section className="comments">
-          comments
-        </section>
+        <Comments
+            userId={userId}
+            taskId={taskId}
+            displayedComments={displayedComments}
+            comments={comments}
+            setComments={setComments}
+            history={history}
+            language={language}
+            addNewTask={addNewTask}
+            />
       }
 
       {
         !showComments &&
-        <section>
-          history
-        </section>
+        <History
+            mappedHistory={mappedHistory}
+            history={history}
+            language={language}
+            />
       }
 
       {
@@ -742,8 +777,8 @@ export default function TaskForm( props ) {
             disabled={name.length === 0 || !folder}
             onClick={(e) => {
               e.preventDefault();
-              /*
-              addNewTask(
+              Meteor.call(
+                'tasks.addFullTask',
                 name,
                 important,
                 assigned.map(user => user._id),
@@ -758,9 +793,11 @@ export default function TaskForm( props ) {
                 repeat,
                 folder._id,
                 container ? container._id : 0,
-                moment().unix()
-              );
-              */
+                moment().unix(),
+                [],
+                dbUsers                
+              )
+
             }}
             >
             {translations[language].save}

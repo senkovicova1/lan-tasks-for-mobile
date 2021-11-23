@@ -1,6 +1,4 @@
 import React, {
-  useEffect,
-  useMemo,
   useState,
 } from 'react';
 
@@ -8,63 +6,13 @@ import {
   useSelector
 } from 'react-redux';
 
-import Select from 'react-select';
-
 import moment from 'moment';
 
 import {
-  Spinner
-} from 'reactstrap';
-
-import Datetime from 'react-datetime';
-
-import {
-  closeTask,
-  updateSimpleAttribute,
-  addRepeatToTask,
-} from '../tasksHandlers';
-
-import {
-  addNewSubtask,
-  editSubtask,
-  removeSubtask
-} from '../subtasksHandlers';
-
-import {
-  addNewComment,
-  editComment,
-  removeComment
-} from '../commentsHandlers';
-
-import {
-  editRepeatInTask,
-  removeTaskFromRepeat
-} from '/imports/ui/repeats/repeatsHandlers';
-
-import Repeat from '/imports/ui/repeats/form';
-//import EditRepeat from '/imports/ui/repeats/editContainer';
-
-import {
-  EmptyStarIcon,
-  FullStarIcon,
-  FolderIcon,
-  PlusIcon,
   CloseIcon,
   SendIcon,
-  UserIcon,
-  DeleteIcon,
-  PencilIcon,
-  ClockIcon,
-  CalendarIcon,
-  PaperClipIcon,
   TextIcon,
-  ColumnsIcon,
-  RestoreIcon,
 } from "/imports/other/styles/icons";
-
-import {
-  selectStyle
-} from '/imports/other/styles/selectStyles';
 
 import {
   Textarea,
@@ -85,6 +33,7 @@ import {
 export default function Description( props ) {
 
   const {
+    userId,
     taskId,
     assigned,
     description,
@@ -116,7 +65,7 @@ export default function Description( props ) {
   let timeout = null;
 
   return (
-    <div>
+    <section style={{padding: "0px"}}>
       <section className="inline">
         <span className="icon-container">
           <img
@@ -311,7 +260,7 @@ export default function Description( props ) {
           </FullButton>
         </ButtonRow>
       }
-    </div>
+    </section>
 
   );
 };
