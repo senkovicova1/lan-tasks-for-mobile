@@ -14,10 +14,6 @@ import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 
-import {
-  editTask
-} from './tasksHandlers';
-
 import Form from './form';
 
 import {

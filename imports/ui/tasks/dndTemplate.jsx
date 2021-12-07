@@ -29,26 +29,6 @@ import {
   ModalBody
 } from 'reactstrap';
 
-import {
-  removeSubtask
-} from './subtasksHandlers';
-
-import {
-  removeComment
-} from './commentsHandlers';
-
-import {
-  editContianers
-} from './containersHandlers';
-
-import {
-  addTask,
-  closeTask,
-  removeTask,
-  restoreLatestTask,
-  updateSimpleAttribute
-} from './tasksHandlers';
-
 import AddTask from './addContainer';
 import EditTask from './editContainer';
 import FilterSummary from '/imports/ui/filters/summary';

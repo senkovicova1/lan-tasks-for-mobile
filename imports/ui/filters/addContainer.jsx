@@ -22,10 +22,6 @@ import {
 } from '/imports/redux/metadataSlice';
 
 import {
-  addFilter
-} from '/imports/ui/filters/filtersHandlers';
-
-import {
   FullButton,
   Input,
   Form,

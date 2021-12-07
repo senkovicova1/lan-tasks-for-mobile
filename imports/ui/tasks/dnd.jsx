@@ -34,29 +34,6 @@ import {
   ModalBody
 } from 'reactstrap';
 
-import {
-  removeSubtask
-} from './subtasksHandlers';
-
-import {
-  removeComment
-} from './commentsHandlers';
-
-import {
-  editContianers
-} from './containersHandlers';
-
-import {
-  addNewHistory
-} from './historyHandlers';
-
-import {
-  closeTask,
-  removeTask,
-  restoreLatestTask,
-  updateSimpleAttribute
-} from './tasksHandlers';
-
 import AddTask from './addContainer';
 import EditTask from './editContainer';
 import FilterSummary from '/imports/ui/filters/summary';
@@ -429,14 +406,6 @@ const containers = useMemo( () => {
                                     container._id,
                                     dateCreated,
                                     (_id) => {
-                                      Meteor.call(
-                                        _id,
-                                        [ {
-                                            dateCreated,
-                                            user: userId,
-                                            message: "created this task!",
-                                        } ]
-                                      );
                                       setOpenNewTask([...openNewTask.filter(open => open.container !== container._id)]);
                                     },
                                     () => console.log( error )
@@ -571,14 +540,48 @@ const containers = useMemo( () => {
                                           <LinkButton
                                             onClickCapture={(e) => {
                                               e.preventDefault();
-                                              Meteor.call(
-                                                'tasks.removeTask',
-                                                task,
-                                                removedTasks,
-                                                subtasks,
-                                                comments,
-                                                allTasks
-                                              );
+                                              if ( removedTasks.length >= 5 ) {
+                                               let difference = removedTasks.length - 4;
+                                               const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
+                                               const subtasksToDelete = subtasks.filter( subtask => idsToDelete.includes( subtask.task ) );
+                                               const commentsToDelete = comments.filter( comment => idsToDelete.includes( comment.task ) );
+                                               while ( difference > 0 ) {
+                                                 Meteor.call('tasks.removeTask', idsToDelete[ difference - 1 ]);
+
+                                               if (task.repeat){
+                                                     Meteor.call(
+                                                       'repeats.removeTaskFromRepeat',
+                                                       task._id,
+                                                       task.repeat._id,
+                                                       allTasks
+                                                     )
+                                                   }
+                                                   subtasksToDelete.forEach( ( subtask, i ) => {
+                                                     Meteor.call(
+                                                       'subtasks.removeSubtask',
+                                                       subtask._id
+                                                     )
+                                                   } );
+                                                   commentsToDelete.forEach( ( comment, i ) => {
+                                                     removeComment( comment._id );
+                                                       Meteor.call(
+                                                         'comments.removeComment',
+                                                         comment._id
+                                                       )
+                                                   } );
+
+                                                   difference -= 1;
+                                                 }
+                                               }
+
+                                               let data = {
+                                                 removedDate: moment().unix(),
+                                               };
+                                               Meteor.call(
+                                                 "tasks.updateSimpleAttribute",
+                                                 task._id,
+                                                 data
+                                               );
                                               e.stopPropagation();
                                             }}
                                             >
@@ -692,14 +695,48 @@ const containers = useMemo( () => {
                                         <LinkButton
                                           onClickCapture={(e) => {
                                             e.preventDefault();
-                                            Meteor.call(
-                                              'tasks.removeTask',
-                                            task,
-                                            removedTasks,
-                                            subtasks,
-                                            comments,
-                                            allTasks
-                                          );
+                                            if ( removedTasks.length >= 5 ) {
+                                             let difference = removedTasks.length - 4;
+                                             const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
+                                             const subtasksToDelete = subtasks.filter( subtask => idsToDelete.includes( subtask.task ) );
+                                             const commentsToDelete = comments.filter( comment => idsToDelete.includes( comment.task ) );
+                                             while ( difference > 0 ) {
+                                               Meteor.call('tasks.removeTask', idsToDelete[ difference - 1 ]);
+
+                                             if (task.repeat){
+                                                   Meteor.call(
+                                                     'repeats.removeTaskFromRepeat',
+                                                     task._id,
+                                                     task.repeat._id,
+                                                     allTasks
+                                                   )
+                                                 }
+                                                 subtasksToDelete.forEach( ( subtask, i ) => {
+                                                   Meteor.call(
+                                                     'subtasks.removeSubtask',
+                                                     subtask._id
+                                                   )
+                                                 } );
+                                                 commentsToDelete.forEach( ( comment, i ) => {
+                                                   removeComment( comment._id );
+                                                     Meteor.call(
+                                                       'comments.removeComment',
+                                                       comment._id
+                                                     )
+                                                 } );
+
+                                                 difference -= 1;
+                                               }
+                                             }
+
+                                             let data = {
+                                               removedDate: moment().unix(),
+                                             };
+                                             Meteor.call(
+                                               "tasks.updateSimpleAttribute",
+                                               task._id,
+                                               data
+                                             );
                                             e.stopPropagation();
                                           }}
                                           >

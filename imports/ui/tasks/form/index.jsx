@@ -302,7 +302,7 @@ export default function FormIndex( props ) {
   }, [ taskId, allComments ] );
 
   const displayedSubtasks = useMemo( () => {
-    return addedSubtasks.length > 0 ? addedSubtasks.sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 ) : subtasks.filter( subtask => subtask.change !== DELETED ).sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 );
+    return addedSubtasks.length > 0 ? addedSubtasks.sort( ( st1, st2 ) => st1.dateCreated < st2.dateCreated ? 1 : -1 ) : subtasks.filter( subtask => subtask.change !== DELETED ).sort( ( st1, st2 ) => st1.dateCreated > st2.dateCreated ? 1 : -1 );
   }, [ subtasks, addedSubtasks ] );
 
   const displayedComments = useMemo( () => {
@@ -420,6 +420,7 @@ export default function FormIndex( props ) {
 
     folders={folders}
     dbUsers={dbUsers}
+    notifications={notifications}
     usersWithRights={usersWithRights}
     containers={containers}
     allSubtasks={allSubtasks}

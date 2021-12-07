@@ -1160,6 +1160,7 @@ export const UserEntry = styled.div`
 
 export const CommentContainer = styled.div`
   align-items: center;
+  margin-top: 0.6em;
   padding-top: 0.6em;
   border-top: 1px solid #d6d6d6;
 

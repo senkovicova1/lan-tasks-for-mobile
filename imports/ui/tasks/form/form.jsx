@@ -14,6 +14,10 @@ import Comments from './comments';
 import History from './history';
 
 import {
+  updateSimpleAttribute
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   EmptyStarIcon,
   FullStarIcon,
   FolderIcon,
@@ -37,6 +41,7 @@ import {
   CircledButton,
   FullButton,
   ButtonCol,
+  ButtonRow,
 } from "/imports/other/styles/styledComponents";
 
 import {
@@ -92,6 +97,7 @@ export default function TaskForm( props ) {
     mappedHistory,
     history,
     folders,
+    notifications,
     containers,
     dbUsers,
     usersWithRights,
@@ -100,6 +106,8 @@ export default function TaskForm( props ) {
   } = props;
 
   const [ showComments, setShowComments ] = useState( true );
+  const [ newTitle, setNewTitle ] = useState( "" );
+  const [ titleInFocus, setTitleInFocus ] = useState( false );
 
   return (
     <Form excludeBtn={true}>
@@ -119,6 +127,7 @@ export default function TaskForm( props ) {
       }
 
 
+      <section>
       <section className="inline" style={{marginTop: "0.3em"}}>
         <TitleCheckbox
           id="task-checked"
@@ -134,6 +143,7 @@ export default function TaskForm( props ) {
                   wholeTask,
                   allSubtasks
               );
+
               } else {
                 Meteor.call(
                   'tasks.updateSimpleAttribute',
@@ -172,81 +182,9 @@ export default function TaskForm( props ) {
                     taskId,
                     folderId: folder._id,
                   };
-                 if (usersNotifications.notifications.length > 0){
-                      Meteor.call(
-                        'notifications.editNotifications',
-                         assigned._id,
-                         assigned.email,
-                         notificationData,
-                         dbUsers
-                       );
-                  } else {
+                  if (usersNotifications.notifications.length > 0){
                     Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
-            }
-          }}
-          />
-        <TitleInput
-          type="text"
-          id="task-title"
-          placeholder="Name"
-          value={name}
-          disabled={closed}
-          onChange={(e) => {
-            const oldName = name;
-            setName(e.target.value);
-            if ( !addNewTask ) {
-              Meteor.call(
-                'tasks.updateSimpleAttribute',
-                taskId,
-                {
-                  name: e.target.value
-                }
-              );
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: TITLE,
-                args: [oldName, e.target.value],
-              };
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                  const notificationData = {
-                    ...historyData,
-                    args: [oldName, e.target.value],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  };
-                 if (usersNotifications.notifications.length > 0){
-                   Meteor.call(
-                     'notifications.editNotifications',
+                      'notifications.editNotifications',
                       assigned._id,
                       assigned.email,
                       notificationData,
@@ -259,16 +197,161 @@ export default function TaskForm( props ) {
                       assigned.email,
                       [
                         notificationData
-                       ],
-                       dbUsers
-                     );
+                      ],
+                      dbUsers
+                    );
                   }
                 })
               }
             }
           }}
           />
+        <TitleInput
+          type="text"
+          id="task-title"
+          placeholder="Name"
+          value={newTitle && !addNewTask ? newTitle : name}
+          disabled={closed}
+          onFocus={() => {
+            setTitleInFocus(true);
+          }}
+          onChange={(e) => {
+            if (addNewTask){
+              setName(e.target.value);
+            } else {
+              setNewTitle(e.target.value);
+            }
+          }}
+          onBlur={() => {
+          /*  if ( !addNewTask) {
+              const oldName = name;
+              timeout  = setTimeout(() => {
+                if (newTitle){
+                  setName(newTitle);
+                  setTitleInFocus(false);
+                    updateSimpleAttribute(
+                      taskId,
+                      userId,
+                      "name",
+                      newTitle,
+                      oldName,
+                      TITLE,
+                      name,
+                      history,
+                      assigned,
+                      folder._id,
+                      notifications,
+                      dbUsers
+                    );
+                }
+              }, 500);
+            }
+            */
+          }}
+          />
       </section>
+      {
+        !addNewTask &&
+        titleInFocus &&
+        <ButtonRow>
+          <LinkButton
+            style={{marginLeft: "auto", marginRight: "0.6em"}}
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              setNewTitle("");
+              setTitleInFocus(false);
+            }}
+            >
+            <img
+              className="icon"
+              style={{width: "1.6em", margin: "0em"}}
+              src={CloseIcon}
+              alt="CloseIcon icon not found"
+              />
+          </LinkButton>
+          <FullButton
+            colour=""
+            style={{marginRight: "0px", width: "100px", paddingLeft: "0px"}}
+            disabled={closed}
+            onClick={(e) => {
+              e.preventDefault();
+              const oldName = name;
+              setName(newTitle);
+              if ( !addNewTask ) {
+                Meteor.call(
+                  'tasks.updateSimpleAttribute',
+                  taskId,
+                  {
+                    name: newTitle
+                  }
+                );
+                const historyData = {
+                  dateCreated: moment().unix(),
+                  user: userId,
+                  type: TITLE,
+                  args: [oldName, newTitle],
+                };
+                if (history.length === 0){
+                  Meteor.call(
+                    'history.addNewHistory',
+                    taskId,
+                    [
+                      historyData
+                    ]
+                  );
+                } else {
+                  Meteor.call(
+                    'history.editHistory',
+                    history[0]._id,
+                    historyData
+                  )
+                }
+                if (assigned.length > 0){
+                  assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                    const notificationData = {
+                      ...historyData,
+                      args: [oldName, newTitle],
+                      read: false,
+                      taskId,
+                      folderId: folder._id,
+                    };
+                   if (usersNotifications.notifications.length > 0){
+                     Meteor.call(
+                       'notifications.editNotifications',
+                        assigned._id,
+                        assigned.email,
+                        notificationData,
+                        dbUsers
+                      );
+                    } else {
+                      Meteor.call(
+                        'notifications.addNewNotification',
+                        assigned._id,
+                        assigned.email,
+                        [
+                          notificationData
+                         ],
+                         dbUsers
+                       );
+                    }
+                  })
+                }
+              }
+            }}
+            >
+            <img
+              className="icon"
+              style={{width: "1.6em", margin: "0em"}}
+              src={SendIcon}
+              alt="Send icon not found"
+              />
+            {translations[language].save}
+          </FullButton>
+        </ButtonRow>
+      }
+    </section>
 
             <div style={{position: "relative"}}>
       <section className="inline fit">
@@ -611,21 +694,22 @@ export default function TaskForm( props ) {
           value={hours}
           disabled={closed}
           onChange={(e) => {
-            const oldHours = hours;
             setHours(e.target.value);
+          }}
+          onBlur={() => {
             if ( !addNewTask ) {
               Meteor.call(
                 'tasks.updateSimpleAttribute',
                 taskId,
                 {
-                  hours: e.target.value
+                  hours: hours
                 }
               );
               const historyData = {
                 dateCreated: moment().unix(),
                 user: userId,
-                type: oldHours ? CHANGE_HOURS : SET_HOURS,
-                args: oldHours ? [oldHours, e.target.value] : [e.target.value],
+                type: SET_HOURS,
+                args: [hours],
               }
               if (history.length === 0){
                 Meteor.call(
@@ -649,7 +733,7 @@ export default function TaskForm( props ) {
 
                   const notificationData = {
                     ...historyData,
-                    args: oldHours ? [name, oldHours, e.target.value] : [name, e.target.value],
+                    args: [name, hours],
                     read: false,
                     taskId,
                     folderId: folder._id,
@@ -714,6 +798,8 @@ export default function TaskForm( props ) {
             />
       </div>
 
+      {
+        !addNewTask &&
       <section className="pipe">
         <LinkButton
           className={showComments ? "active" : ""}
@@ -735,6 +821,7 @@ export default function TaskForm( props ) {
           {translations[language].history}
         </LinkButton>
       </section>
+    }
 
       {
         showComments &&
@@ -777,27 +864,24 @@ export default function TaskForm( props ) {
             disabled={name.length === 0 || !folder}
             onClick={(e) => {
               e.preventDefault();
-              Meteor.call(
-                'tasks.addFullTask',
+              addNewTask(
                 name,
                 important,
                 assigned.map(user => user._id),
-                startDatetime,
-                endDatetime,
+                props.startDatetime,
+                props.endDatetime,
                 hours,
                 description,
-                subtasks,
-                comments,
+                props.addedSubtasks,
+                props.comments,
                 files,
-                taskRepeat,
-                repeat,
+                {},
+                props.repeat,
                 folder._id,
                 container ? container._id : 0,
                 moment().unix(),
-                [],
-                dbUsers                
+                onCancel
               )
-
             }}
             >
             {translations[language].save}

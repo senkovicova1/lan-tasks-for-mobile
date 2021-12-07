@@ -11,7 +11,7 @@ import {
 
 import {
   updateSimpleAttribute
-} from '/imports/ui/tasks/tasksHandlers';
+} from '/imports/api/handlers/tasksHandlers';
 
 export const addRepeat = ( intervalNumber, intervalFrequency, customInterval, useCustomInterval, repeatStart, repeatUntil, tasks, onSuccess, onFail ) => {
   RepeatsCollection.insert( {

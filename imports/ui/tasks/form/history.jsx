@@ -24,8 +24,8 @@ export default function History( props ) {
           history.length > 0 &&
           mappedHistory.map((change, index) => {
             const historyEntry = historyEntryTypes.find(entry => entry.type === change.type);
-            let message = historyEntry.message[language];
-            change.args.forEach((arg, i) => {
+            let message = change.type ? historyEntry.message[language] : historyEntryTypes.find(entry => entry.type === "add_task").message[language];
+            change.args?.forEach((arg, i) => {
               message = message.replace(`[${i}]`, arg);
             });
             return (

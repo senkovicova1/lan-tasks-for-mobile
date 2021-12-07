@@ -23,11 +23,6 @@ import {
   setFilter
 } from '/imports/redux/metadataSlice';
 
-import {
-  editFilter,
-  removeFilter
-} from '/imports/ui/filters/filtersHandlers';
-
 import FilterForm from './form';
 
 export default function EditFilterContainer( props ) {

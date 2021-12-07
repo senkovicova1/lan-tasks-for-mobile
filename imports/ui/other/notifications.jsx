@@ -10,11 +10,6 @@ import {
 import moment from 'moment';
 
 import {
-  markReadOne,
-  markAllRead
-} from './notificationsHandlers';
-
-import {
   setChosenTask,
   setLayout
 } from '/imports/redux/metadataSlice';

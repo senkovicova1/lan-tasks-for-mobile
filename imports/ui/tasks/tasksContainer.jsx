@@ -14,15 +14,15 @@ import {
 
 import moment from 'moment';
 
-import {
-  addTask,
-} from './tasksHandlers';
-
 import TasksList from '/imports/ui/tasks/list';
 import Calendar from '/imports/ui/tasks/calendar';
 import Dnd from '/imports/ui/tasks/dnd';
 import EditTask from '/imports/ui/tasks/editContainer';
 import Loader from '/imports/ui/other/loadingScreen';
+
+import {
+  addTask
+} from '/imports/api/handlers/tasksHandlers';
 
 import {
   PLAIN,
@@ -220,22 +220,17 @@ export default function TasksContainer( props ) {
   }, [ sortedTasks, sortBy, sortDirection ] );
 
   const addQuickTask = (newTaskName, container, dateCreated, onSuccess, onFail) => {
-    Meteor.call(
-      'tasks.addTask',
+    addTask(
       newTaskName,
       [userId],
       folderID,
       dateCreated,
       container,
-      (err, response) => {
-      if (err) {
-        onFail(err);
-      } else if (response) {
-        onSuccess(response);
-      }
-    }
+      onSuccess,
+      onFail
     );
   }
+
 
   if ( !folder && !filter  ) {
     return <Loader />;

@@ -14,20 +14,11 @@ import {
   NotificationsCollection
 } from '/imports/api/notificationsCollection';
 
+import Form from './form';
+
 import {
   addFullTask
-} from './tasksHandlers';
-
-import {
-  addNewHistory
-} from './historyHandlers';
-
-import {
-  addNewNotification,
-  editNotifications
-} from '/imports/ui/other/notificationsHandlers';
-
-import Form from './form';
+} from '/imports/api/handlers/tasksHandlers';
 
 import {
   translations
@@ -50,30 +41,10 @@ export default function AddTaskContainer( props ) {
   const notifications = useSelector( ( state ) => state.notifications.value );
     const dbUsers = useSelector( ( state ) => state.users.value );
 
-  const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, newRepeat, folder, container, dateCreated ) => {
+  const addNewTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, newRepeat, folder, container, dateCreated, onSuccess ) => {
 
-    Meteor.call(
-      'tasks.addFullTask',
-      name,
-      important,
-      assigned,
-      startDatetime,
-      endDatetime,
-      hours,
-      description,
-      subtasks,
-      comments,
-      files,
-      oldRepeat,
-      newRepeat,
-      folder,
-      container,
-      dateCreated,
-      notifications,
-      dbUsers
-    );
+    addFullTask(user._id, name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, newRepeat, folder, container, dateCreated, dbUsers, notifications, onSuccess);
 
-    close();
   }
 
   return (

@@ -72,6 +72,7 @@ export default function Comments( props ) {
             {newCommentBody.length > 0 &&
               <LinkButton
                 colour="grey"
+                style={{marginLeft: "0px", marginRight: "auto", marginTop: "0.6em"}}
                 disabled={closed}
                 onClick={(e) => {
                   e.preventDefault();

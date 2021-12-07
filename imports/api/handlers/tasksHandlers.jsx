@@ -21,7 +21,7 @@ import {
  addRepeat,
  setRepeatTasks,
  addRepeatTask
-} from '/imports/ui/repeats/repeatsHandlers';
+} from '/imports/api/handlers/repeatsHandlers';
 
 import {
   NO_CHANGE,
@@ -30,41 +30,66 @@ import {
   DELETED
 } from '/imports/other/constants';
 
+import {
+  ADD_TASK,
+  ADD_AND_ASSIGN,
+} from '/imports/other/messages';
+
 export const addTask = ( name, assigned, folder, dateCreated, container, onSuccess, onFail ) => {
-  TasksCollection.insert( {
+  Meteor.call(
+    'tasks.addTask',
     name,
     assigned,
     folder,
     dateCreated,
-    closed: false,
-    container
-  }, ( error, _id ) => {
-    if ( error ) {
-      onFail( error );
-    } else {
-      onSuccess(_id);
+    container,
+    (err, response) => {
+    if (err) {
+      onFail(err);
+    } else if (response) {
+      Meteor.call(
+        'history.addNewHistory',
+        response,
+        [ {
+            dateCreated,
+            user: assigned[0],
+            type: ADD_TASK,
+            args: [],
+        } ]
+      );
+      onSuccess(response);
     }
-  } );
+  }
+  );
 }
 
-export const addFullTask = ( name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, repeat, folder, container, dateCreated, onSuccess, onFail ) => {
+export const addFullTask = ( createdBy, name, important, assigned, startDatetime, endDatetime, hours, description, subtasks, comments, files, oldRepeat, repeat, folder, container, dateCreated, dbUsers, notifications, onSuccess, onFail ) => {
 
-  let repeatId = null;
-  if (repeat){
-    addRepeat(
-      repeat.intervalNumber,
-      repeat.intervalFrequency,
-      repeat.customInterval,
-      repeat.useCustomInterval,
-      repeat.repeatStart,
-      repeat.repeatUntil,
-      [],
-      (_id) => { repeatId = _id;},
-      (error) => console.log(error)
-    );
-  }
+    var repeatId = null;
+    if (repeat){
+      Meteor.call(
+        'repeats.addRepeat',
+        repeat.intervalNumber,
+        repeat.intervalFrequency,
+        repeat.customInterval,
+        repeat.useCustomInterval,
+        repeat.repeatStart,
+        repeat.repeatUntil,
+        [],
+        (error, response) => {
+          if (error) {
+            console.log(error);
+          } else {
+            repeatId = response;
+          }
+        }
+      );
+    }
 
-  let data = {
+    var newTaskId = null;
+
+  Meteor.call(
+    'tasks.addFullTask',
     name,
     important,
     assigned,
@@ -73,37 +98,149 @@ export const addFullTask = ( name, important, assigned, startDatetime, endDateti
     hours,
     description,
     files,
-    closed: false,
+    repeatId,
     folder,
     container,
     dateCreated,
-    repeatId
-  };
-  TasksCollection.insert({
-      ...data
-  }, (error, _id) => {
-    if (error){
-      onFail(error);
-    } else {
+    (err, response) => {
+    if (err) {
+      console.log(err);
+    } else if (response) {
       const addedSubtasks = subtasks.filter( subtask => subtask.change === ADDED );
 
       addedSubtasks.forEach( ( subtask, i ) => {
-        addNewSubtask( subtask.name, subtask.closed, _id, subtask.dateCreated );
+        Meteor.call(
+          "subtasks.addNewSubtask",
+          subtask.name,
+          subtask.closed,
+          response,
+          subtask.dateCreated
+        )
       } );
 
       if (repeatId){
-        setRepeatTasks(repeatId, [_id]);
+        Meteor.call(
+          "repeats.setRepeatTasks",
+          repeatId,
+          [response]
+        )
       }
 
-      onSuccess(_id);
+      const historyData = {
+        dateCreated,
+        user: createdBy,
+        type: ADD_TASK,
+        args: [],
+      };
+
+      Meteor.call(
+        'history.addNewHistory',
+        response,
+        [ historyData ]
+      );
+
+      assigned.filter(assigned => assigned !== createdBy).map(assigned => {
+        let usersNotifications = notifications.find( notif => notif._id === assigned );
+        const user = dbUsers.find(user => user._id === assigned);
+        const notificationData = {
+          ...historyData,
+          type: ADD_AND_ASSIGN,
+          read: false,
+          args: [name],
+          taskId: response,
+          folderId: folder,
+        }
+        if (usersNotifications && usersNotifications.notifications.length > 0){
+          Meteor.call(
+            'notifications.editNotifications',
+            assigned,
+            user.email,
+            notificationData,
+            dbUsers
+          )
+        } else {
+          Meteor.call(
+            'notifications.addNewNotification',
+            assigned,
+            user.email,
+            [
+              notificationData
+            ],
+            dbUsers
+          )
+        }
+      });
+
+      onSuccess(response);
     }
-  } );
+    }
+  );
+
 }
 
-export const updateSimpleAttribute = ( taskId, data ) => {
-  TasksCollection.update( taskId, {
-    $set: data
-  } );
+export const updateSimpleAttribute = ( taskId, userId, attribute, newValue, oldValue, changeType, taskName, history, assigned, folderId, notifications, dbUsers ) => {
+
+  Meteor.call(
+    'tasks.updateSimpleAttribute',
+    taskId,
+    {
+      attribute: newValue
+    }
+  );
+
+  const historyData = {
+    dateCreated: moment().unix(),
+    user: userId,
+    type: changeType,
+    args: [],
+  };
+  if (history.length === 0){
+    Meteor.call(
+      'history.addNewHistory',
+      taskId,
+      [
+        historyData
+      ]
+    );
+  } else {
+    Meteor.call(
+      'history.editHistory',
+      history[0]._id,
+      historyData
+    )
+  }
+  if (assigned.length > 0){
+    assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+      const notificationData = {
+        ...historyData,
+        args: [taskName],
+        read: false,
+        taskId,
+        folderId,
+      };
+     if (usersNotifications.notifications.length > 0){
+          Meteor.call(
+            'notifications.editNotifications',
+             assigned._id,
+             assigned.email,
+             notificationData,
+             dbUsers
+           );
+      } else {
+        Meteor.call(
+          'notifications.addNewNotification',
+          assigned._id,
+          assigned.email,
+          [
+            notificationData
+           ],
+           dbUsers
+         );
+      }
+    })
+  }
+
 }
 
 export const addRepeatToTask = (taskId, repeat) => {

@@ -34,7 +34,7 @@ export const translations = {
     'subtasks': 'Subtasks',
     'comments': 'Comments',
     'eraseBody': 'Clear',
-    'sendComment': 'Send',
+    'sendComment': 'Add comment',
     'files': 'Files',
 
     'calendarView': 'Calendar',
@@ -134,7 +134,7 @@ export const translations = {
     'subtasks': 'Podúlohy',
     'comments': 'Komentáre',
     'eraseBody': 'Zmazať komentár',
-    'sendComment': 'Poslať',
+    'sendComment': 'Pridať komentár',
     'files': 'Súbory',
 
     'calendarView': 'Kalendár',

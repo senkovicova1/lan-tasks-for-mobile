@@ -18,29 +18,6 @@ import {
 
 import Datetime from 'react-datetime';
 
-import {
-  closeTask,
-  updateSimpleAttribute,
-  addRepeatToTask,
-} from '../tasksHandlers';
-
-import {
-  addNewSubtask,
-  editSubtask,
-  removeSubtask
-} from '../subtasksHandlers';
-
-import {
-  addNewComment,
-  editComment,
-  removeComment
-} from '../commentsHandlers';
-
-import {
-  editRepeatInTask,
-  removeTaskFromRepeat
-} from '/imports/ui/repeats/repeatsHandlers';
-
 import Repeat from '/imports/ui/repeats/form';
 //import EditRepeat from '/imports/ui/repeats/editContainer';
 

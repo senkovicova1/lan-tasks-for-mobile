@@ -19,32 +19,6 @@ import {
 import Datetime from 'react-datetime';
 
 import {
-  closeTask,
-  updateSimpleAttribute,
-  addRepeatToTask,
-} from '../tasksHandlers';
-
-import {
-  addNewSubtask,
-  editSubtask,
-  removeSubtask
-} from '../subtasksHandlers';
-
-import {
-  addNewComment,
-  editComment,
-  removeComment
-} from '../commentsHandlers';
-
-import {
-  editRepeatInTask,
-  removeTaskFromRepeat
-} from '/imports/ui/repeats/repeatsHandlers';
-
-import Repeat from '/imports/ui/repeats/form';
-//import EditRepeat from '/imports/ui/repeats/editContainer';
-
-import {
   EmptyStarIcon,
   FullStarIcon,
   FolderIcon,
@@ -130,10 +104,18 @@ export default function Subtasks( props ) {
   const [ newSubtaskName, setNewSubtaskName ] = useState( "" );
   const [ openNewSubtask, setOpenNewSubtask ] = useState( false );
 
+  const [ upToDateSubtasks, setUpToDateSubtasks ] = useState( [] );
+
+  useEffect(() => {
+    setUpToDateSubtasks(displayedSubtasks);
+  }, [displayedSubtasks]);
+
   document.onkeydown = function( e ) {
     e = e || window.event;
     if ( e.which === 13 || e.keyCode === 13 ) {
-      if ( openNewSubtask ) {
+      if ( openNewSubtask && newSubtaskName) {
+        setNewSubtaskName( "" );
+        setOpenNewSubtask( false );
         if (!addNewTask){
           const dateCreated = moment().unix();
           Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
@@ -192,10 +174,8 @@ export default function Subtasks( props ) {
         } else{
           setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
         }
-        setNewSubtaskName( "" );
-        setOpenNewSubtask( false );
       } else {
-        subtasks.forEach( ( subtask, i ) => {
+        upToDateSubtasks.forEach( ( subtask, i ) => {
           document.getElementById( `subtask_name ${subtask._id}` ).blur();
         } );
         addedSubtasks.forEach( ( subtask, i ) => {
@@ -209,10 +189,10 @@ export default function Subtasks( props ) {
       <section className="subtasks">
         <label htmlFor="subtasks">{translations[language].subtasks}</label>
 
-        <List style={{height: "auto"}}>
+        <List style={{height: "auto", padding: "0px"}}>
           {
-            displayedSubtasks.length > 0 &&
-            displayedSubtasks.map((subtask) => (
+            upToDateSubtasks.length > 0 &&
+            upToDateSubtasks.map((subtask) => (
               <ItemContainer
                 style={{padding: "0px", margin: "0px"}}
                 key={subtask._id ? subtask._id : subtask.dateCreated}
@@ -315,6 +295,7 @@ export default function Subtasks( props ) {
                       setPossibleSubtaskName("");
                       setEditedSubtask(null);
                     } else {
+                      setUpToDateSubtasks(upToDateSubtasks.filter(st => st._id !== subtask._id));
                       const oldName = subtask.name;
                       Meteor.call('subtasks.removeSubtask', subtask._id);
                       const historyData =  {
