@@ -116,12 +116,12 @@ const {
 const [ selectedInterval, setSelectedInterval ] = useState(null);
 const [ showClosed, setShowClosed ] = useState( false );
 
-
-
 const [ draggedEvent, setDraggedEvent ] = useState( null );
 const [ displayDragItemInCell, setDisplayDragItemInCell ] = useState( true );
 
-
+const [ tasksWithDatetimes, setTasksWithDatetimes ] = useState( [] );
+const [ activeTasksWithoutDatetimes, setActiveTasksWithoutDatetimes ] = useState([]);
+const [ inactiveTasksWithoutDatetimes, setInactiveTasksWithoutDatetimes ] = useState([]);
 
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
@@ -129,7 +129,16 @@ const language = useMemo( () => {
   return user.profile.language;
 }, [ user ] );
 
+useEffect(() => {
+  const mappedAndFilteredTasks = tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map(task => ({...task, startDatetime: new Date(task.startDatetime*1000), endDatetime: new Date(task.endDatetime*1000), tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`}));
+  const activeTasks = tasksWithAdvancedFilters.filter( task => !task.startDatetime && !task.closed );
+  const inactiveTasks = tasksWithAdvancedFilters.filter( task => !task.startDatetime && task.closed );
 
+  setTasksWithDatetimes(mappedAndFilteredTasks);
+  setActiveTasksWithoutDatetimes(activeTasks);
+  setInactiveTasksWithoutDatetimes(inactiveTasks);
+}, [tasksWithAdvancedFilters, showClosed]);
+/*
 const activeTasks = useMemo( () => {
   return tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map(task => ({...task, startDatetime: new Date(task.startDatetime*1000), endDatetime: new Date(task.endDatetime*1000), tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`}));
 }, [ tasksWithAdvancedFilters, showClosed ] );
@@ -141,6 +150,7 @@ const activeTasksWithoutDatetimes = useMemo( () => {
 const inactiveTasksWithoutDatetimes = useMemo( () => {
   return tasksWithAdvancedFilters.filter( task => !task.startDatetime && task.closed );
 }, [ tasksWithAdvancedFilters ] );
+*/
 
 const dbUsers = useSelector( ( state ) => state.users.value );
 const notifications = useSelector( ( state ) => state.notifications.value );
@@ -175,6 +185,20 @@ document.onkeydown = function( e ) {
 
   const onEventResize = (data) => {
     const { start, end, event } = data;
+
+    let newTasksWithDatetimes = [...tasksWithDatetimes];
+    newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
+      if (task._id === event._id){
+        return ({
+          ...task,
+          startDatetime: start,
+          endDatetime: end
+        })
+      }
+      return task;
+    });
+    setTasksWithDatetimes(newTasksWithDatetimes);
+
     Meteor.call(
       'tasks.updateSimpleAttribute',
       event._id,
@@ -184,6 +208,20 @@ document.onkeydown = function( e ) {
 
   const onEventDrop = (data) => {
     const { start, end, event } = data;
+
+    let newTasksWithDatetimes = [...tasksWithDatetimes];
+    newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
+      if (task._id === event._id){
+        return ({
+          ...task,
+          startDatetime: start,
+          endDatetime: end
+        })
+      }
+      return task;
+    });
+    setTasksWithDatetimes(newTasksWithDatetimes);
+
     Meteor.call(
       'tasks.updateSimpleAttribute',
       event._id,
@@ -206,7 +244,41 @@ document.onkeydown = function( e ) {
   const onDropFromOutside = ({ start, end, allDay }) => {
     const oldStart = draggedEvent.startDatetime;
     const oldEnd = draggedEvent.endDatetime;
-    Meteor.call('tasks.updateSimpleAttribute', draggedEvent._id, {startDatetime: start.getTime() / 1000, endDatetime: moment.unix(end.getTime() / 1000).subtract('s', 1).unix()});
+
+    if (draggedEvent.closed){
+
+      let newTasksWithDatetimes = [...tasksWithDatetimes];
+      const newTask = {
+        ...draggedEvent,
+        startDatetime: start,
+        endDatetime: end
+      };
+      newTasksWithDatetimes.push(newTask);
+      setTasksWithDatetimes(newTasksWithDatetimes);
+      setInactiveTasksWithoutDatetimes(inactiveTasksWithoutDatetimes.filter(task => task._id !== draggedEvent._id));
+
+    } else {
+
+      let newTasksWithDatetimes = [...tasksWithDatetimes];
+      const newTask = {
+        ...draggedEvent,
+        startDatetime: start,
+        endDatetime: end
+      };
+      newTasksWithDatetimes.push(newTask);
+      setTasksWithDatetimes(newTasksWithDatetimes);
+      setActiveTasksWithoutDatetimes(activeTasksWithoutDatetimes.filter(task => task._id !== draggedEvent._id));
+
+    }
+
+    Meteor.call(
+      'tasks.updateSimpleAttribute',
+      draggedEvent._id,
+      {
+        startDatetime: start.getTime() / 1000,
+        endDatetime: moment.unix(end.getTime() / 1000).subtract('s', 1).unix()
+      }
+    );
 
     let taskHistory = history.find(entry => entry.task === draggedEvent._id);
     if (!taskHistory){
@@ -510,14 +582,80 @@ document.onkeydown = function( e ) {
         showClosed &&
         inactiveTasksWithoutDatetimes.length > 0 &&
         inactiveTasksWithoutDatetimes.map(task => (
-          <ItemCard key={task._id}>
+          <ItemCard
+            key={task._id}
+            draggable="true"
+            onDragStart={() => {
+              handleDragStart(task);
+            }}
+            >
             <div className="info-bar">
               <Input
                 id={`task_name ${task._id}`}
                 type="checkbox"
                 checked={task.closed}
                 onChange={() => {
-                  Meteor.call('tasks.updateSimpleAttribute', task._id, {closed: false})
+                  Meteor.call(
+                    'tasks.updateSimpleAttribute',
+                    task._id,
+                    {
+                    closed: false
+                  }
+                );
+                const taskHistory = history.find(entry => entry.task === task._id);
+                const historyData = {
+                  dateCreated: moment().unix(),
+                  user: userId,
+                  type: OPEN_STATUS,
+                  args: [],
+                };
+                if (taskHistory.length === 0){
+                  Meteor.call(
+                    'history.addNewHistory',
+                    task._id,
+                    [
+                      historyData
+                    ]
+                  );
+                } else {
+                  Meteor.call(
+                    'history.editHistory',
+                    taskHistory._id,
+                    historyData
+                  )
+                }
+
+                if (task.assigned.length > 0){
+                  task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                    const notificationData = {
+                      ...historyData,
+                      args: [name],
+                      read: false,
+                      taskId: task._id,
+                      folderId: folder._id,
+                    };
+                    if (usersNotifications.notifications.length > 0){
+                      Meteor.call(
+                        'notifications.editNotifications',
+                        assigned._id,
+                        assigned.email,
+                        notificationData,
+                        dbUsers
+                      );
+                    } else {
+                      Meteor.call(
+                        'notifications.addNewNotification',
+                        assigned._id,
+                        assigned.email,
+                        [
+                          notificationData
+                        ],
+                        dbUsers
+                      );
+                    }
+                  })
+                }
                 }}
                 />
               {
@@ -595,7 +733,11 @@ document.onkeydown = function( e ) {
               </LinkButton>
             </div>
             <div>
-              <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
+              <span
+                className="dnd-task-title"
+                 htmlFor={`task_name ${task._id}`}
+                 onClick={() => dispatch(setChosenTask(task._id))}
+                 >
                 {task.name}
               </span>
             </div>
@@ -607,7 +749,7 @@ document.onkeydown = function( e ) {
     <DnDCalendar
       selectable
       localizer={localizer}
-      events={activeTasks}
+      events={tasksWithDatetimes}
       allDayAccessor="allDay"
       startAccessor="startDatetime"
       endAccessor="endDatetime"

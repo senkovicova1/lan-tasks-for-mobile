@@ -128,6 +128,8 @@ const [ newContainerName, setNewContainerName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( [] );
 const [ openNewName, setOpenNewName ] = useState( [] );
 
+const [ activeAndClosedTasks, setActiveAndClosedTasks ] = useState( [] );
+
 const userId = Meteor.userId();
 const user = useTracker( () => Meteor.user() );
 const language = useMemo( () => {
@@ -171,11 +173,8 @@ const containers = useMemo( () => {
     }, initialValue);
   };
 
-  const tasksByContainer = useMemo( () => {
-    return groupBy(sortedTasks, 'container')
-  }, [ sortedTasks ] );
-
-  const activeAndClosedTasks = useMemo( () => {
+  useEffect( () => {
+    const tasksByContainer = groupBy(sortedTasks, 'container')
     let result = {};
     containers.forEach((container, i) => {
         let newEntry = {};
@@ -183,8 +182,9 @@ const containers = useMemo( () => {
         newEntry.closed = tasksByContainer[container._id] ? tasksByContainer[container._id].filter( task => task.closed) : [];
         result[container._id] = {...newEntry};
     });
-    return result;
-  }, [ tasksByContainer, showClosed, containers ] );
+    setActiveAndClosedTasks(result);
+    // return result;
+  }, [ sortedTasks, containers ] );
 
   const handleOnDragEnd = (result) => {
 
@@ -210,11 +210,22 @@ const containers = useMemo( () => {
       const [removed] = newTasks.splice(source.index, 1);
       newTasks.splice(destination.index, 0, removed);
 
+      let orderedTasks = newTasks.map((task, index) => ({...task, order: index}));
+      let newActiveAndClosedTasks = {...activeAndClosedTasks};
+      newActiveAndClosedTasks[parseInt(destination.droppableId)] = {
+        active: orderedTasks.filter(task => !task.closed),
+        closed: orderedTasks.filter(task => task.closed),
+      }
+
+      setActiveAndClosedTasks(newActiveAndClosedTasks);
+
       newTasks.forEach((task, i) => {
         Meteor.call(
           'tasks.updateSimpleAttribute',
           task._id,
-          {order: i}
+          {
+            order: i
+          }
         );
       });
 
@@ -226,6 +237,21 @@ const containers = useMemo( () => {
       const [removed] = newSourceTasks.splice(source.index, 1);
 
       newDestinationTasks.splice(destination.index, 0, removed);
+
+      let orderedSourceTasks = newSourceTasks.map((task, index) => ({...task, order: index}));
+      let orderedDestinationTasks = newDestinationTasks.map((task, index) => ({...task, order: index, container: parseInt(destination.droppableId)}));
+
+      let newActiveAndClosedTasks = {...activeAndClosedTasks};
+      newActiveAndClosedTasks[parseInt(source.droppableId)] = {
+        active: orderedSourceTasks.filter(task => !task.closed),
+        closed: orderedSourceTasks.filter(task => task.closed),
+      }
+      newActiveAndClosedTasks[parseInt(destination.droppableId)] = {
+        active: orderedDestinationTasks.filter(task => !task.closed),
+        closed: orderedDestinationTasks.filter(task => task.closed),
+      }
+
+      setActiveAndClosedTasks(newActiveAndClosedTasks);
 
       newSourceTasks.forEach((task, i) => {
         Meteor.call(
@@ -431,9 +457,10 @@ const containers = useMemo( () => {
                             <div
                               {...provided.droppableProps}
                               ref={provided.innerRef}
-                              style={activeAndClosedTasks[container._id]["active"].length === 0 ? {width: "100%", minHeight: "500px"} : {}}
+                              style={activeAndClosedTasks[container._id] && activeAndClosedTasks[container._id]["active"].length === 0 ? {width: "100%", minHeight: "500px"} : {}}
                               >
                               {
+                                activeAndClosedTasks[container._id] &&
                                 activeAndClosedTasks[container._id]["active"].map((task, index) => (
                                   <Draggable
                                     key={task._id}
@@ -644,6 +671,7 @@ const containers = useMemo( () => {
 
                                 {
                                   showClosed.includes(container._id) &&
+                                  activeAndClosedTasks[container._id] &&
                                   activeAndClosedTasks[container._id]["closed"].map((task, index) => (
                                     <Draggable
                                       key={task._id}

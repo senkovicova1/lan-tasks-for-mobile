@@ -278,7 +278,8 @@ export default function TaskForm( props ) {
               e.preventDefault();
               const oldName = name;
               setName(newTitle);
-              if ( !addNewTask ) {
+              setNewTitle("");
+              setTitleInFocus(false);
                 Meteor.call(
                   'tasks.updateSimpleAttribute',
                   taskId,
@@ -338,7 +339,6 @@ export default function TaskForm( props ) {
                     }
                   })
                 }
-              }
             }}
             >
             <img
