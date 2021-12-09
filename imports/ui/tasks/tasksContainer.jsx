@@ -39,6 +39,7 @@ export default function TasksContainer( props ) {
   const {
     match,
     history,
+    tasksLoading,
   } = props;
 
   const {
@@ -75,7 +76,7 @@ export default function TasksContainer( props ) {
       return importantTasksFolder( language );
     }
     const maybeFolder = group.find( folder => folder._id === folderID );
-    return maybeFolder;
+    return maybeFolder ? maybeFolder : {};
   }, [ folders, folderID ] );
 
   const filters = useSelector( ( state ) => state.filters.value );
@@ -231,8 +232,7 @@ export default function TasksContainer( props ) {
     );
   }
 
-
-  if ( !folder && !filter  ) {
+  if ( (!folder && !filter)  ) {
     return <Loader />;
   }
 
@@ -240,6 +240,7 @@ export default function TasksContainer( props ) {
     return (
       <TasksList
           {...props}
+          tasksLoading={tasksLoading}
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
@@ -257,6 +258,7 @@ export default function TasksContainer( props ) {
     return (
       <Calendar
           {...props}
+          tasksLoading={tasksLoading}
           tasksWithAdvancedFilters={tasksWithAdvancedFilters}
           removedTasks={removedTasks}
           folder={folder}
@@ -272,6 +274,7 @@ export default function TasksContainer( props ) {
     return (
       <Dnd
           {...props}
+          tasksLoading={tasksLoading}
           sortedTasks={sortedTasks}
           removedTasks={removedTasks}
           subtasks={subtasks}
@@ -289,6 +292,7 @@ export default function TasksContainer( props ) {
       <div style={{width: "100%", position: "relative", padding: "20px 15px"}}>
         <TasksList
           {...props}
+          tasksLoading={tasksLoading}
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}

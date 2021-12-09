@@ -34,6 +34,7 @@ import {
 
 import FilterSummary from '/imports/ui/filters/summary';
 import EditTask from './editContainer';
+import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   RestoreIcon,
@@ -79,6 +80,7 @@ export default function TaskList( props ) {
 
   const {
   match,
+  tasksLoading,
   folder,
   closedTasks,
   activeTasks,
@@ -152,6 +154,13 @@ document.onkeydown = function( e ) {
   }
 };
 
+  if (tasksLoading){
+    return   (
+      <List style={{position: "relative"}}>
+        <Loader />
+      </List>
+    )
+  }
 
   return (
     <List>

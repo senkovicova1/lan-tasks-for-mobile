@@ -42,6 +42,7 @@ export default function Scheduled( props ) {
 
   const {
     userId,
+    closed,
     taskId,
     allDay,
     setAllDay,

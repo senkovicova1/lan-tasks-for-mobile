@@ -43,6 +43,7 @@ export default function Comments( props ) {
 
   const {
     userId,
+    closed,
     taskId,
     displayedComments,
     comments,
@@ -59,6 +60,8 @@ export default function Comments( props ) {
 
   return (
         <section className="comments">
+          {
+            !closed &&
           <HiddenTextarea
             type="text"
             disabled={closed}
@@ -68,6 +71,9 @@ export default function Comments( props ) {
             value={newCommentBody}
             onChange={(e) => setNewCommentBody(e.target.value)}
             />
+        }
+          {
+            !closed &&
           <ButtonRow>
             {newCommentBody.length > 0 &&
               <LinkButton
@@ -160,7 +166,12 @@ export default function Comments( props ) {
               {translations[language].sendComment}
             </LinkButton>
           </ButtonRow>
-
+        }
+        {
+          closed &&
+          displayedComments.length === 0 &&
+          <span>No comments</span>
+        }
           {
             displayedComments.length > 0 &&
             displayedComments.map(comment => (
@@ -181,6 +192,7 @@ export default function Comments( props ) {
                   </label>
                   <span className="dateCreated">{moment.unix(comment.dateCreated).add((new Date).getTimezoneOffset(), 'minutes').format("DD.MM.yyyy hh:mm")}</span>
                   {
+                    !closed &&
                     comment.author._id === userId &&
                     <LinkButton
                     disabled={closed}
@@ -198,6 +210,7 @@ export default function Comments( props ) {
                     </LinkButton>
                   }
                   {
+                    !closed &&
                     comment.author._id === userId &&
                     <LinkButton
                     disabled={closed}

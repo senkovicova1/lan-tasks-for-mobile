@@ -120,31 +120,92 @@ export default function MainPage( props ) {
     sidebarOpen
   } = useSelector( ( state ) => state.metadata.value );
 
-  const { folders, tasks, users, repeats } = useTracker(() => {
+  const { folders, foldersLoading } = useTracker(() => {
 
     let folders = [];
-    let tasks = [];
-    let users = [];
-    let repeats = [];
+    let foldersLoading = true;
 
-    const noDataAvailable = { folders, tasks, users, repeats };
+    const noDataAvailable = { folders, foldersLoading };
+
     if (!Meteor.user()) {
       return noDataAvailable;
     }
-    const foldersHandler = Meteor.subscribe('folders');
-    const tasksHandler = Meteor.subscribe('tasks');
-    const usersHandler = Meteor.subscribe('users');
-    const repeatsHandler = Meteor.subscribe('repeats');
 
-    if (foldersHandler.ready()) {
+    const foldersHandler = Meteor.subscribe('folders');
+
+    if (!foldersHandler.ready()) {
+      return noDataAvailable;
+    }
+
       folders = FoldersCollection.find(
         {}, {
           sort: { name: 1 },
         }
       ).fetch();
+
+    return { folders, foldersLoading: false };
+  });
+
+  const { repeats, repeatsLoading } = useTracker(() => {
+
+    let repeats = [];
+    let repeatsLoading = true;
+
+    const noDataAvailable = {repeats, repeatsLoading };
+
+    if (!Meteor.user()) {
+      return noDataAvailable;
     }
 
-    if (tasksHandler.ready()) {
+    const repeatsHandler = Meteor.subscribe('repeats');
+
+    if (!repeatsHandler.ready()) {
+      return noDataAvailable;
+    }
+
+    repeats = RepeatsCollection.find({}).fetch();
+
+    return { repeats, repeatsLoading: false };
+  });
+
+  const { users, usersLoading } = useTracker(() => {
+
+    let users = [];
+    let usersLoading = true;
+
+    const noDataAvailable = { users, usersLoading };
+
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
+
+    const usersHandler = Meteor.subscribe('users');
+
+    if (!usersHandler.ready()) {
+      return noDataAvailable;
+    }
+
+    users = Meteor.users.find( {} ).fetch();
+
+    return { users, usersLoading: false };
+  });
+
+  const { tasks, tasksLoading } = useTracker(() => {
+
+    let tasks = [];
+    let tasksLoading = true;
+
+    const noDataAvailable = { tasks, tasksLoading };
+    if (!Meteor.user() ) {
+      return noDataAvailable;
+    }
+
+    const tasksHandler = Meteor.subscribe('tasks');
+
+    if (!tasksHandler.ready() || foldersLoading || repeatsLoading || usersLoading) {
+          return noDataAvailable;
+    }
+
       const foldersIds = folders.map( folder => folder._id );
       tasks = TasksCollection.find(
         {
@@ -153,15 +214,6 @@ export default function MainPage( props ) {
           }
         }
       ).fetch();
-    }
-
-    if (repeatsHandler.ready()) {
-      repeats = RepeatsCollection.find({}).fetch();
-    }
-
-    if (usersHandler.ready()) {
-      users = Meteor.users.find( {} ).fetch();
-    }
 
     tasks = tasks.map( task => {
       let newTask = {
@@ -195,39 +247,58 @@ export default function MainPage( props ) {
       return newTask;
     } );
 
-    return { folders, tasks, users, repeats };
+    tasksLoading = false;
+
+    return { tasks, tasksLoading};
   });
 
-    const { notifications, filters } = useTracker(() => {
+    const { notifications } = useTracker(() => {
 
-      let filters = [];
       let notifications = [];
 
-      const noDataAvailable = { notifications, filters };
+      const noDataAvailable = { notifications };
       if (!Meteor.user()) {
         return noDataAvailable;
       }
 
       const notificationsHandler = Meteor.subscribe('notifications');
+
+      if (!notificationsHandler.ready()) {
+        return noDataAvailable;
+      }
+
+      notifications = NotificationsCollection.find(
+        {}, {
+          sort: { dateCreated: 1 },
+        }
+      ).fetch();
+
+      return { notifications };
+    });
+
+    const { filters, filtersLoading } = useTracker(() => {
+
+      let filters = [];
+      let filtersLoading = true;
+
+      const noDataAvailable = { filtersLoading, filters };
+      if (!Meteor.user()) {
+        return noDataAvailable;
+      }
+
       const filtersHandler = Meteor.subscribe('filters');
 
-      if (filtersHandler.ready()) {
-        filters = FiltersCollection.find(
-          {}, {
-            sort: { name: 1 },
-          }
-        ).fetch();
+      if (!filtersHandler.ready()) {
+        return noDataAvailable;
       }
 
-      if (notificationsHandler.ready()) {
-        notifications = NotificationsCollection.find(
-          {}, {
-            sort: { dateCreated: 1 },
-          }
-        ).fetch();
-      }
+      filters = FiltersCollection.find(
+        {}, {
+          sort: { name: 1 },
+        }
+      ).fetch();
 
-      return { notifications, filters };
+      return { filtersLoading: false, filters };
     });
 
         const { comments, subtasks } = useTracker(() => {
@@ -319,7 +390,6 @@ export default function MainPage( props ) {
       dispatch( setComments( comments ) );
   }, [ comments ] );
 
-
   return (
     <div style={{height: "100vh"}}>
       <BrowserRouter>
@@ -329,6 +399,8 @@ export default function MainPage( props ) {
           render={(props) => (
             <Header
               {...props}
+              foldersLoading={foldersLoading}
+              filtersLoading={filtersLoading}
               />
           )}
           />
@@ -350,7 +422,9 @@ export default function MainPage( props ) {
               <Route
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
-                component={TaskContainer}
+                render={(props) => (
+                  <TaskContainer {...props} tasksLoading={tasksLoading} />
+                )}
                 />
             }
 
@@ -359,7 +433,9 @@ export default function MainPage( props ) {
               <Route
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
-                component={TaskContainer}
+                render={(props) => (
+                  <TaskContainer {...props} tasksLoading={tasksLoading} />
+                )}
                 />
             }
 
@@ -368,7 +444,9 @@ export default function MainPage( props ) {
                 <Route
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
-                  component={TaskContainer}
+                  render={(props) => (
+                    <TaskContainer {...props} tasksLoading={tasksLoading} />
+                  )}
                   />
               }
 
@@ -390,7 +468,9 @@ export default function MainPage( props ) {
                 <Route
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
-                  component={TaskContainer}
+                  render={(props) => (
+                    <TaskContainer {...props} tasksLoading={tasksLoading} />
+                  )}
                   />
               }
 

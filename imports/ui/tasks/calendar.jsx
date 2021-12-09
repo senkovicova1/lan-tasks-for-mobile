@@ -47,6 +47,7 @@ import {
 import AddTask from './addContainer';
 import EditTask from './editContainer';
 import FilterSummary from '/imports/ui/filters/summary';
+import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   RestoreIcon,
@@ -95,6 +96,7 @@ export default function CalendarList( props ) {
 
   const {
   match,
+  tasksLoading,
   folder,
   tasksWithAdvancedFilters,
   removedTasks,
@@ -138,19 +140,6 @@ useEffect(() => {
   setActiveTasksWithoutDatetimes(activeTasks);
   setInactiveTasksWithoutDatetimes(inactiveTasks);
 }, [tasksWithAdvancedFilters, showClosed]);
-/*
-const activeTasks = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map(task => ({...task, startDatetime: new Date(task.startDatetime*1000), endDatetime: new Date(task.endDatetime*1000), tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`}));
-}, [ tasksWithAdvancedFilters, showClosed ] );
-
-const activeTasksWithoutDatetimes = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => !task.startDatetime && !task.closed );
-}, [ tasksWithAdvancedFilters ] );
-
-const inactiveTasksWithoutDatetimes = useMemo( () => {
-  return tasksWithAdvancedFilters.filter( task => !task.startDatetime && task.closed );
-}, [ tasksWithAdvancedFilters ] );
-*/
 
 const dbUsers = useSelector( ( state ) => state.users.value );
 const notifications = useSelector( ( state ) => state.notifications.value );
@@ -355,6 +344,14 @@ document.onkeydown = function( e ) {
       })
     }
   }
+
+    if (tasksLoading){
+      return   (
+        <CalendarContainer style={{position: "relative"}}>
+          <Loader />
+        </CalendarContainer>
+      )
+    }
 
   return (
     <CalendarContainer>

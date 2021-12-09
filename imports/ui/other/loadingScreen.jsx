@@ -12,7 +12,7 @@ import {
 
 export default function Loader( props ) {
   return (
-    <LoadingScreen>
+    <LoadingScreen whiteBkg={props.whiteBkg}>
       <Spinner color="primary" />
     </LoadingScreen>
   );

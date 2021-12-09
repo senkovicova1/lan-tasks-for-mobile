@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useState,
 } from 'react';
 
@@ -34,6 +35,7 @@ export default function Description( props ) {
 
   const {
     userId,
+    closed,
     taskId,
     assigned,
     description,
@@ -45,6 +47,79 @@ export default function Description( props ) {
 
   const [ newDescription, setNewDescription ] = useState( "" );
   const [ descriptionInFocus, setDescriptionInFocus ] = useState( false );
+  const [ saveInterval, setSaveInterval ] = useState(null);
+
+  useEffect(() => {
+      setSaveInterval(setInterval(() => {
+      if (description !== newDescription){
+        const oldDesc = description;
+        setDescription(newDescription);
+        setDescriptionInFocus(false);
+          Meteor.call(
+            'tasks.updateSimpleAttribute',
+            taskId,
+            {
+              description: newDescription
+            }
+          );
+        const historyData = {
+          dateCreated: moment().unix(),
+          user: userId,
+          type: DESCRIPTION,
+          args: [newDescription],
+        };
+        if (history.length === 0){
+          Meteor.call(
+            'history.addNewHistory',
+            taskId,
+            [
+              historyData
+            ]
+          );
+        } else {
+          Meteor.call(
+            'history.editHistory',
+            history[0]._id,
+            historyData
+          )
+        }
+        if (assigned.length > 0){
+          assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+            const notificationData = {
+              ...historyData,
+              args: [name],
+              read: false,
+              taskId,
+              folderId: folder._id,
+            };
+           if (usersNotifications.notifications.length > 0){
+             Meteor.call(
+               'notifications.editNotifications',
+                assigned._id,
+                assigned.email,
+                notificationData,
+                dbUsers
+              );
+            } else {
+              Meteor.call(
+                'notifications.addNewNotification',
+                assigned._id,
+                assigned.email,
+                [
+                  notificationData
+                 ],
+                 dbUsers
+               );
+            }
+          })
+        }
+      }
+    }, 1000));
+    return () => {
+      clearInterval(saveInterval);
+    };
+  }, [newDescription]);
 
   const txHeight = 40;
   const tx = document.getElementsByTagName( "textarea" );
@@ -78,7 +153,7 @@ export default function Description( props ) {
         <Textarea
           type="text"
           placeholder={closed ? translations[language].noDescription : translations[language].writeDescription}
-          value={newDescription ? newDescription : description}
+          value={newDescription && !addNewTask ? newDescription : description}
           disabled={closed}
           onFocus={() => {
             setDescriptionInFocus(true);
@@ -87,7 +162,7 @@ export default function Description( props ) {
             setNewDescription(e.target.value);
           }}
           onBlur={() => {
-            if ( !addNewTask) {
+        /*    if ( !addNewTask) {
               const oldDesc = description;
               timeout  = setTimeout(() => {
                 if (newDescription){
@@ -154,11 +229,12 @@ export default function Description( props ) {
                   }
                 }
               }, 1500);
-            }
+            }*/
           }}
           />
       </section>
       {
+        false &&
         !addNewTask &&
         descriptionInFocus &&
         <ButtonRow>
@@ -185,69 +261,6 @@ export default function Description( props ) {
             disabled={closed}
             onClick={(e) => {
               e.preventDefault();
-              const oldDesc = description;
-              clearTimeout(timeout);
-              setDescription(newDescription);
-                Meteor.call(
-                  'tasks.updateSimpleAttribute',
-                  taskId,
-                  {
-                    description: newDescription
-                  }
-                );
-              setDescriptionInFocus(false);
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: DESCRIPTION,
-                args: [newDescription],
-              };
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                  const notificationData = {
-                    ...historyData,
-                    args: [name],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  };
-                 if (usersNotifications.notifications.length > 0){
-                   Meteor.call(
-                     'notifications.editNotifications',
-                      assigned._id,
-                      assigned.email,
-                      notificationData,
-                      dbUsers
-                    );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
             }}
             >
             <img

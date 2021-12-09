@@ -111,26 +111,38 @@ export default function MobileHeader( props ) {
     }
   }, [ folders, folderID, userId ] );
 
-  document.addEventListener( "click", ( evt ) => {
-    const sortMenu = document.getElementById( "sort-menu" );
-    const openSortMenuBtn = document.getElementById( "sort-menu-button" );
-    let targetElement = evt.target; // clicked element
-    do {
-      if ( targetElement == sortMenu ) {
-        // This is a click inside. Do nothing, just return.
-        return;
-      }
-      if ( targetElement == openSortMenuBtn ) {
-        setOpenSort( !openSort );
-        return;
-      }
-      // Go up the DOM
-      targetElement = targetElement.parentNode;
-    } while ( targetElement );
+    useEffect(() => {
+      document.addEventListener( "click", ( evt ) => {
+        let targetElement = evt.target; // clicked element
+        const itemsInMenu = [
+          "sort-menu-button",
+          "sort-menu-icon",
+          "sort-menu",
+          "sort-header-1",
+          "sort-header-2",
+          "sort-menu-plain-layout",
+          "plain-layout",
+          "plain-layout-label",
+          "sort-menu-columns-layout",
+          "columns-layout",
+          "columns-layout-label",
+          "sort-menu-calendar-layout",
+          "calendar-layout",
+          "calendar-layout-label",
+          "sort-menu-dnd-layout",
+          "dnd-layout",
+          "dnd-layout-label",
+          "sort-menu-custom-order",
+          "customOrder",
+          "custom-order-label",
+        ];
+        if (!itemsInMenu.includes(targetElement.id) && !targetElement.id.includes("order")){
+          setOpenSort(false);
+          return;
+        }
+      } );
+    }, []);
 
-    // This is a click outside.
-    setOpenSort( false );
-  } );
 
   useEffect( () => {
     if ( window.innerWidth >= 800 ) {

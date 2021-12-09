@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useState,
 } from 'react';
 
@@ -108,6 +109,82 @@ export default function TaskForm( props ) {
   const [ showComments, setShowComments ] = useState( true );
   const [ newTitle, setNewTitle ] = useState( "" );
   const [ titleInFocus, setTitleInFocus ] = useState( false );
+  const [ saveInterval, setSaveInterval ] = useState(null);
+
+  useEffect(() => {
+    if (!addNewTask){
+
+      setSaveInterval(setInterval(() => {
+      if (name !== newTitle){
+        const oldName = name;
+        setName(newTitle);
+        setTitleInFocus(false);
+          Meteor.call(
+            'tasks.updateSimpleAttribute',
+            taskId,
+            {
+              name: newTitle
+            }
+          );
+          const historyData = {
+            dateCreated: moment().unix(),
+            user: userId,
+            type: TITLE,
+            args: [oldName, newTitle],
+          };
+          if (history.length === 0){
+            Meteor.call(
+              'history.addNewHistory',
+              taskId,
+              [
+                historyData
+              ]
+            );
+          } else {
+            Meteor.call(
+              'history.editHistory',
+              history[0]._id,
+              historyData
+            )
+          }
+          if (assigned.length > 0){
+            assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+              let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+              const notificationData = {
+                ...historyData,
+                args: [oldName, newTitle],
+                read: false,
+                taskId,
+                folderId: folder._id,
+              };
+             if (usersNotifications.notifications.length > 0){
+               Meteor.call(
+                 'notifications.editNotifications',
+                  assigned._id,
+                  assigned.email,
+                  notificationData,
+                  dbUsers
+                );
+              } else {
+                Meteor.call(
+                  'notifications.addNewNotification',
+                  assigned._id,
+                  assigned.email,
+                  [
+                    notificationData
+                   ],
+                   dbUsers
+                 );
+              }
+            })
+          }
+      }
+    }, 1000));
+    return () => {
+      clearInterval(saveInterval);
+    };
+  }
+  }, [newTitle]);
 
   return (
     <Form excludeBtn={true}>
@@ -222,135 +299,8 @@ export default function TaskForm( props ) {
               setNewTitle(e.target.value);
             }
           }}
-          onBlur={() => {
-          /*  if ( !addNewTask) {
-              const oldName = name;
-              timeout  = setTimeout(() => {
-                if (newTitle){
-                  setName(newTitle);
-                  setTitleInFocus(false);
-                    updateSimpleAttribute(
-                      taskId,
-                      userId,
-                      "name",
-                      newTitle,
-                      oldName,
-                      TITLE,
-                      name,
-                      history,
-                      assigned,
-                      folder._id,
-                      notifications,
-                      dbUsers
-                    );
-                }
-              }, 500);
-            }
-            */
-          }}
           />
       </section>
-      {
-        !addNewTask &&
-        titleInFocus &&
-        <ButtonRow>
-          <LinkButton
-            style={{marginLeft: "auto", marginRight: "0.6em"}}
-            disabled={closed}
-            onClick={(e) => {
-              e.preventDefault();
-              setNewTitle("");
-              setTitleInFocus(false);
-            }}
-            >
-            <img
-              className="icon"
-              style={{width: "1.6em", margin: "0em"}}
-              src={CloseIcon}
-              alt="CloseIcon icon not found"
-              />
-          </LinkButton>
-          <FullButton
-            colour=""
-            style={{marginRight: "0px", width: "100px", paddingLeft: "0px"}}
-            disabled={closed}
-            onClick={(e) => {
-              e.preventDefault();
-              const oldName = name;
-              setName(newTitle);
-              setNewTitle("");
-              setTitleInFocus(false);
-                Meteor.call(
-                  'tasks.updateSimpleAttribute',
-                  taskId,
-                  {
-                    name: newTitle
-                  }
-                );
-                const historyData = {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  type: TITLE,
-                  args: [oldName, newTitle],
-                };
-                if (history.length === 0){
-                  Meteor.call(
-                    'history.addNewHistory',
-                    taskId,
-                    [
-                      historyData
-                    ]
-                  );
-                } else {
-                  Meteor.call(
-                    'history.editHistory',
-                    history[0]._id,
-                    historyData
-                  )
-                }
-                if (assigned.length > 0){
-                  assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                    const notificationData = {
-                      ...historyData,
-                      args: [oldName, newTitle],
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    };
-                   if (usersNotifications.notifications.length > 0){
-                     Meteor.call(
-                       'notifications.editNotifications',
-                        assigned._id,
-                        assigned.email,
-                        notificationData,
-                        dbUsers
-                      );
-                    } else {
-                      Meteor.call(
-                        'notifications.addNewNotification',
-                        assigned._id,
-                        assigned.email,
-                        [
-                          notificationData
-                         ],
-                         dbUsers
-                       );
-                    }
-                  })
-                }
-            }}
-            >
-            <img
-              className="icon"
-              style={{width: "1.6em", margin: "0em"}}
-              src={SendIcon}
-              alt="Send icon not found"
-              />
-            {translations[language].save}
-          </FullButton>
-        </ButtonRow>
-      }
     </section>
 
             <div style={{position: "relative"}}>
@@ -653,6 +603,7 @@ export default function TaskForm( props ) {
 
       <Scheduled
         userId={userId}
+        closed={closed}
         taskId={taskId}
         allDay={props.allDay}
         setAllDay={props.setAllDay}
@@ -766,6 +717,7 @@ export default function TaskForm( props ) {
 
       <Description
         userId={userId}
+        closed={closed}
         taskId={taskId}
         assigned={assigned}
         description={description}
@@ -828,6 +780,7 @@ export default function TaskForm( props ) {
         !addNewTask &&
         <Comments
             userId={userId}
+            closed={closed}
             taskId={taskId}
             displayedComments={displayedComments}
             comments={comments}

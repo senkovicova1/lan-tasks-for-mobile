@@ -37,6 +37,7 @@ import {
 import AddTask from './addContainer';
 import EditTask from './editContainer';
 import FilterSummary from '/imports/ui/filters/summary';
+import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   setChosenTask
@@ -100,6 +101,7 @@ export default function DND( props ) {
 
   const {
   match,
+  tasksLoading,
   folder,
   sortedTasks,
   removedTasks,
@@ -270,6 +272,14 @@ const containers = useMemo( () => {
 
     }
   }
+
+    if (tasksLoading){
+      return   (
+        <DndContainer style={{position: "relative"}}>
+          <Loader />
+        </DndContainer>
+      )
+    }
 
   return (
     <DndContainer>

@@ -66,11 +66,11 @@ export default function SortAndLayout( props ) {
     <Sort id="sort-menu" name="sort-menu">
       {
         window.innerWidth > 820 &&
-        <h3>{translations[language].layout}</h3>
+        <h3 id="sort-header-1" >{translations[language].layout}</h3>
       }
         {
           window.innerWidth > 820 &&
-        <span>
+        <span id="sort-menu-plain-layout">
           <input
             id="plain-layout"
             name="plain-layout"
@@ -83,14 +83,14 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="plain-layout">
+          <label id="plain-layout-label" htmlFor="plain-layout">
             {translations[language].list}
           </label>
         </span>
       }
         {
           window.innerWidth > 820 &&
-        <span>
+        <span id="sort-menu-columns-layout">
           <input
             id="columns-layout"
             name="columns-layout"
@@ -103,12 +103,14 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="columns-layout">{translations[language].columns}</label>
+          <label id="columns-layout-label" htmlFor="columns-layout">
+            {translations[language].columns}
+          </label>
         </span>
       }
         {
           window.innerWidth > 820 &&
-        <span>
+        <span id="sort-menu-calendar-layout">
           <input
             id="calendar-layout"
             name="calendar-layout"
@@ -121,7 +123,9 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="calendar-layout">{translations[language].calendar}</label>
+          <label id="calendar-layout-label" htmlFor="calendar-layout">
+            {translations[language].calendar}
+          </label>
         </span>
       }
         {
@@ -129,7 +133,7 @@ export default function SortAndLayout( props ) {
           folderID &&
           !location.pathname.includes('all') &&
           !location.pathname.includes('important') &&
-        <span>
+        <span id="sort-menu-dnd-layout">
           <input
             id="dnd-layout"
             name="dnd-layout"
@@ -142,14 +146,14 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor="dnd-layout">{translations[language].dnd}</label>
+          <label id="dnd-layout-label" htmlFor="dnd-layout">{translations[language].dnd}</label>
         </span>
       }
-      <h3>Sort by</h3>
-        <span key={"customOrder"}>
+      <h3 id="sort-menu-header-2">Sort by</h3>
+        <span id="sort-menu-custom-order" key="customOrder">
           <input
-            id={"customOrder"}
-            name={"customOrder"}
+            id="customOrder"
+            name="customOrder"
             type="checkbox"
             checked={sortBy === "customOrder"}
             onChange={() => {
@@ -159,7 +163,12 @@ export default function SortAndLayout( props ) {
               }
             }}
             />
-          <label htmlFor={"customOrder"}>{translations[language].customOrder}</label>
+          <label
+            id="custom-order-label"
+            htmlFor={"customOrder"}
+            >
+            {translations[language].customOrder}
+          </label>
         </span>
       {
         sortByOptions
@@ -170,9 +179,9 @@ export default function SortAndLayout( props ) {
           sortDirectionValue: y.value
         })))
         .map(item => (
-          <span key={item.value}>
+          <span id={`sort-menu-${item.value}`} key={item.value}>
             <input
-              id={item.value}
+              id={`${item.value}-order`}
               name={item.value}
               type="checkbox"
               checked={sortBy === item.sortByValue && sortDirection === item.sortDirectionValue}
@@ -184,7 +193,7 @@ export default function SortAndLayout( props ) {
                 }
               }}
               />
-            <label htmlFor={item.value}>{item.label}</label>
+            <label id={`sort-menu-${item.value}-label`} htmlFor={item.value}>{item.label}</label>
           </span>
         ))
       }

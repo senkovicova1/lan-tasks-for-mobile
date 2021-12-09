@@ -22,6 +22,7 @@ import moment from 'moment';
 import Select from 'react-select';
 
 import EditFilter from '/imports/ui/filters/editContainer';
+import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   setSidebarOpen,
@@ -76,6 +77,8 @@ export default function Menu( props ) {
   const {
     match,
     location,
+    foldersLoading,
+    filtersLoading,
   } = props;
 
   const {
@@ -166,6 +169,14 @@ export default function Menu( props ) {
       </NavLink>
 
       {
+        filtersLoading &&
+        <div className="fake-navlink">
+          <Loader whiteBkg={true}/>
+        </div>
+      }
+
+      {
+        !filtersLoading &&
         filters.map(filter => (
           <NavLink
             key={filter._id}
@@ -210,6 +221,14 @@ export default function Menu( props ) {
       }
 
       {
+        foldersLoading &&
+        <div className="fake-navlink">
+          <Loader whiteBkg={true}/>
+        </div>
+      }
+
+      {
+        !foldersLoading &&
         folders.active.map(folder => (
           <NavLink
             key={folder._id}

@@ -48,6 +48,11 @@ export const MainPage = styled.div `
     .flip{
       transform: scaleX(-1);
     }
+
+    .fake-navlink{
+      height: 48px;
+      position: relative;
+    }
 `;
 
 export const MobilePageHeader = styled.header `
@@ -1222,7 +1227,7 @@ export const LoadingScreen = styled.div`
   position: absolute;
   left: 0;
   top: 0;
-  background-color: ${backgroundColour}AA;
+  background-color: ${(props) => props.whiteBkg ? "white" : `${backgroundColour}AA`};
   width: 100%;
   height: 100%;
   display: flex;
