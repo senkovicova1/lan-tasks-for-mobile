@@ -10,6 +10,10 @@ import {
 import moment from 'moment';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   CloseIcon,
   SendIcon,
   TextIcon,
@@ -40,6 +44,9 @@ export default function Description( props ) {
     assigned,
     description,
     setDescription,
+    folder,
+    dbUsers,
+    notifications,
     history,
     language,
     addNewTask,
@@ -50,76 +57,43 @@ export default function Description( props ) {
   const [ saveInterval, setSaveInterval ] = useState(null);
 
   useEffect(() => {
-      setSaveInterval(setInterval(() => {
-      if (description !== newDescription){
-        const oldDesc = description;
-        setDescription(newDescription);
-        setDescriptionInFocus(false);
-          Meteor.call(
-            'tasks.updateSimpleAttribute',
-            taskId,
-            {
-              description: newDescription
-            }
-          );
-        const historyData = {
-          dateCreated: moment().unix(),
-          user: userId,
-          type: DESCRIPTION,
-          args: [newDescription],
-        };
-        if (history.length === 0){
-          Meteor.call(
-            'history.addNewHistory',
-            taskId,
-            [
-              historyData
-            ]
-          );
-        } else {
-          Meteor.call(
-            'history.editHistory',
-            history[0]._id,
-            historyData
-          )
-        }
-        if (assigned.length > 0){
-          assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-            const notificationData = {
-              ...historyData,
-              args: [name],
-              read: false,
-              taskId,
-              folderId: folder._id,
-            };
-           if (usersNotifications.notifications.length > 0){
-             Meteor.call(
-               'notifications.editNotifications',
-                assigned._id,
-                assigned.email,
-                notificationData,
-                dbUsers
-              );
-            } else {
-              Meteor.call(
-                'notifications.addNewNotification',
-                assigned._id,
-                assigned.email,
-                [
-                  notificationData
-                 ],
-                 dbUsers
-               );
-            }
-          })
-        }
-      }
-    }, 1000));
-    return () => {
-      clearInterval(saveInterval);
-    };
-  }, [newDescription]);
+    setNewDescription(description);
+  }, [description]);
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', function (e) {
+        e.preventDefault();
+        e.returnValue = "Are you sure you want to exit?";
+        saveUnsavedData();
+    });
+  }, []);
+
+  const saveUnsavedData = () => {
+    if (description !== newDescription){
+      const oldDesc = description;
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          taskId,
+          {
+            description: newDescription
+          }
+        );
+
+        writeHistoryAndSendNotifications(
+          userId,
+          taskId,
+          [DESCRIPTION],
+          [[newDescription]],
+          history,
+          assigned,
+          notifications,
+          [[name]],
+          folder._id,
+          dbUsers,
+        );
+
+    }
+  }
 
   const txHeight = 40;
   const tx = document.getElementsByTagName( "textarea" );
@@ -162,74 +136,9 @@ export default function Description( props ) {
             setNewDescription(e.target.value);
           }}
           onBlur={() => {
-        /*    if ( !addNewTask) {
-              const oldDesc = description;
-              timeout  = setTimeout(() => {
-                if (newDescription){
-                  setDescription(newDescription);
-                    Meteor.call(
-                      'tasks.updateSimpleAttribute',
-                      taskId,
-                      {
-                        description: newDescription
-                      }
-                    );
-                  setDescriptionInFocus(false);
-                  const historyData = {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    type: DESCRIPTION,
-                    args: [newDescription],
-                  };
-                  if (history.length === 0){
-                    Meteor.call(
-                      'history.addNewHistory',
-                      taskId,
-                      [
-                        historyData
-                      ]
-                    );
-                  } else {
-                    Meteor.call(
-                      'history.editHistory',
-                      history[0]._id,
-                      historyData
-                    )
-                  }
-                  if (assigned.length > 0){
-                    assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                      const notificationData = {
-                        ...historyData,
-                        args: [name],
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      };
-                     if (usersNotifications.notifications.length > 0){
-                       Meteor.call(
-                         'notifications.editNotifications',
-                          assigned._id,
-                          assigned.email,
-                          notificationData,
-                          dbUsers
-                        );
-                      } else {
-                        Meteor.call(
-                          'notifications.addNewNotification',
-                          assigned._id,
-                          assigned.email,
-                          [
-                            notificationData
-                           ],
-                           dbUsers
-                         );
-                      }
-                    })
-                  }
-                }
-              }, 1500);
-            }*/
+            if (!addNewTask){
+              saveUnsavedData();
+            }
           }}
           />
       </section>

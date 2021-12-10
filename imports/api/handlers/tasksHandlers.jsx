@@ -178,6 +178,88 @@ export const addFullTask = ( createdBy, name, important, assigned, startDatetime
 
 }
 
+export const writeHistoryAndSendNotifications = (
+  userId,
+  taskId,
+  historyTypes,
+  historyArgs,
+  history,
+  assignedUsers,
+  notifications,
+  notificationArgs,
+  folderId,
+  dbUsers,
+) => {
+  let historyDataArr = [];
+  for (var i = 0; i < historyTypes.length; i++) {
+    historyDataArr.push(
+      {
+        dateCreated: moment().unix(),
+        user: userId,
+        type: historyTypes[i],
+        args: historyArgs[i],
+      }
+    )
+  }
+  writeHistory(taskId, historyDataArr, history);
+  sendNotifications(taskId, userId, historyDataArr, notificationArgs, folderId, assignedUsers, notifications, dbUsers);
+}
+
+const writeHistory = (taskId, historyDataArr, history) => {
+  if (history.length === 0){
+    Meteor.call(
+      'history.addNewHistory',
+      taskId,
+      historyDataArr
+    );
+  } else {
+    for (var i = 0; i < historyDataArr.length; i++) {
+      Meteor.call(
+        'history.editHistory',
+        history[0]._id,
+        historyDataArr[i]
+      )
+    }
+  }
+}
+
+const sendNotifications = (taskId, userId, historyDataArr, notificationArgs, folderId, assigned, notifications, dbUsers) => {
+  if (assigned.length > 0){
+    let notificationDataArr = [];
+    for (var i = 0; i < historyDataArr.length; i++) {
+      notificationDataArr.push({
+          ...historyDataArr[i],
+          args: notificationArgs,
+          read: false,
+          taskId,
+          folderId,
+        })
+    };
+    assigned.filter(assigned => assigned._id !== userId).map(assigned => {
+      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+     if (usersNotifications.notifications.length > 0){
+       for (var i = 0; i < notificationDataArr.length; i++) {
+         Meteor.call(
+           'notifications.editNotifications',
+           assigned._id,
+           assigned.email,
+           notificationDataArr[i],
+           dbUsers
+         );
+       }
+      } else {
+        Meteor.call(
+          'notifications.addNewNotification',
+          assigned._id,
+          assigned.email,
+          notificationDataArr,
+           dbUsers
+         );
+      }
+    })
+  }
+}
+
 export const updateSimpleAttribute = ( taskId, userId, attribute, newValue, oldValue, changeType, taskName, history, assigned, folderId, notifications, dbUsers ) => {
 
   Meteor.call(

@@ -7,6 +7,10 @@ import moment from 'moment';
 import Datetime from 'react-datetime';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   CloseIcon,
   ClockIcon,
   CalendarIcon,
@@ -44,6 +48,7 @@ export default function Scheduled( props ) {
     userId,
     closed,
     taskId,
+    folder,
     allDay,
     setAllDay,
     startDatetime,
@@ -60,6 +65,8 @@ export default function Scheduled( props ) {
     setPossibleRepeat,
     allTasks,
     history,
+    notifications,
+    dbUsers,
     language,
     addNewTask,
     openDatetime,
@@ -141,12 +148,14 @@ if (closed || !openDatetime){
         height="fit"
         disabled={closed}
         onClick={(e) => {
+
           e.preventDefault();
           const oldStart = startDatetime;
           const oldEnd = endDatetime;
           setStartDatetime("");
           setEndDatetime("");
           setRepeat(null);
+
           if ( !addNewTask ) {
             Meteor.call(
               'tasks.updateSimpleAttribute',
@@ -160,85 +169,19 @@ if (closed || !openDatetime){
             );
             removeTaskFromRepeat(taskId, repeat._id, dbTasks);
 
-            const historyData1 = {
-              dateCreated: moment().unix(),
-              user: userId,
-              type: REMOVED_START_END,
-              args: [],
-            }
-            const historyData2 = {
-              dateCreated: moment().unix(),
-              user: userId,
-              type: REMOVED_REPEAT,
-              args: [],
-            }
-            if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData1,
-                    historyData2
-                  ]
-                );
-            } else {
-              Meteor.call(
-                'history.editHistory',
-                history[0]._id,
-                historyData1
-              )
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData2
-                )
-            }
-            if (assigned.length > 0){
-              assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                const notificationData1 = {
-                  ...historyData1,
-                  args: [name],
-                  read: false,
-                  taskId,
-                  folderId: folder._id,
-                };
-                const notificationData2 = {
-                  ...historyData2,
-                  args: [name],
-                  read: false,
-                  taskId,
-                  folderId: folder._id,
-                };
-               if (usersNotifications.notifications.length > 0){
-                 Meteor.call(
-                   'notifications.editNotifications',
-                    assigned._id,
-                    assigned.email,
-                    notificationData1,
-                    dbUsers
-                  );
-                    Meteor.call(
-                      'notifications.editNotifications',
-                       assigned._id,
-                       assigned.email,
-                       notificationData2,
-                       dbUsers
-                     );
-                } else {
-                  Meteor.call(
-                    'notifications.addNewNotification',
-                    assigned._id,
-                    assigned.email,
-                    [
-                      notificationData1,
-                      notificationData2
-                    ],
-                    dbUsers
-                   );
-                }
-              })
-            }
+            writeHistoryAndSendNotifications(
+              userId,
+              taskId,
+              [REMOVED_START_END, REMOVED_REPEAT],
+              [[],[]],
+              history,
+              assigned,
+              notifications,
+              [[name], [name]],
+              folder._id,
+              dbUsers,
+            );
+
           }
         }}
         >
@@ -616,150 +559,35 @@ if (closed || !openDatetime){
                     }
                   );
 
-                const historyData1 = {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  type: SET_START,
-                  args: [moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")]
-                };
-                const historyData2 = {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  type: SET_END,
-                  args: [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
-                };
+                  let types = [SET_START, SET_END];
+                  let historyArgs = [
+                      [moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                      [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                      ];
+                  let notifArgs = [
+                    [name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                    [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                  ];
 
-                let historyData3 = null;
-                if (oldRepeat !== newHistoryRepeat){
-                  historyData3 = {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    type: repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT,
-                    args: repeat && repeat._id ? [oldRepeat, newHistoryRepeat] : [newHistoryRepeat],
-                  }
-                }
-
-                if (history.length === 0){
                   if (oldRepeat !== newHistoryRepeat){
-                    Meteor.call(
-                      'history.addNewHistory',
-                      taskId,
-                      [
-                        historyData1,
-                        historyData2,
-                        historyData3
-                      ]
-                    );
-                  } else {
-                    Meteor.call(
-                      'history.addNewHistory',
-                      taskId,
-                      [
-                        historyData1,
-                        historyData2
-                      ]
-                    );
+                    types.push(repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT);
+                    historyArgs.push(repeat && repeat._id ? [oldRepeat, newHistoryRepeat] : [newHistoryRepeat]);
+                    notifArgs.push(repeat && repeat._id ? [oldRepeat, possibleRepeat, name] : [possibleRepeat, name]);
                   }
-                } else {
-                  Meteor.call(
-                    'history.editHistory',
-                    history[0]._id,
-                    historyData1
-                  )
-                    Meteor.call(
-                      'history.editHistory',
-                      history[0]._id,
-                      historyData2
-                    )
-                  if (oldRepeat !== newHistoryRepeat){
-                    Meteor.call(
-                      'history.editHistory',
-                      history[0]._id,
-                      historyData3
-                    )
-                  }
-                }
 
-                if (assigned.length > 0){
-                  assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                    const notificationData1 = {
-                      ...historyData1,
-                      args: [name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    };
-                    const notificationData2 = {
-                      ...historyData2,
-                      args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")],
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    };
+                  writeHistoryAndSendNotifications(
+                    userId,
+                    taskId,
+                    types,
+                    historyArgs,
+                    history,
+                    assigned,
+                    notifications,
+                    notifArgs,
+                    folder._id,
+                    dbUsers,
+                  );
 
-                    let notificationData3 = null;
-                    if (oldRepeat !== newHistoryRepeat){
-                      notificationData3 = {
-                        ...historyData3,
-                        args: repeat && repeat._id ? [oldRepeat, possibleRepeat, name] : [possibleRepeat, name],
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      };
-                    }
-                   if (usersNotifications && usersNotifications.notifications.length > 0){
-                     Meteor.call(
-                       'notifications.editNotifications',
-                        assigned._id,
-                        assigned.email,
-                        notificationData1,
-                        dbUsers
-                      );
-                        Meteor.call(
-                          'notifications.editNotifications',
-                           assigned._id,
-                           assigned.email,
-                           notificationData2,
-                           dbUsers
-                         );
-                       if (oldRepeat !== newHistoryRepeat){
-                         Meteor.call(
-                           'notifications.editNotifications',
-                            assigned._id,
-                            assigned.email,
-                            notificationData3,
-                            dbUsers
-                          );
-                      }
-                    } else {
-                      if (oldRepeat !== newHistoryRepeat){
-                        Meteor.call(
-                          'notifications.addNewNotification',
-                          assigned._id,
-                          assigned.email,
-                          [
-                            notificationData1,
-                            notificationData2,
-                            notificationData3
-                           ],
-                           dbUsers
-                         );
-                    } else {
-                      Meteor.call(
-                        'notifications.addNewNotification',
-                        assigned._id,
-                        assigned.email,
-                        [
-                          notificationData1,
-                          notificationData2
-                         ],
-                         dbUsers
-                       );
-                    }
-                    }
-                  })
-                }
               }
               setOpenDatetime(false);
             }}

@@ -13,6 +13,10 @@ import Select from 'react-select';
 import moment from 'moment';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   Spinner
 } from 'reactstrap';
 
@@ -93,6 +97,9 @@ export default function Subtasks( props ) {
     displayedSubtasks,
     addedSubtasks,
     setAddedSubtasks,
+    folder,
+    dbUsers,
+    notifications,
     history,
     language,
     addNewTask,
@@ -114,73 +121,87 @@ export default function Subtasks( props ) {
     e = e || window.event;
     if ( e.which === 13 || e.keyCode === 13 ) {
       if ( openNewSubtask && newSubtaskName) {
-        setNewSubtaskName( "" );
+        e.preventDefault();
         setOpenNewSubtask( false );
         if (!addNewTask){
           const dateCreated = moment().unix();
+          setUpToDateSubtasks([...upToDateSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated} ]);
+
           Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
-          const historyData = {
-            dateCreated: dateCreated,
-            user: userId,
-            type: ADD_SUBTASK,
-            args: [newSubtaskName],
-          };
-          if (history.length === 0){
-            Meteor.call(
-              'history.addNewHistory',
-              taskId,
-              [
-                historyData
-              ]
-            );
-          } else {
-            Meteor.call(
-              'history.editHistory',
-              history[0]._id,
-              historyData
-            )
-          }
-          const notificationData = {
-            ...historyData,
-            args: [newSubtaskName, name],
-            read: false,
+
+          writeHistoryAndSendNotifications(
+            userId,
             taskId,
-            folderId: folder._id,
-          };
-          if (assigned.length > 0){
-            assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-              let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-             if (usersNotifications && usersNotifications.notifications.length > 0){
-               Meteor.call(
-                 'notifications.editNotifications',
-                  assigned._id,
-                  assigned.email,
-                  notificationData,
-                  dbUsers
-                );
-              } else {
-                Meteor.call(
-                  'notifications.addNewNotification',
-                  assigned._id,
-                  assigned.email,
-                  [
-                    notificationData
-                   ],
-                   dbUsers
-                 );
-              }
-            })
-          }
+            [ADD_SUBTASK],
+            [[newSubtaskName]],
+            history,
+            assigned,
+            notifications,
+            [[newSubtaskName, name]],
+            folder._id,
+            dbUsers,
+          );
+
         } else{
           setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
         }
-      } else {
+        setNewSubtaskName( "" );
+      } else if (editedSubtask && !addNewTask){
+        e.preventDefault();
+
+        let newSubtasks = [...upToDateSubtasks];
+        let subtask = upToDateSubtasks.find(st => st._id === editedSubtask ||  st.dateCreated === editedSubtask);
+        newSubtasks = newSubtasks.map(st => {
+          if ( (!st._id && st.dateCreated === editedSubtask) ||
+          (st._id === subtask._id) ){
+            return ({
+              ...st,
+              name: possibleSubtaskName,
+            });
+          }
+          return st;
+        });
+        setUpToDateSubtasks(newSubtasks);
+
+        const oldName = subtask.name;
+        const newName = possibleSubtaskName;
+
+        Meteor.call('subtasks.editSubtask', subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
+
+       setPossibleSubtaskName("");
+        setEditedSubtask(null);
+
+        writeHistoryAndSendNotifications(
+          userId,
+          taskId,
+          [RENAME_SUBTASK],
+          [[oldName, newName]],
+          history,
+          assigned,
+          notifications,
+          [[oldName, name, newName]],
+          folder._id,
+          dbUsers,
+        );
+
         upToDateSubtasks.forEach( ( subtask, i ) => {
           document.getElementById( `subtask_name ${subtask._id}` ).blur();
         } );
         addedSubtasks.forEach( ( subtask, i ) => {
           document.getElementById( `subtask_name ${subtask._id}` ).blur();
         } );
+
+      } else {
+
+        setEditedSubtask(null);
+        setPossibleSubtaskName("");
+        upToDateSubtasks.forEach( ( subtask, i ) => {
+          document.getElementById( `subtask_name ${subtask._id}` ).blur();
+        } );
+        addedSubtasks.forEach( ( subtask, i ) => {
+          document.getElementById( `subtask_name ${subtask._id}` ).blur();
+        } );
+
       }
     }
   }
@@ -203,6 +224,20 @@ export default function Subtasks( props ) {
                   disabled={closed}
                   checked={subtask.closed}
                   onChange={() =>  {
+
+                    let newSubtasks = [...upToDateSubtasks];
+                    newSubtasks = newSubtasks.map(st => {
+                      if ( (!st._id && st.dateCreated === subtask.dateCreated) ||
+                      (st._id === subtask._id) ){
+                        return ({
+                          ...st,
+                          closed: !subtask.closed,
+                        });
+                      }
+                      return st;
+                    })
+                    setUpToDateSubtasks(newSubtasks);
+
                     const oldClosed = subtask.closed;
                     Meteor.call(
                       'subtasks.editSubtask',
@@ -212,58 +247,20 @@ export default function Subtasks( props ) {
                       subtask.task,
                       subtask.dateCreated
                     );
-                    const historyData = {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      type: oldClosed ? SUBTASK_OPENED : SUBTASK_CLOSED,
-                      args: [subtask.name],
-                    };
-                    if (history.length === 0){
-                      Meteor.call(
-                        'history.addNewHistory',
-                        taskId,
-                        [
-                          historyData
-                        ]
-                      );
-                    } else {
-                      Meteor.call(
-                        'history.editHistory',
-                        history[0]._id,
-                        historyData
-                      )
-                    }
-                    if (assigned.length > 0){
-                      assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                        const notificationData = {
-                          ...historyData,
-                          args: [subtask.name, name],
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        };
-                       if (usersNotifications.notifications.length > 0){
-                         Meteor.call(
-                           'notifications.editNotifications',
-                            assigned._id,
-                            assigned.email,
-                            notificationData,
-                            dbUsers
-                          );
-                        } else {
-                          Meteor.call(
-                            'notifications.addNewNotification',
-                            assigned._id,
-                            assigned.email,
-                            [
-                              notificationData
-                             ],
-                             dbUsers
-                           );
-                        }
-                      })
-                    }
+
+                    writeHistoryAndSendNotifications(
+                      userId,
+                      taskId,
+                      [oldClosed ? SUBTASK_OPENED : SUBTASK_CLOSED],
+                      [[subtask.name]],
+                      history,
+                      assigned,
+                      notifications,
+                      [[subtask.name, name]],
+                      folder._id,
+                      dbUsers,
+                    );
+
                   }
                 }
                   />
@@ -273,16 +270,16 @@ export default function Subtasks( props ) {
                   disabled={closed}
                   value={editedSubtask === subtask._id ? possibleSubtaskName : subtask.name}
                   onFocus={() => {
-                    setEditedSubtask(subtask._id);
+                    setEditedSubtask(subtask._id ? subtask._id : subtask.dateCreated);
                     setPossibleSubtaskName(subtask.name);
                   }}
                   onChange={(e) => {
                     setPossibleSubtaskName(e.target.value);
                   }}
                   onBlur={() => {
-                    timeout  = setTimeout(() => {
-                              setEditedSubtask(null);
-                              setPossibleSubtaskName("");
+                    setTimeout(() => {
+                      setEditedSubtask(null);
+                      setPossibleSubtaskName("");
                     }, 300);
                   }}
                   />
@@ -291,65 +288,33 @@ export default function Subtasks( props ) {
                   disabled={closed}
                   onClick={(e) => {
                     e.preventDefault();
+
                     if (editedSubtask === subtask._id){
+
                       setPossibleSubtaskName("");
                       setEditedSubtask(null);
+
                     } else {
+
                       setUpToDateSubtasks(upToDateSubtasks.filter(st => st._id !== subtask._id));
+
                       const oldName = subtask.name;
+
                       Meteor.call('subtasks.removeSubtask', subtask._id);
-                      const historyData =  {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        type: REMOVE_SUBTASK,
-                        args: [oldName],
-                      };
-                      if (history.length === 0){
-                        Meteor.call(
-                          'history.addNewHistory',
-                          taskId,
-                          [
-                            historyData
-                          ]
-                        );
-                      } else {
-                        Meteor.call(
-                          'history.editHistory',
-                          history[0]._id,
-                          historyData
-                        )
-                      }
-                      if (assigned.length > 0){
-                        assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                          let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                          const notificationData = {
-                            ...historyData,
-                            args: [oldName, name],
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          };
-                          if (usersNotifications.notifications.length > 0){
-                            Meteor.call(
-                              'notifications.editNotifications',
-                               assigned._id,
-                               assigned.email,
-                               notificationData,
-                               dbUsers
-                             );
-                          } else {
-                            Meteor.call(
-                              'notifications.addNewNotification',
-                              assigned._id,
-                              assigned.email,
-                              [
-                                notificationData
-                               ],
-                               dbUsers
-                             );
-                          }
-                        })
-                      }
+
+                      writeHistoryAndSendNotifications(
+                        userId,
+                        taskId,
+                        [REMOVE_SUBTASK],
+                        [[oldName]],
+                        history,
+                        assigned,
+                        notifications,
+                        [[oldName, name]],
+                        folder._id,
+                        dbUsers,
+                      );
+
                     }
                   }}
                   >
@@ -367,63 +332,41 @@ export default function Subtasks( props ) {
                   disabled={closed}
                   onClick={(e) => {
                     e.preventDefault();
+
+                      let newSubtasks = [...upToDateSubtasks];
+                      newSubtasks = newSubtasks.map(st => {
+                        if ( (!st._id && st.dateCreated === subtask.dateCreated) ||
+                        (st._id === subtask._id) ){
+                          return ({
+                            ...st,
+                            name: possibleSubtaskName,
+                          });
+                        }
+                        return st;
+                      });
+                      setUpToDateSubtasks(newSubtasks);
+
                     const oldName = subtask.name;
                     const newName = possibleSubtaskName;
+
                     Meteor.call('subtasks.editSubtask', subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
+
                     setPossibleSubtaskName("");
                     setEditedSubtask(null);
-                    const historyData = {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      type: RENAME_SUBTASK,
-                      args: [oldName, newName],
-                    };
-                    if (history.length === 0){
-                      Meteor.call(
-                        'history.addNewHistory',
-                        taskId,
-                        [
-                          historyData
-                        ]
-                      );
-                    } else {
-                      Meteor.call(
-                        'history.editHistory',
-                        history[0]._id,
-                        historyData
-                      )
-                    }
-                    if (assigned.length > 0){
-                      assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                        const notificationData = {
-                          ...historyData,
-                          args: [oldName, name, newName],
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        };
-                       if (usersNotifications.notifications.length > 0){
-                         Meteor.call(
-                           'notifications.editNotifications',
-                            assigned._id,
-                            assigned.email,
-                            notificationData,
-                            dbUsers
-                          );
-                        } else {
-                          Meteor.call(
-                            'notifications.addNewNotification',
-                            assigned._id,
-                            assigned.email,
-                            [
-                              notificationData
-                             ],
-                             dbUsers
-                           );
-                        }
-                      })
-                    }
+
+                    writeHistoryAndSendNotifications(
+                      userId,
+                      taskId,
+                      [RENAME_SUBTASK],
+                      [[oldName, newName]],
+                      history,
+                      assigned,
+                      notifications,
+                      [[oldName, name, newName]],
+                      folder._id,
+                      dbUsers,
+                    );
+
                   }}
                   >
                   <img
@@ -495,64 +438,33 @@ export default function Subtasks( props ) {
                   e.preventDefault();
                   if (!addNewTask){
                     const dateCreated = moment().unix();
+
+                    setUpToDateSubtasks([...upToDateSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated} ]);
+
                     Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
-                    const historyData = {
-                      dateCreated,
-                      user: userId,
-                      type: ADD_SUBTASK,
-                      args: [newSubtaskName],
-                    };
-                    if (history.length === 0){
-                      Meteor.call(
-                        'history.addNewHistory',
-                        taskId,
-                        [
-                          historyData
-                        ]
-                      );
-                    } else {
-                      Meteor.call(
-                        'history.editHistory',
-                        history[0]._id,
-                        historyData
-                      )
-                    }
-                    if (assigned.length > 0){
-                      assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                        const notificationData = {
-                          ...historyData,
-                          args: [newSubtaskName, name],
-                          read: false,
-                          taskId,
-                          folderId: folder._id,
-                        };
-                       if (usersNotifications.notifications.length > 0){
-                         Meteor.call(
-                           'notifications.editNotifications',
-                            assigned._id,
-                            assigned.email,
-                            notificationData,
-                            dbUsers
-                          );
-                        } else {
-                          Meteor.call(
-                            'notifications.addNewNotification',
-                            assigned._id,
-                            assigned.email,
-                            [
-                              notificationData
-                             ],
-                             dbUsers
-                           );
-                        }
-                      })
-                    }
+
+                    writeHistoryAndSendNotifications(
+                      userId,
+                      taskId,
+                      [ADD_SUBTASK],
+                      [[newSubtaskName]],
+                      history,
+                      assigned,
+                      notifications,
+                      [[newSubtaskName, name]],
+                      folder._id,
+                      dbUsers,
+                    );
+
                   } else{
+
                     setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
+
                   }
+
                   setNewSubtaskName("");
                   setOpenNewSubtask(false);
+
                 }}
                 >
                 <img

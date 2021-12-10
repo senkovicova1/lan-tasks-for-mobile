@@ -15,7 +15,8 @@ import Comments from './comments';
 import History from './history';
 
 import {
-  updateSimpleAttribute
+  updateSimpleAttribute,
+  writeHistoryAndSendNotifications,
 } from '/imports/api/handlers/tasksHandlers';
 
 import {
@@ -112,79 +113,46 @@ export default function TaskForm( props ) {
   const [ saveInterval, setSaveInterval ] = useState(null);
 
   useEffect(() => {
-    if (!addNewTask){
+    setNewTitle(name);
+  }, [name]);
 
-      setSaveInterval(setInterval(() => {
-      if (name !== newTitle){
-        const oldName = name;
-        setName(newTitle);
-        setTitleInFocus(false);
-          Meteor.call(
-            'tasks.updateSimpleAttribute',
-            taskId,
-            {
-              name: newTitle
-            }
-          );
-          const historyData = {
-            dateCreated: moment().unix(),
-            user: userId,
-            type: TITLE,
-            args: [oldName, newTitle],
-          };
-          if (history.length === 0){
-            Meteor.call(
-              'history.addNewHistory',
-              taskId,
-              [
-                historyData
-              ]
-            );
-          } else {
-            Meteor.call(
-              'history.editHistory',
-              history[0]._id,
-              historyData
-            )
-          }
-          if (assigned.length > 0){
-            assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-              let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-              const notificationData = {
-                ...historyData,
-                args: [oldName, newTitle],
-                read: false,
-                taskId,
-                folderId: folder._id,
-              };
-             if (usersNotifications.notifications.length > 0){
-               Meteor.call(
-                 'notifications.editNotifications',
-                  assigned._id,
-                  assigned.email,
-                  notificationData,
-                  dbUsers
-                );
-              } else {
-                Meteor.call(
-                  'notifications.addNewNotification',
-                  assigned._id,
-                  assigned.email,
-                  [
-                    notificationData
-                   ],
-                   dbUsers
-                 );
-              }
-            })
-          }
-      }
-    }, 1000));
+  useEffect(() => {
+    window.addEventListener('beforeunload', eventFunction);
     return () => {
-      clearInterval(saveInterval);
-    };
+      window.removeEventListener('beforeunload', eventFunction);
+    }
+  }, []);
+
+  function eventFunction(e){
+    e.preventDefault();
+    e.returnValue = "Are you sure you want to exit?";
+    saveUnsavedData();
   }
-  }, [newTitle]);
+
+  const saveUnsavedData = () => {
+    if (name !== newTitle){
+      const oldName = name;
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          taskId,
+          {
+            name: newTitle
+          }
+        );
+        writeHistoryAndSendNotifications(
+          userId,
+          taskId,
+          [TITLE],
+          [[oldName, newTitle]],
+          history,
+          assigned,
+          notifications,
+          [[oldName, newTitle]],
+          folder._id,
+          dbUsers,
+        );
+    }
+  }
 
   return (
     <Form excludeBtn={true}>
@@ -228,58 +196,19 @@ export default function TaskForm( props ) {
                   {closed: newClosed}
                 );
               }
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: newClosed ? CLOSED_STATUS : OPEN_STATUS,
-                args: [],
-              };
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                  const notificationData = {
-                    ...historyData,
-                    args: [name],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  };
-                  if (usersNotifications.notifications.length > 0){
-                    Meteor.call(
-                      'notifications.editNotifications',
-                      assigned._id,
-                      assigned.email,
-                      notificationData,
-                      dbUsers
-                    );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                      ],
-                      dbUsers
-                    );
-                  }
-                })
-              }
+
+              writeHistoryAndSendNotifications(
+                userId,
+                taskId,
+                [newClosed ? CLOSED_STATUS : OPEN_STATUS],
+                [[]],
+                history,
+                assigned,
+                notifications,
+                [[name]],
+                folder._id,
+                dbUsers,
+              );
             }
           }}
           />
@@ -297,6 +226,11 @@ export default function TaskForm( props ) {
               setName(e.target.value);
             } else {
               setNewTitle(e.target.value);
+            }
+          }}
+          onBlur={(e) => {
+            if (!addNewTask){
+              saveUnsavedData();
             }
           }}
           />
@@ -321,59 +255,18 @@ export default function TaskForm( props ) {
                   important: newImportant
                 }
               );
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: newImportant ? IMPORTANT : NOT_IMPORTANT,
-                args: [],
-              };
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                  const notificationData = {
-                    ...historyData,
-                    args: [name],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  }
-                 if (usersNotifications && usersNotifications.notifications.length > 0){
-                   Meteor.call(
-                     'notifications.editNotifications',
-                      assigned._id,
-                      assigned.email,
-                      notificationData,
-                      dbUsers
-                    );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
+              writeHistoryAndSendNotifications(
+                userId,
+                taskId,
+                [newImportant ? IMPORTANT : NOT_IMPORTANT],
+                [[]],
+                history,
+                assigned,
+                notifications,
+                [[name]],
+                folder._id,
+                dbUsers,
+              );
             }
           }}
           >
@@ -448,6 +341,7 @@ export default function TaskForm( props ) {
             const oldContainer = container ? container : defaultContainer;
             setContainer(e);
             if ( !addNewTask ) {
+
               Meteor.call(
                 'tasks.updateSimpleAttribute',
                 taskId,
@@ -455,58 +349,20 @@ export default function TaskForm( props ) {
                   container: e._id
                 }
               );
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: CONTAINER,
-                args: [oldContainer.label, e.label],
-              }
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                 if (usersNotifications.notifications.length > 0){
-                     const notificationData = {
-                       ...historyData,
-                       args: [name, oldContainer.label, e.label],
-                       read: false,
-                       taskId,
-                       folderId: folder._id,
-                     }
-                       Meteor.call(
-                         'notifications.editNotifications',
-                          assigned._id,
-                          assigned.email,
-                          notificationData,
-                          dbUsers
-                        );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
+
+              writeHistoryAndSendNotifications(
+                userId,
+                taskId,
+                [CONTAINER],
+                [[oldContainer.label, e.label]],
+                history,
+                assigned,
+                notifications,
+                [[name, oldContainer.label, e.label]],
+                folder._id,
+                dbUsers,
+              );
+
             }
           }}
           options={containers}
@@ -532,9 +388,12 @@ export default function TaskForm( props ) {
             value={assigned}
             isDisabled={closed}
             onChange={(e) => {
+
               const oldAssigned = assigned;
               setAssigned(e);
+
               if ( !addNewTask ) {
+
                 Meteor.call(
                   'tasks.updateSimpleAttribute',
                   taskId,
@@ -542,58 +401,20 @@ export default function TaskForm( props ) {
                     assigned: e.map(user => user._id)
                   }
                 );
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: ASSIGNED,
-                args: [oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]
-              }
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
+
+                writeHistoryAndSendNotifications(
+                  userId,
                   taskId,
-                  [
-                    historyData
-                  ]
+                  [ASSIGNED],
+                  [[oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
+                  history,
+                  assigned,
+                  notifications,
+                  [[name, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
+                  folder._id,
+                  dbUsers,
                 );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                  const notificationData = {
-                    ...historyData,
-                    args: [name, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  };
-                 if (usersNotifications.notifications.length > 0){
-                   Meteor.call(
-                     'notifications.editNotifications',
-                      assigned._id,
-                      assigned.email,
-                      notificationData,
-                      dbUsers
-                    );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
+
             }
             }}
             options={usersWithRights}
@@ -605,6 +426,7 @@ export default function TaskForm( props ) {
         userId={userId}
         closed={closed}
         taskId={taskId}
+        folder={folder}
         allDay={props.allDay}
         setAllDay={props.setAllDay}
         startDatetime={props.startDatetime}
@@ -621,7 +443,9 @@ export default function TaskForm( props ) {
         setPossibleRepeat={props.setPossibleRepeat}
         editRepeatInTask={props.editRepeatInTask}
         allTasks={props.allTasks}
+        dbUsers={dbUsers}
         history={history}
+        notifications={notifications}
         language={language}
         addNewTask={addNewTask}
         openDatetime={props.openDatetime}
@@ -648,7 +472,9 @@ export default function TaskForm( props ) {
             setHours(e.target.value);
           }}
           onBlur={() => {
+
             if ( !addNewTask ) {
+
               Meteor.call(
                 'tasks.updateSimpleAttribute',
                 taskId,
@@ -656,60 +482,20 @@ export default function TaskForm( props ) {
                   hours: hours
                 }
               );
-              const historyData = {
-                dateCreated: moment().unix(),
-                user: userId,
-                type: SET_HOURS,
-                args: [hours],
-              }
-              if (history.length === 0){
-                Meteor.call(
-                  'history.addNewHistory',
-                  taskId,
-                  [
-                    historyData
-                  ]
-                );
-              } else {
-                Meteor.call(
-                  'history.editHistory',
-                  history[0]._id,
-                  historyData
-                )
-              }
 
-              if (assigned.length > 0){
-                assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+              writeHistoryAndSendNotifications(
+                userId,
+                taskId,
+                [SET_HOURS],
+                [[hours]],
+                history,
+                assigned,
+                notifications,
+                [[name, hours]],
+                folder._id,
+                dbUsers,
+              );
 
-                  const notificationData = {
-                    ...historyData,
-                    args: [name, hours],
-                    read: false,
-                    taskId,
-                    folderId: folder._id,
-                  };
-                 if (usersNotifications.notifications.length > 0){
-                   Meteor.call(
-                     'notifications.editNotifications',
-                      assigned._id,
-                      assigned.email,
-                      notificationData,
-                      dbUsers
-                    );
-                  } else {
-                    Meteor.call(
-                      'notifications.addNewNotification',
-                      assigned._id,
-                      assigned.email,
-                      [
-                        notificationData
-                       ],
-                       dbUsers
-                     );
-                  }
-                })
-              }
             }
           }}
           />
@@ -722,6 +508,9 @@ export default function TaskForm( props ) {
         assigned={assigned}
         description={description}
         setDescription={setDescription}
+        folder={folder}
+        dbUsers={dbUsers}
+        notifications={notifications}
         history={history}
         language={language}
         addNewTask={addNewTask}
@@ -732,6 +521,9 @@ export default function TaskForm( props ) {
           taskId={taskId}
           files={files}
           setFiles={setFiles}
+          folder={folder}
+          dbUsers={dbUsers}
+          notifications={notifications}
           history={history}
           language={language}
           addNewTask={addNewTask}
@@ -744,6 +536,9 @@ export default function TaskForm( props ) {
             displayedSubtasks={displayedSubtasks}
             addedSubtasks={addedSubtasks}
             setAddedSubtasks={setAddedSubtasks}
+            folder={folder}
+            dbUsers={dbUsers}
+            notifications={notifications}
             history={history}
             language={language}
             addNewTask={addNewTask}
@@ -785,6 +580,9 @@ export default function TaskForm( props ) {
             displayedComments={displayedComments}
             comments={comments}
             setComments={setComments}
+            folder={folder}
+            dbUsers={dbUsers}
+            notifications={notifications}
             history={history}
             language={language}
             addNewTask={addNewTask}

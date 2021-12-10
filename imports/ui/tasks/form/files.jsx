@@ -15,6 +15,10 @@ import {
 } from 'reactstrap';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   PlusIcon,
   CloseIcon,
   SendIcon,
@@ -43,6 +47,9 @@ export default function Files( props ) {
     userId,
     taskId,
     files,
+    folder,
+    dbUsers,
+    notifications,
     history,
     language,
     addNewTask,
@@ -79,58 +86,20 @@ export default function Files( props ) {
                             files: files.filter(f => f.dateCreated !== file.dateCreated)
                           }
                         );
-                      const historyData = {
-                        dateCreated: moment().unix(),
-                        user: userId,
-                        type: REMOVE_FILE,
-                        args: [oldFile.name],
-                      };
-                      if (history.length === 0){
-                        Meteor.call(
-                          'history.addNewHistory',
+
+                        writeHistoryAndSendNotifications(
+                          userId,
                           taskId,
-                          [
-                            historyData
-                          ]
+                          [REMOVE_FILE],
+                          [[oldFile.name]],
+                          history,
+                          assigned,
+                          notifications,
+                          [[oldFile.name, name]],
+                          folder._id,
+                          dbUsers,
                         );
-                      } else {
-                        Meteor.call(
-                          'history.editHistory',
-                          history[0]._id,
-                          historyData
-                        )
-                      }
-                      if (assigned.length > 0){
-                        assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                          let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                          const notificationData = {
-                            ...historyData,
-                            args: [oldFile.name, name],
-                            read: false,
-                            taskId,
-                            folderId: folder._id,
-                          };
-                         if (usersNotifications.notifications.length > 0){
-                           Meteor.call(
-                             'notifications.editNotifications',
-                              assigned._id,
-                              assigned.email,
-                              notificationData,
-                              dbUsers
-                            );
-                          } else {
-                            Meteor.call(
-                              'notifications.addNewNotification',
-                              assigned._id,
-                              assigned.email,
-                              [
-                                notificationData
-                               ],
-                               dbUsers
-                             );
-                          }
-                        })
-                      }
+
                     }
                   }}
                   className="connected-btn"
@@ -184,58 +153,20 @@ export default function Files( props ) {
                       files: [...files, newFile]
                     }
                   );
-                  const historyData = {
-                    dateCreated: moment().unix(),
-                    user: userId,
-                    type: ADD_FILE,
-                    args: [newFile.name]
-                  };
-                  if (history.length === 0){
-                    Meteor.call(
-                      'history.addNewHistory',
-                      taskId,
-                      [
-                        historyData
-                      ]
-                    );
-                  } else {
-                    Meteor.call(
-                      'history.editHistory',
-                      history[0]._id,
-                      historyData
-                    )
-                  }
-                  if (assigned.length > 0){
-                    assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                      const notificationData = {
-                        ...historyData,
-                        args: [newFile.name, name],
-                        read: false,
-                        taskId,
-                        folderId: folder._id,
-                      };
-                     if (usersNotifications.notifications.length > 0){
-                       Meteor.call(
-                         'notifications.editNotifications',
-                          assigned._id,
-                          assigned.email,
-                          notificationData,
-                          dbUsers
-                        );
-                      } else {
-                        Meteor.call(
-                          'notifications.addNewNotification',
-                          assigned._id,
-                          assigned.email,
-                          [
-                            notificationData
-                           ],
-                           dbUsers
-                         );
-                      }
-                    })
-                  }
+
+                  writeHistoryAndSendNotifications(
+                    userId,
+                    taskId,
+                    [ADD_FILE],
+                    [[newFile.name]],
+                    history,
+                    assigned,
+                    notifications,
+                    [[newFile.name, name]],
+                    folder._id,
+                    dbUsers,
+                  );
+
                 } else {
                   setFiles([...files, newFile]);
                 }

@@ -9,6 +9,10 @@ import {
 import moment from 'moment';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   SendIcon,
   UserIcon,
   DeleteIcon,
@@ -48,6 +52,9 @@ export default function Comments( props ) {
     displayedComments,
     comments,
     setComments,
+    folder,
+    dbUsers,
+    notifications,
     history,
     language,
     addNewTask,
@@ -102,58 +109,20 @@ export default function Comments( props ) {
                   dateCreated,
                   newCommentBody
                 );
-                const historyData = {
-                  dateCreated,
-                  user: userId,
-                  type: ADD_COMMENT,
-                  args: [],
-                };
-                if (history.length === 0){
-                  Meteor.call(
-                    'history.addNewHistory',
-                    taskId,
-                    [
-                      historyData
-                    ]
-                  );
-                } else {
-                  Meteor.call(
-                    'history.editHistory',
-                    history[0]._id,
-                    historyData
-                  )
-                }
-                if (assigned.length > 0){
-                  assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                    const notificationData = {
-                      ...historyData,
-                      args: [name],
-                      read: false,
-                      taskId,
-                      folderId: folder._id,
-                    };
-                   if (usersNotifications.notifications.length > 0){
-                     Meteor.call(
-                       'notifications.editNotifications',
-                        assigned._id,
-                        assigned.email,
-                        notificationData,
-                        dbUsers
-                      );
-                    } else {
-                      Meteor.call(
-                        'notifications.addNewNotification',
-                        assigned._id,
-                        assigned.email,
-                        [
-                          notificationData
-                        ],
-                        dbUsers
-                       );
-                    }
-                  })
-                }
+
+                writeHistoryAndSendNotifications(
+                  userId,
+                  taskId,
+                  [ADD_COMMENT],
+                  [[]],
+                  history,
+                  assigned,
+                  notifications,
+                  [[name]],
+                  folder._id,
+                  dbUsers,
+                );
+
                 setNewCommentBody("");
               }}
               >
@@ -198,7 +167,12 @@ export default function Comments( props ) {
                     disabled={closed}
                       onClick={(e) => {
                         e.preventDefault();
-                        setEditedComment(comment._id ? comment._id : comment.dateCreated);
+                        if (editedComment){
+                            setEditedComment(null);
+                            setEditedCommentBody("");
+                        } else {
+                          setEditedComment(comment._id ? comment._id : comment.dateCreated);
+                        }
                       }}
                       >
                       <img
@@ -219,59 +193,21 @@ export default function Comments( props ) {
                         Meteor.call(
                           'comments.removeComment',
                           comment._id
-                        )
-                        const historyData = {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          type: REMOVE_COMMENT,
-                          args: [],
-                        };
-                        if (history.length === 0){
-                          Meteor.call(
-                            'history.addNewHistory',
-                            taskId,
-                            [
-                              historyData
-                            ]
-                          );
-                        } else {
-                          Meteor.call(
-                            'history.editHistory',
-                            history[0]._id,
-                            historyData
-                          )
-                        }
-                        if (assigned.length > 0){
-                          assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                            const notificationData = {
-                              ...historyData,
-                              args: [name],
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            };
-                           if (usersNotifications.notifications.length > 0){
-                             Meteor.call(
-                               'notifications.editNotifications',
-                                assigned._id,
-                                assigned.email,
-                                notificationData,
-                                dbUsers
-                              );
-                            } else {
-                              Meteor.call(
-                                'notifications.addNewNotification',
-                                assigned._id,
-                                assigned.email,
-                                [
-                                  notificationData
-                                 ],
-                                 dbUsers
-                               );
-                            }
-                          })
-                        }
+                        );
+
+                        writeHistoryAndSendNotifications(
+                          userId,
+                          taskId,
+                          [REMOVE_COMMENT],
+                          [[]],
+                          history,
+                          assigned,
+                          notifications,
+                          [[name]],
+                          folder._id,
+                          dbUsers,
+                        );
+
                       }}
                       >
                       <img
@@ -304,15 +240,16 @@ export default function Comments( props ) {
                 }
                 {
                   (editedComment === comment._id || editedComment === comment.dateCreated) &&
-                  <ButtonRow>
+                  <ButtonRow style={{padding: "0px"}}>
                     {
                       editedCommentBody &&
                       <LinkButton
                         colour="grey"
+                        style={{marginRight: "auto", marginLeft: "0px"}}
                         disabled={closed}
                         onClick={(e) => {
                           e.preventDefault();
-                          setNewCommentBody("")
+                          setEditedCommentBody("");
                         }}
                         >
                         {translations[language].eraseBody}
@@ -324,6 +261,7 @@ export default function Comments( props ) {
                       disabled={editedCommentBody.length === 0}
                       onClick={(e) => {
                         e.preventDefault();
+
                         Meteor.call(
                           'comments.editComment',
                           comment._id,
@@ -332,58 +270,20 @@ export default function Comments( props ) {
                           comment.dateCreated,
                           editedCommentBody
                         );
-                        const historyData = {
-                          dateCreated: moment().unix(),
-                          user: userId,
-                          type: EDIT_COMMENT,
-                          args: [],
-                        }
-                        if (history.length === 0){
-                          Meteor.call(
-                            'history.addNewHistory',
-                            taskId,
-                            [
-                              historyData
-                            ]
-                          );
-                        } else {
-                          Meteor.call(
-                            'history.editHistory',
-                            history[0]._id,
-                            historyData
-                          )
-                        }
-                        if (assigned.length > 0){
-                          assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                            let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                            const notificationData = {
-                              ...historyData,
-                              args: [name],
-                              read: false,
-                              taskId,
-                              folderId: folder._id,
-                            };
-                           if (usersNotifications.notifications.length > 0){
-                             Meteor.call(
-                               'notifications.editNotifications',
-                                assigned._id,
-                                assigned.email,
-                                notificationData,
-                                dbUsers
-                              );
-                            } else {
-                              Meteor.call(
-                                'notifications.addNewNotification',
-                                assigned._id,
-                                assigned.email,
-                                [
-                                  notificationData
-                                 ],
-                                 dbUsers
-                               );
-                            }
-                          })
-                        }
+
+                        writeHistoryAndSendNotifications(
+                          userId,
+                          taskId,
+                          [EDIT_COMMENT],
+                          [[]],
+                          history,
+                          assigned,
+                          notifications,
+                          [[name]],
+                          folder._id,
+                          dbUsers,
+                        );
+
                         setEditedComment(null);
                         setEditedCommentBody("");
                       }}

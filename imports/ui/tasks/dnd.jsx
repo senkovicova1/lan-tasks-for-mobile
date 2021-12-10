@@ -176,7 +176,7 @@ const containers = useMemo( () => {
   };
 
   useEffect( () => {
-    const tasksByContainer = groupBy(sortedTasks, 'container')
+    const tasksByContainer = groupBy(sortedTasks, 'container');
     let result = {};
     containers.forEach((container, i) => {
         let newEntry = {};
@@ -185,7 +185,6 @@ const containers = useMemo( () => {
         result[container._id] = {...newEntry};
     });
     setActiveAndClosedTasks(result);
-    // return result;
   }, [ sortedTasks, containers ] );
 
   const handleOnDragEnd = (result) => {
