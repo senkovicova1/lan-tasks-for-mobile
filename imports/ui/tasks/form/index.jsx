@@ -74,7 +74,8 @@ export default function FormIndex( props ) {
     container: taskContainer,
     files: taskFiles,
     repeat: taskRepeat,
-    allTasks,
+    allSubtasks,
+    allComments,
     history,
     title,
     language,
@@ -86,8 +87,6 @@ export default function FormIndex( props ) {
 
   const userId = Meteor.userId();
   const dbUsers = useSelector( ( state ) => state.users.value );
-  const allSubtasks = useSelector( ( state ) => state.subtasks.value );
-  const allComments = useSelector( ( state ) => state.comments.value );
   const notifications = useSelector( ( state ) => state.notifications.value );
   const folders = useSelector( ( state ) => state.folders.value ).active;
 

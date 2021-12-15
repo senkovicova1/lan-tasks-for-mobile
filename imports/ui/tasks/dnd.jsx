@@ -17,6 +17,14 @@ import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 
+import {
+  SubtasksCollection
+} from '/imports/api/subtasksCollection';
+
+import {
+  CommentsCollection
+} from '/imports/api/commentsCollection';
+
 import moment from 'moment';
 
 import Select from 'react-select';
@@ -102,11 +110,11 @@ export default function DND( props ) {
   const {
   match,
   tasksLoading,
+  showClosed,
+  setShowClosed,
   folder,
   sortedTasks,
   removedTasks,
-  subtasks,
-  comments,
   addQuickTask,
   allTasks,
 } = props;
@@ -124,8 +132,8 @@ const {
 } = useSelector( ( state ) => state.metadata.value );
 
 const [ isDropDisabled, setIsDropDisabled ] = useState(false);
+const [ showClosedArr, setShowClosedArr ] = useState( [] );
 
-const [ showClosed, setShowClosed ] = useState( [] );
 const [ newContainerName, setNewContainerName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( [] );
 const [ openNewName, setOpenNewName ] = useState( [] );
@@ -141,21 +149,72 @@ const language = useMemo( () => {
 const dbUsers = useSelector( ( state ) => state.users.value );
 const notifications = useSelector( ( state ) => state.notifications.value );
 
-const { history } = useTracker(() => {
-  const noDataAvailable = { history: []};
+  const { history } = useTracker(() => {
+    const noDataAvailable = { history: []};
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
+
+    const historyHandler = Meteor.subscribe('history');
+
+    if (!historyHandler.ready()) {
+      return { ...noDataAvailable };
+    }
+
+    const tasksIds = [...sortedTasks].map(task => task._id);
+    const history = HistoryCollection.find( {
+      task: {
+        $in: tasksIds
+      }
+    }  ).fetch();
+
+    return { history };
+  });
+
+const { subtasks } = useTracker(() => {
+  const noDataAvailable = { subtasks: [] };
+
   if (!Meteor.user()) {
     return noDataAvailable;
   }
 
-  const historyHandler = Meteor.subscribe('history');
+  const subtasksHandler = Meteor.subscribe('subtasks');
 
-  if (!historyHandler.ready()) {
+  if (!subtasksHandler.ready()) {
     return { ...noDataAvailable };
   }
 
-  const history = HistoryCollection.find(  {}  ).fetch();
+  const tasksIds = [...sortedTasks].map(task => task._id);
+  const subtasks = SubtasksCollection.find(  {
+    _id: {
+      $in: tasksIds
+    }
+  }  ).fetch();
 
-  return { history };
+  return { subtasks };
+});
+
+const { comments } = useTracker(() => {
+  const noDataAvailable = { comments: [] };
+
+  if (!Meteor.user()) {
+    return noDataAvailable;
+  }
+
+  const commentsHandler = Meteor.subscribe('comments');
+
+  if (!commentsHandler.ready()) {
+    return { ...noDataAvailable };
+  }
+
+  const tasksIds = [...sortedTasks].map(task => task._id);
+  const comments = CommentsCollection.find(  {
+    _id: {
+      $in: tasksIds
+    }
+  }  ).fetch();
+
+  return { comments };
 });
 
 const containers = useMemo( () => {
@@ -656,15 +715,16 @@ const containers = useMemo( () => {
                                     id="show-closed"
                                     name="show-closed"
                                     onChange={() => {
-                                      let newShowClosed = [...showClosed];
+                                      let newShowClosed = [...showClosedArr];
+                                      setShowClosed(true);
                                       if (newShowClosed.includes(container._id)){
                                         newShowClosed = newShowClosed.filter(item => item !== container._id);
                                       } else {
                                         newShowClosed.push(container._id);
                                       }
-                                      setShowClosed(newShowClosed);
+                                      setShowClosedArr(newShowClosed);
                                     }}
-                                    checked={showClosed.includes(container._id)}
+                                    checked={showClosedArr.includes(container._id)}
                                     onColor="#0078d4"
                                     uncheckedIcon={false}
                                     checkedIcon={false}
@@ -679,7 +739,7 @@ const containers = useMemo( () => {
                                 </div>
 
                                 {
-                                  showClosed.includes(container._id) &&
+                                  showClosedArr.includes(container._id) &&
                                   activeAndClosedTasks[container._id] &&
                                   activeAndClosedTasks[container._id]["closed"].map((task, index) => (
                                     <Draggable

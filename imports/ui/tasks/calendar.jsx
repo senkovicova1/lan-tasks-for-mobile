@@ -17,6 +17,14 @@ import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 
+import {
+  SubtasksCollection
+} from '/imports/api/subtasksCollection';
+
+import {
+  CommentsCollection
+} from '/imports/api/commentsCollection';
+
 import moment from 'moment';
 
 import Select from 'react-select';
@@ -97,11 +105,11 @@ export default function CalendarList( props ) {
   const {
   match,
   tasksLoading,
+  showClosed,
+  setShowClosed,
   folder,
   tasksWithAdvancedFilters,
   removedTasks,
-  subtasks,
-  comments,
   allTasks
 } = props;
 
@@ -116,7 +124,6 @@ const {
 } = useSelector( ( state ) => state.metadata.value );
 
 const [ selectedInterval, setSelectedInterval ] = useState(null);
-const [ showClosed, setShowClosed ] = useState( false );
 
 const [ draggedEvent, setDraggedEvent ] = useState( null );
 const [ displayDragItemInCell, setDisplayDragItemInCell ] = useState( true );
@@ -144,22 +151,73 @@ useEffect(() => {
 const dbUsers = useSelector( ( state ) => state.users.value );
 const notifications = useSelector( ( state ) => state.notifications.value );
 
-const { history } = useTracker(() => {
-  const noDataAvailable = { history: []};
-  if (!Meteor.user()) {
-    return noDataAvailable;
-  }
+  const { history } = useTracker(() => {
+    const noDataAvailable = { history: []};
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
 
-  const historyHandler = Meteor.subscribe('history');
+    const historyHandler = Meteor.subscribe('history');
 
-  if (!historyHandler.ready()) {
-    return { ...noDataAvailable };
-  }
+    if (!historyHandler.ready()) {
+      return { ...noDataAvailable };
+    }
 
-  const history = HistoryCollection.find(  {}  ).fetch();
+    const tasksIds = [...tasksWithAdvancedFilters].map(task => task._id);
+    const history = HistoryCollection.find( {
+      task: {
+        $in: tasksIds
+      }
+    }  ).fetch();
 
-  return { history };
-});
+    return { history };
+  });
+
+  const { subtasks } = useTracker(() => {
+    const noDataAvailable = { subtasks: [] };
+
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
+
+    const subtasksHandler = Meteor.subscribe('subtasks');
+
+    if (!subtasksHandler.ready()) {
+      return { ...noDataAvailable };
+    }
+
+    const tasksIds = [...tasksWithAdvancedFilters].map(task => task._id);
+    const subtasks = SubtasksCollection.find(  {
+      task: {
+        $in: tasksIds
+      }
+    }  ).fetch();
+
+    return { subtasks };
+  });
+
+  const { comments } = useTracker(() => {
+    const noDataAvailable = { comments: [] };
+
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
+
+    const commentsHandler = Meteor.subscribe('comments');
+
+    if (!commentsHandler.ready()) {
+      return { ...noDataAvailable };
+    }
+
+    const tasksIds = [...tasksWithAdvancedFilters].map(task => task._id);
+    const comments = CommentsCollection.find(  {
+      task: {
+        $in: tasksIds
+      }
+    }  ).fetch();
+
+    return { comments };
+  });
 
 document.onkeydown = function( e ) {
   e = e || window.event;
@@ -307,6 +365,7 @@ document.onkeydown = function( e ) {
       );
     }
 
+
     if (draggedEvent.assigned.length > 0){
       draggedEvent.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
         let usersNotifications = notifications.find( notif => notif._id === assigned._id );
@@ -327,16 +386,24 @@ document.onkeydown = function( e ) {
               'notifications.editNotifications',
                assigned._id,
                assigned.email,
-               notificationData,
+               notificationData1,
                dbUsers
              );
+             Meteor.call(
+               'notifications.editNotifications',
+                assigned._id,
+                assigned.email,
+                notificationData2,
+                dbUsers
+              );
         } else {
           Meteor.call(
             'notifications.addNewNotification',
             assigned._id,
             assigned.email,
             [
-              notificationData
+              notificationData1,
+              notificationData2
              ],
              dbUsers
            );
@@ -361,7 +428,7 @@ document.onkeydown = function( e ) {
           style={{padding: "0px"}}
           />
 
-  <div style={{display: "flex", width: "100%"}}>
+        <div className="task-list-and-calendar">
     <div className="task-list">
 
       <DndProvider backend={HTML5Backend}>
@@ -407,7 +474,7 @@ document.onkeydown = function( e ) {
                         'history.editHistory',
                         taskHistory._id,
                         historyData
-                      )
+                      );
                     }
 
                     if (task.assigned.length > 0){
@@ -619,7 +686,7 @@ document.onkeydown = function( e ) {
                     'history.editHistory',
                     taskHistory._id,
                     historyData
-                  )
+                  );
                 }
 
                 if (task.assigned.length > 0){
@@ -753,7 +820,7 @@ document.onkeydown = function( e ) {
       titleAccessor="name"
       tooltipAccessor="tooltip"
       resourceAccessor="name"
-      style={{ height: "800px", width: "80%" }}
+      style={{ height: "100%", width: "80%" }}
       defaultDate={moment().toDate()}
       scrollToTime={moment().hours(8).minutes(0).seconds(0).toDate()}
       defaultView="week"

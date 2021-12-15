@@ -42,10 +42,6 @@ import {
 } from '/imports/api/notificationsCollection';
 
 import {
-  RepeatsCollection
-} from '/imports/api/repeatsCollection';
-
-import {
   setNotifications
 } from '/imports/redux/notificationsSlice';
 
@@ -117,7 +113,8 @@ export default function MainPage( props ) {
   const userId = Meteor.userId();
   const {
     layout,
-    sidebarOpen
+    sidebarOpen,
+    filter
   } = useSelector( ( state ) => state.metadata.value );
 
   const { folders, foldersLoading } = useTracker(() => {
@@ -138,34 +135,14 @@ export default function MainPage( props ) {
     }
 
       folders = FoldersCollection.find(
-        {}, {
+        {
+          archived: false,
+        }, {
           sort: { name: 1 },
         }
       ).fetch();
 
     return { folders, foldersLoading: false };
-  });
-
-  const { repeats, repeatsLoading } = useTracker(() => {
-
-    let repeats = [];
-    let repeatsLoading = true;
-
-    const noDataAvailable = {repeats, repeatsLoading };
-
-    if (!Meteor.user()) {
-      return noDataAvailable;
-    }
-
-    const repeatsHandler = Meteor.subscribe('repeats');
-
-    if (!repeatsHandler.ready()) {
-      return noDataAvailable;
-    }
-
-    repeats = RepeatsCollection.find({}).fetch();
-
-    return { repeats, repeatsLoading: false };
   });
 
   const { users, usersLoading } = useTracker(() => {
@@ -188,68 +165,6 @@ export default function MainPage( props ) {
     users = Meteor.users.find( {} ).fetch();
 
     return { users, usersLoading: false };
-  });
-
-  const { tasks, tasksLoading } = useTracker(() => {
-
-    let tasks = [];
-    let tasksLoading = true;
-
-    const noDataAvailable = { tasks, tasksLoading };
-    if (!Meteor.user() ) {
-      return noDataAvailable;
-    }
-
-    const tasksHandler = Meteor.subscribe('tasks');
-
-    if (!tasksHandler.ready() || foldersLoading || repeatsLoading || usersLoading) {
-          return noDataAvailable;
-    }
-
-      const foldersIds = folders.map( folder => folder._id );
-      tasks = TasksCollection.find(
-        {
-          folder: {
-            $in: foldersIds
-          }
-        }
-      ).fetch();
-
-    tasks = tasks.map( task => {
-      let newTask = {
-        ...task,
-        folder: folders.length > 0 ? folders.find( folder => folder._id === task.folder ) : {},
-        repeat: repeats.find(repeat => repeat._id === task.repeat),
-        container: task.container ? task.container : 0,
-        assigned: []
-      }
-      if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
-        const newAssigned = Array.isArray(task.assigned) ? users.filter( user => task.assigned.includes(user._id) ) : [users.find( user => user._id === task.assigned )];
-        return {
-          ...newTask,
-          assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.map(user => ({
-            _id: user._id,
-            ...user.profile,
-            email: user.emails[0].address,
-            label: `${user.profile.name} ${user.profile.surname}`,
-            value: user._id,
-            img: user.profile.avatar ? uint8ArrayToImg( user.profile.avatar ) : UserIcon
-          })).sort((a1,a2) => a1.label.toLowerCase() > a2.label.toLowerCase() ? 1 : -1) : [
-            {
-              _id: "-1",
-              label: "No assigned",
-              value: "-1",
-              img: UserIcon
-            }
-          ],
-        };
-      }
-      return newTask;
-    } );
-
-    tasksLoading = false;
-
-    return { tasks, tasksLoading};
   });
 
     const { notifications } = useTracker(() => {
@@ -301,54 +216,16 @@ export default function MainPage( props ) {
       return { filtersLoading: false, filters };
     });
 
-        const { comments, subtasks } = useTracker(() => {
-
-          let comments = [];
-          let subtasks = [];
-
-          const noDataAvailable = { comments, subtasks};
-          if (!Meteor.user()) {
-            return noDataAvailable;
-          }
-
-          const commentsHandler = Meteor.subscribe('comments');
-          const subtasksHandler = Meteor.subscribe('subtasks');
-
-          const tasksIds = tasks.map( task => task._id );
-
-          if (commentsHandler.ready() && tasksIds.length > 0) {
-            comments = CommentsCollection.find( {
-              task: {
-                $in: tasksIds
-              }
-            }, {
-              sort: {
-                dateCreated: -1
-              }
-            } ).fetch();
-          }
-
-          if (subtasksHandler.ready() && tasksIds.length > 0) {
-            subtasks = SubtasksCollection.find( {
-              task: {
-                $in: tasksIds
-              }
-            } ).fetch();
-          }
-
-          return { comments, subtasks };
-        });
-
   useEffect( () => {
     const newMyFolders = folders.map( folder => ( {
       ...folder,
       label: folder.name,
       value: folder._id
     } ) );
-    const activeFolders = newMyFolders.filter( folder => !folder.archived );
-    const archivedFolders = newMyFolders.filter( folder => folder.archived );
-    dispatch( setActive( activeFolders ) );
-    dispatch( setArchived( archivedFolders ) );
+    //const activeFolders = newMyFolders.filter( folder => !folder.archived );
+//    const archivedFolders = newMyFolders.filter( folder => folder.archived );
+    dispatch( setActive( newMyFolders ) );
+    //dispatch( setArchived( archivedFolders ) );
   }, [ folders ] );
 
   useEffect( () => {
@@ -366,10 +243,6 @@ export default function MainPage( props ) {
     );
   }, [ users ] );
 
-  useEffect( () => {
-      dispatch( setTasks( tasks ) );
-    }, [ tasks ] );
-
       useEffect( () => {
         dispatch( setFilters( filters ) );
       }, [ filters ] );
@@ -381,14 +254,6 @@ export default function MainPage( props ) {
       dispatch( setNotifications( notifications ) );
     }
     }, [notifications]);
-
-  useEffect( () => {
-      dispatch( setSubtasks( subtasks ) );
-  }, [ subtasks ] );
-
-  useEffect( () => {
-      dispatch( setComments( comments ) );
-  }, [ comments ] );
 
   return (
     <div style={{height: "100vh"}}>
@@ -423,7 +288,7 @@ export default function MainPage( props ) {
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 render={(props) => (
-                  <TaskContainer {...props} tasksLoading={tasksLoading} />
+                  <TaskContainer {...props}/>
                 )}
                 />
             }
@@ -434,7 +299,7 @@ export default function MainPage( props ) {
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 render={(props) => (
-                  <TaskContainer {...props} tasksLoading={tasksLoading} />
+                  <TaskContainer {...props}/>
                 )}
                 />
             }
@@ -445,7 +310,7 @@ export default function MainPage( props ) {
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   render={(props) => (
-                    <TaskContainer {...props} tasksLoading={tasksLoading} />
+                    <TaskContainer {...props}/>
                   )}
                   />
               }
@@ -469,7 +334,7 @@ export default function MainPage( props ) {
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   render={(props) => (
-                    <TaskContainer {...props} tasksLoading={tasksLoading} />
+                    <TaskContainer {...props}/>
                   )}
                   />
               }

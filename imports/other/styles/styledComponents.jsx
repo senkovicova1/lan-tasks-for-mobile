@@ -224,7 +224,15 @@ export const CalendarContainer = styled.div`
   .task-list{
     width: 20%;
     padding-right: 30px;
+    padding-left: 5px;
+    overflow-y: auto;
   }
+
+   .task-list-and-calendar{
+      display: flex;
+      width: 100%;
+      height: -webkit-fill-available;
+   }
 `;
 
 export const DndContainer = styled.div`
@@ -294,7 +302,7 @@ export const ButtonCol = styled.section `
 export const Sidebar = styled.section `
   background-color: ${backgroundColour};
   position: absolute;
-  overflow: hidden;
+  overflow: auto;
   left: 0;
 
   @media all and (max-width: 799px), @media handheld  {

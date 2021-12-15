@@ -14,6 +14,14 @@ import {
 
 import moment from 'moment';
 
+import {
+  TasksCollection
+} from '/imports/api/tasksCollection';
+
+import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+
 import TasksList from '/imports/ui/tasks/list';
 import Calendar from '/imports/ui/tasks/calendar';
 import Dnd from '/imports/ui/tasks/dnd';
@@ -23,6 +31,10 @@ import Loader from '/imports/ui/other/loadingScreen';
 import {
   addTask
 } from '/imports/api/handlers/tasksHandlers';
+
+import {
+  UserIcon
+} from "/imports/other/styles/icons";
 
 import {
   PLAIN,
@@ -39,7 +51,6 @@ export default function TasksContainer( props ) {
   const {
     match,
     history,
-    tasksLoading,
   } = props;
 
   const {
@@ -58,6 +69,7 @@ export default function TasksContainer( props ) {
 
   const userId = Meteor.userId();
   const user = useTracker( () => Meteor.user() );
+  const dbUsers = useSelector( ( state ) => state.users.value );
 
   const language = useMemo( () => {
     return user.profile.language;
@@ -85,64 +97,201 @@ export default function TasksContainer( props ) {
     return maybeFilter;
   }, [ filters, filterID ] );
 
-  const tasks = useSelector( ( state ) => state.tasks.value );
-  const dbUsers = useSelector( ( state ) => state.users.value );
-  const subtasks = useSelector( ( state ) => state.subtasks.value );
-  const comments = useSelector( ( state ) => state.comments.value );
+//  const tasks = useSelector( ( state ) => state.tasks.value );
 
-  const removedTasks = useMemo( () => {
-    if ( folderID ) {
-      return tasks.filter( t => t.folder._id === folderID && t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-    }
-    return tasks.filter( t => t.removedDate ).sort( ( t1, t2 ) => ( t1.removedDate < t2.removedDate ? 1 : -1 ) );
-  }, [ tasks, folderID ] );
+const [showClosed, setShowClosed] = useState(false);
 
-  const filteredTasks = useMemo( () => {
-    if (!folder && !sidebarFilter){
-      return [];
+
+  const { repeats, repeatsLoading } = useTracker(() => {
+
+    let repeats = [];
+    let repeatsLoading = true;
+
+    const noDataAvailable = {repeats, repeatsLoading };
+
+    if (!Meteor.user()) {
+      return noDataAvailable;
     }
-    if (folder){
-      return tasks.filter( task => !task.removedDate &&
-        ( task.folder._id === folder.value ||
-          (folder.value === "important" && task.important) ||
-          (
-             "all" === folder.value &&
-            task.assigned.some(assigned => assigned._id === userId)
-           )
-        )
-      );
+
+    const repeatsHandler = Meteor.subscribe('repeats');
+
+    if (!repeatsHandler.ready()) {
+      return noDataAvailable;
     }
-    if (sidebarFilter){
-      const notRemovedTasks = tasks.filter( task => !task.removedDate);
-      const filteredByTitle = notRemovedTasks.filter( task => !sidebarFilter.title || task.name.toLowerCase().includes(sidebarFilter.title.toLowerCase()));
-      const folderIds = sidebarFilter.folders;
-      const filteredByFolders = filteredByTitle.filter( task => sidebarFilter.folders.length === 0 || folderIds.includes(task.folder._id));
-      const filteredByImportant = filteredByFolders.filter(task => !sidebarFilter.important || task.important);
-      const assignedIds = sidebarFilter.assigned;
-      const filteredByAssigned = filteredByImportant.filter(task => sidebarFilter.assigned.length === 0 || task.assigned.some(user => assignedIds.includes(user._id) ) );
-      const filteredByDatetimes = (sidebarFilter.datetimeMin || sidebarFilter.datetimeMax) ? filteredByAssigned.filter(task => {
-        const actualDatetimeMin = sidebarFilter.datetimeMin ? sidebarFilter.datetimeMin : 0;
-        const actualDatetimeMax = sidebarFilter.datetimeMax ? sidebarFilter.datetimeMax : 8640000000000000;
-        if (!task.startDatetime && !task.endDatetime){
-          return false;
+
+    repeats = RepeatsCollection.find({}).fetch();
+
+    return { repeats, repeatsLoading: false };
+  });
+
+
+  const getFilter = () => {
+    let query = {};
+
+    if (folder && folder.value && folder.value !== "all" && folder.value !== "important" ){
+      query.folder = folder._id;
+    } else if (folder && folder.value === "all"){
+      query.assigned = {
+        $elemMatch: {
+          $eq: userId
         }
-        if (task.startDatetime && !task.endDatetime){
-          return task.startDatetime <= actualDatetimeMax;
-        }
-        if (!task.startDatetime && task.endDatetime){
-          return actualDatetimeMin <= task.endDatetime;
-        }
-        return (task.startDatetime <= actualDatetimeMax) && (actualDatetimeMin <= task.endDatetime);
-      } ) : filteredByAssigned;
-      const filteredByDateCreated = filteredByDatetimes.filter(task => (!sidebarFilter.dateCreatedMin || sidebarFilter.dateCreatedMin <= task.dateCreated) && (!sidebarFilter.dateCreatedMax || task.dateCreated <= sidebarFilter.dateCreatedMax));
-      return filteredByDateCreated;
+      };
+    } else if (folder && folder.value === "important"){
+      query.important = true;
+    } else {
+      const foldersIds = folders.active.map( folder => folder._id );
+      query.folder = {
+        $in: foldersIds
+      };
     }
-    return [];
-  }, [ tasks, folder, userId, sidebarFilter ] );
+
+    if (sidebarFilter && sidebarFilter.title){
+/*      query.name = {
+        $text: {
+            $search: sidebarFilter.title,
+            $caseSensitive: false,
+            $diacriticSensitive: false
+          }
+      };*/
+    }
+    if (sidebarFilter && sidebarFilter.folders.length > 0){
+      const sidebarFolderIds = sidebarFilter.folders;
+      query.folder = {
+        $in: sidebarFolderIds
+      };
+    }
+    if (sidebarFilter && sidebarFilter.important){
+      query.important = true;
+    }
+    if (sidebarFilter && sidebarFilter.assigned){
+      const sidebarAssignedIds = sidebarFilter.assigned;
+      query.assigned = {
+        $elemMatch: {
+          $in: sidebarAssignedIds
+        }
+      };
+    }
+    if (sidebarFilter && (sidebarFilter.datetimeMin || sidebarFilter.datetimeMax)){
+      const actualDatetimeMin = sidebarFilter.datetimeMin ? sidebarFilter.datetimeMin : 0;
+      const actualDatetimeMax = sidebarFilter.datetimeMax ? sidebarFilter.datetimeMax : 8640000000000000;
+      query.startDatetime = {
+         $lte: actualDatetimeMax
+      };
+      query.endDatetime = {
+        $gte: actualDatetimeMin
+      };
+    }
+    if (sidebarFilter && (sidebarFilter.dateCreatedMin || sidebarFilter.dateCreatedMax)){
+      const actualDateCreatedMin = sidebarFilter.dateCreatedMin ? sidebarFilter.dateCreatedMin : 0;
+      const actualDateCreatedMax = sidebarFilter.dateCreatedMax ? sidebarFilter.dateCreatedMax : 8640000000000000;
+      query.dateCreated = {
+        $and: [
+          { $lte: actualDatetimeMax },
+          { $gte: actualDatetimeMin },
+        ]
+      };
+    }
+
+    if (!showClosed){
+      query.closed = false;
+    }
+
+    query.removedDate = null;
+
+    return query;
+  }
+
+  const { tasks, removedTasks, tasksLoading } = useTracker(() => {
+
+    let tasks = [];
+    let removedTasks = [];
+    let tasksLoading = true;
+
+    const noDataAvailable = { tasks, removedTasks, tasksLoading };
+    if (!Meteor.user() ) {
+      return noDataAvailable;
+    }
+
+    const tasksHandler = Meteor.subscribe('tasks');
+
+    console.log("handler check");
+
+    if ( !tasksHandler.ready() ) {
+          console.log("handler not ready");
+          return noDataAvailable;
+    }
+
+      console.log("querying...");
+
+      let query = {...getFilter()};
+      const fields = {
+        name: 1,
+        closed: 1,
+        important: 1,
+        container: 1,
+        startDatetime: 1,
+        endDatetime: 1,
+        allDay: 1,
+        assigned: 1,
+        dateCreated: 1
+      };
+      tasks = TasksCollection.find(
+        query,
+        {
+          fields
+        }
+      ).fetch();
+
+      console.log("tasks acquired");
+      removedTasks = TasksCollection.find(
+        {
+          ...query,
+          removedDate: {$exists: true},
+        },
+        {
+          fields
+        }
+      ).fetch();
+    console.log("removed tasks acquired");
+
+    if (sidebarFilter && sidebarFilter.title){
+      tasks = tasks.filter(task => task.name.toLowerCase().includes(sidebarFilter.title.toLowerCase()));
+    }
+    tasks = tasks.map( task => {
+      let newTask = {
+        ...task,
+        folder: folders.length > 0 ? folders.find( folder => folder._id === task.folder ) : {},
+        repeat: repeats.find(repeat => repeat._id === task.repeat),
+        container: task.container ? task.container : 0,
+        assigned: []
+      }
+      if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
+        const newAssigned = Array.isArray(task.assigned) ? dbUsers.filter( user => task.assigned.includes(user._id) ) : [dbUsers.find( user => user._id === task.assigned )];
+        return {
+          ...newTask,
+          assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.sort((a1,a2) => a1.label.toLowerCase() > a2.label.toLowerCase() ? 1 : -1) : [
+            {
+              _id: "-1",
+              label: "No assigned",
+              value: "-1",
+              img: UserIcon
+            }
+          ],
+        };
+      }
+      return newTask;
+    } );
+
+    console.log("tasks mapped");
+    tasksLoading = false;
+
+    console.log("returning tasks");
+    return { tasks, removedTasks, tasksLoading};
+  });
 
   const searchedTasks = useMemo( () => {
-    return filteredTasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
-  }, [ search, filteredTasks ] );
+    return tasks.filter( task => task.name.toLowerCase().includes( search.toLowerCase() ) );
+  }, [ search, tasks ] );
 
   const tasksWithAdvancedFilters = useMemo( () => {
     const folderIds = filter.folders.map(folder => folder._id);
@@ -241,11 +390,11 @@ export default function TasksContainer( props ) {
       <TasksList
           {...props}
           tasksLoading={tasksLoading}
+          showClosed={showClosed}
+          setShowClosed={setShowClosed}
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
-          subtasks={subtasks}
-          comments={comments}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
@@ -259,11 +408,11 @@ export default function TasksContainer( props ) {
       <Calendar
           {...props}
           tasksLoading={tasksLoading}
+          showClosed={showClosed}
+          setShowClosed={setShowClosed}
           tasksWithAdvancedFilters={tasksWithAdvancedFilters}
           removedTasks={removedTasks}
           folder={folder}
-          subtasks={subtasks}
-          comments={comments}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           allTasks={tasks}
           />
@@ -275,10 +424,10 @@ export default function TasksContainer( props ) {
       <Dnd
           {...props}
           tasksLoading={tasksLoading}
+          showClosed={showClosed}
+          setShowClosed={setShowClosed}
           sortedTasks={sortedTasks}
           removedTasks={removedTasks}
-          subtasks={subtasks}
-          comments={comments}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
@@ -293,11 +442,11 @@ export default function TasksContainer( props ) {
         <TasksList
           {...props}
           tasksLoading={tasksLoading}
+          showClosed={showClosed}
+          setShowClosed={setShowClosed}
           activeTasks={activeTasks}
           closedTasks={closedTasks}
           removedTasks={removedTasks}
-          subtasks={subtasks}
-          comments={comments}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}

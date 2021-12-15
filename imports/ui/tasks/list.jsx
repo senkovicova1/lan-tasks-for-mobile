@@ -29,6 +29,14 @@ import {
 } from '/imports/api/historyCollection';
 
 import {
+  SubtasksCollection
+} from '/imports/api/subtasksCollection';
+
+import {
+  CommentsCollection
+} from '/imports/api/commentsCollection';
+
+import {
   setChosenTask
 } from '/imports/redux/metadataSlice';
 
@@ -81,18 +89,17 @@ export default function TaskList( props ) {
   const {
   match,
   tasksLoading,
+  showClosed,
+  setShowClosed,
   folder,
   closedTasks,
   activeTasks,
   removedTasks,
   addQuickTask,
-  subtasks,
-  comments,
   sidebarFilter,
   allTasks,
 } = props;
 
-const [ showClosed, setShowClosed ] = useState( false );
 const [ newTaskName, setNewTaskName ] = useState( "" );
 const [ openNewTask, setOpenNewTask ] = useState( false );
 
@@ -115,21 +122,72 @@ const language = useMemo( () => {
 const dbUsers = useSelector( ( state ) => state.users.value );
 const notifications = useSelector( ( state ) => state.notifications.value );
 
-const { history } = useTracker(() => {
-  const noDataAvailable = { history: []};
+  const { history } = useTracker(() => {
+    const noDataAvailable = { history: []};
+    if (!Meteor.user()) {
+      return noDataAvailable;
+    }
+
+    const historyHandler = Meteor.subscribe('history');
+
+    if (!historyHandler.ready()) {
+      return { ...noDataAvailable };
+    }
+
+    const tasksIds = [...activeTasks, ...closedTasks].map(task => task._id);
+    const history = HistoryCollection.find( {
+      task: {
+        $in: tasksIds
+      }
+    }  ).fetch();
+
+    return { history };
+  });
+
+const { subtasks } = useTracker(() => {
+  const noDataAvailable = { subtasks: [] };
+
   if (!Meteor.user()) {
     return noDataAvailable;
   }
 
-  const historyHandler = Meteor.subscribe('history');
+  const subtasksHandler = Meteor.subscribe('subtasks');
 
-  if (!historyHandler.ready()) {
+  if (!subtasksHandler.ready()) {
     return { ...noDataAvailable };
   }
 
-  const history = HistoryCollection.find(  {}  ).fetch();
+  const tasksIds = [...activeTasks, ...closedTasks].map(task => task._id);
+  const subtasks = SubtasksCollection.find(  {
+    _id: {
+      $in: tasksIds
+    }
+  }  ).fetch();
 
-  return { history };
+  return { subtasks };
+});
+
+const { comments } = useTracker(() => {
+  const noDataAvailable = { comments: [] };
+
+  if (!Meteor.user()) {
+    return noDataAvailable;
+  }
+
+  const commentsHandler = Meteor.subscribe('comments');
+
+  if (!commentsHandler.ready()) {
+    return { ...noDataAvailable };
+  }
+
+  const tasksIds = [...activeTasks, ...closedTasks].map(task => task._id);
+  const comments = CommentsCollection.find(  {
+    _id: {
+      $in: tasksIds
+    }
+  }  ).fetch();
+
+  return { comments };
 });
 
 document.onkeydown = function( e ) {
@@ -177,7 +235,12 @@ document.onkeydown = function( e ) {
         layout === PLAIN &&
         <Modal isOpen={true}>
           <ModalBody>
-            <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
+            <EditTask
+              {...props}
+              taskId={chosenTask}
+              folder={folder}
+              close={() => dispatch(setChosenTask(null))}
+              />
           </ModalBody>
         </Modal>
       }
@@ -273,7 +336,6 @@ document.onkeydown = function( e ) {
               onChange={() => {
                 Meteor.call('tasks.closeTask', task, subtasks);
 
-                const taskHistory = history.find(entry => entry.task === task._id);
                 const historyData = {
                   dateCreated: moment().unix(),
                   user: userId,
@@ -293,7 +355,7 @@ document.onkeydown = function( e ) {
                     'history.editHistory',
                     taskHistory._id,
                     historyData
-                  )
+                  );
                 }
 
                 if (task.assigned.length > 0){
@@ -357,47 +419,47 @@ document.onkeydown = function( e ) {
               onClick={(e) => {
                 e.preventDefault();
                    if ( removedTasks.length >= 5 ) {
-                                let difference = removedTasks.length - 4;
-                                const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
-                                const subtasksToDelete = subtasks.filter( subtask => idsToDelete.includes( subtask.task ) );
-                                const commentsToDelete = comments.filter( comment => idsToDelete.includes( comment.task ) );
-                                while ( difference > 0 ) {
-                                  Meteor.call('tasks.removeTask', idsToDelete[ difference - 1 ]);
+                      let difference = removedTasks.length - 4;
+                      const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
+                      const subtasksToDelete = subtasks.filter( subtask => idsToDelete.includes( subtask.task ) );
+                      const commentsToDelete = comments.filter( comment => idsToDelete.includes( comment.task ) );
+                      while ( difference > 0 ) {
+                        Meteor.call('tasks.removeTask', idsToDelete[ difference - 1 ]);
 
-                                if (task.repeat){
-                                      Meteor.call(
-                                        'repeats.removeTaskFromRepeat',
-                                        task._id,
-                                        task.repeat._id,
-                                        allTasks
-                                      )
-                                    }
-                                    subtasksToDelete.forEach( ( subtask, i ) => {
-                                      Meteor.call(
-                                        'subtasks.removeSubtask',
-                                        subtask._id
-                                      )
-                                    } );
-                                    commentsToDelete.forEach( ( comment, i ) => {
-                                      removeComment( comment._id );
-                                        Meteor.call(
-                                          'comments.removeComment',
-                                          comment._id
-                                        )
-                                    } );
+                      if (task.repeat){
+                            Meteor.call(
+                              'repeats.removeTaskFromRepeat',
+                              task._id,
+                              task.repeat._id,
+                              allTasks
+                            )
+                          }
+                          subtasksToDelete.forEach( ( subtask, i ) => {
+                            Meteor.call(
+                              'subtasks.removeSubtask',
+                              subtask._id
+                            )
+                          } );
+                          commentsToDelete.forEach( ( comment, i ) => {
+                            removeComment( comment._id );
+                              Meteor.call(
+                                'comments.removeComment',
+                                comment._id
+                              )
+                          } );
 
-                                    difference -= 1;
-                                  }
-                                }
+                          difference -= 1;
+                        }
+                      }
 
-                                let data = {
-                                  removedDate: moment().unix(),
-                                };
-                                Meteor.call(
-                                  "tasks.updateSimpleAttribute",
-                                  task._id,
-                                  data
-                                );
+                      let data = {
+                        removedDate: moment().unix(),
+                      };
+                      Meteor.call(
+                        "tasks.updateSimpleAttribute",
+                        task._id,
+                        data
+                      );
               }}
               >
               <img

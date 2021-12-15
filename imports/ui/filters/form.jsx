@@ -84,7 +84,7 @@ export default function FilterForm( props ) {
   const users = useSelector( ( state ) => state.users.value );
 
   const language = useMemo( () => {
-    return users.find( user => user._id === userId ).language;
+    return 'en' //users.find( user => user._id === userId ).language;
   }, [ userId, users ] );
 
   const [ newFilterName, setNewFilterName] = useState(filter.name);
