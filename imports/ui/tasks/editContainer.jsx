@@ -29,6 +29,10 @@ import {
 import Form from './form';
 
 import {
+  UserIcon,
+} from "/imports/other/styles/icons";
+
+import {
   translations
 } from '/imports/other/translations.jsx';
 
@@ -38,6 +42,7 @@ export default function EditTaskContainer( props ) {
   const {
     taskId,
     close,
+    tasksHandlerReady
   } = props;
 
     const dbUsers = useSelector( ( state ) => state.users.value );
@@ -48,66 +53,73 @@ export default function EditTaskContainer( props ) {
 
     const folders = useSelector( ( state ) => state.folders.value );
 
-  const { task, subtasks, comments, folder } = useTracker(() => {
+  const { task, subtasks, subtasksLoading, comments, commentsLoading, folder } = useTracker(() => {
 
     let task = null;
     let subtasks = [];
+    let subtasksLoading = true;
     let comments = [];
+    let commentsLoading = true;
 
-    const noDataAvailable = { task, subtasks, comments };
+    const noDataAvailable = { task, subtasks, subtasksLoading, comments, commentsLoading };
 
     if (!Meteor.user()) {
       return noDataAvailable;
     }
 
-    const tasksHandler = Meteor.subscribe('tasks');
+  //  const tasksHandler = Meteor.subscribe('tasks');
     const subtasksHandler = Meteor.subscribe('subtasks');
     const commentsHandler = Meteor.subscribe('comments');
 
-    if (!tasksHandler.ready() || !subtasksHandler.ready() || !commentsHandler.ready()) {
+    if ( !tasksHandlerReady) {
       return noDataAvailable;
     }
 
-      task = TasksCollection.findOne({
-          _id: taskId,
-        });
-
-        const folder = folders.active.find(f => f._id === task.folder);
-
-        let newTask = {
-          ...task,
-          folder,
-          repeat: null,
-          container: task.container ? task.container : 0,
-          assigned: []
-        }
-        if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
-          const newAssigned = Array.isArray(task.assigned) ? dbUsers.filter( user => task.assigned.includes(user._id) ) : [dbUsers.find( user => user._id === task.assigned )];
-          task = {
-            ...newTask,
-            assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.sort((a1,a2) => a1.label.toLowerCase() > a2.label.toLowerCase() ? 1 : -1) : [
-              {
-                _id: "-1",
-                label: "No assigned",
-                value: "-1",
-                img: UserIcon
-              }
-            ],
-          };
-        } else {
-          task = newTask;
-        }
-
+    if (subtasksHandler.ready() ){
       subtasks = SubtasksCollection.find({
         task: taskId,
       }).fetch();
+      subtasksLoading = false;
+    }
 
+    if (commentsHandler.ready() ){
       comments = CommentsCollection.find({
         task: taskId,
       }).fetch();
+      commentsLoading = false;
+    }
 
+    task = TasksCollection.findOne({
+        _id: taskId,
+      });
 
-    return { task, subtasks, comments };
+      const folder = folders.active.find(f => f._id === task.folder);
+
+      let newTask = {
+        ...task,
+        folder,
+        repeat: null,
+        container: task.container ? task.container : 0,
+        assigned: []
+      }
+      if ( (Array.isArray(task.assigned) && task.assigned.length > 0) || task.assigned ) {
+        const newAssigned = Array.isArray(task.assigned) ? dbUsers.filter( user => task.assigned.includes(user._id) ) : [dbUsers.find( user => user._id === task.assigned )];
+        task = {
+          ...newTask,
+          assigned: newAssigned.length > 0 && newAssigned[0] ? newAssigned.sort((a1,a2) => a1.label.toLowerCase() > a2.label.toLowerCase() ? 1 : -1) : [
+            {
+              _id: "-1",
+              label: "No assigned",
+              value: "-1",
+              img: UserIcon
+            }
+          ],
+        };
+      } else {
+        task = newTask;
+      }
+
+    return { task, subtasks, subtasksLoading, comments, commentsLoading };
   });
 
   const { history } = useTracker(() => {
@@ -138,6 +150,8 @@ export default function EditTaskContainer( props ) {
       {...task}
       allSubtasks={subtasks}
       allComments={comments}
+      subtasksLoading={subtasksLoading}
+      commentsLoading={commentsLoading}
       history={history}
       title={translations[language].editTask}
       match={props.match}

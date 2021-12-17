@@ -61,24 +61,24 @@ Meteor.methods({
     } );
   },
 
-  'repeats.removeTaskFromRepeat'( taskId, repeatId, allTasks) {
+  'repeats.removeTaskFromRepeat'( taskId, repeatId) {
   //  check(taskId, String);
   //  check(isChecked, Boolean);
 
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
-
+/*
       const tasksWithThisRepeat = allTasks.filter(task => task.repeat === repeatId);
-      if (tasksWithThisRepeat.length > 1){
+      if (tasksWithThisRepeat.length > 1){*/
         RepeatsCollection.update( repeatId, {
           $pull: {
             tasks: taskId
           }
         } );
-      } else {
+  /*    } else {
         RepeatsCollection.remove( { _id: repeatId });
-      }
+      }*/
   },
 
   'repeats.editRepeatInTask'( oldRepeat, newRepeat, allTasks ) {

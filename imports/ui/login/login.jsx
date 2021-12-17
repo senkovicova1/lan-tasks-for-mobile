@@ -8,7 +8,15 @@ import {
   Accounts
 } from 'meteor/accounts-base';
 
+import {
+  useDispatch,
+} from 'react-redux';
+
 import Loader from "/imports/ui/other/loadingScreen";
+
+import {
+  setSidebarOpen,
+} from '/imports/redux/metadataSlice';
 
 import {
   Form,
@@ -20,9 +28,12 @@ import {
 
 export default function LoginForm( props ) {
 
+  const dispatch = useDispatch();
+
   const {
     history,
-    openSignUp
+    openSignUp,
+    setLoggingOut
   } = props;
 
   const [ email, setEmail ] = useState( '' );
@@ -31,9 +42,9 @@ export default function LoginForm( props ) {
   const [ showLoading, setShowLoading ] = useState( false );
 
   const onSubmit = event => {
-    setShowLoading( true );
-    setErrorMessage( "" );
     event.preventDefault();
+    setErrorMessage( "" );
+    setShowLoading( true );
     Meteor.loginWithPassword( email, password, ( error ) => {
       setShowLoading( false );
       if ( error ) {
@@ -42,9 +53,13 @@ export default function LoginForm( props ) {
         } else {
           setErrorMessage( error.reason );
         }
+      } else {
+        setLoggingOut(false);
+        dispatch( setSidebarOpen( true ) );
+        history.push( "/all/list" );
       }
     } );
-    history.push( "/all/list" );
+
   };
 
   const handleForgotPassword = () => {

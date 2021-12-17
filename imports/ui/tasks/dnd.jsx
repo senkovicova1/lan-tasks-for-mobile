@@ -116,7 +116,6 @@ export default function DND( props ) {
   sortedTasks,
   removedTasks,
   addQuickTask,
-  allTasks,
 } = props;
 
 const {
@@ -635,6 +634,7 @@ const containers = useMemo( () => {
                                           <LinkButton
                                             onClickCapture={(e) => {
                                               e.preventDefault();
+
                                               if ( removedTasks.length >= 5 ) {
                                                let difference = removedTasks.length - 4;
                                                const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
@@ -647,27 +647,27 @@ const containers = useMemo( () => {
                                                      Meteor.call(
                                                        'repeats.removeTaskFromRepeat',
                                                        task._id,
-                                                       task.repeat._id,
-                                                       allTasks
+                                                       task.repeat
                                                      )
                                                    }
-                                                   subtasksToDelete.forEach( ( subtask, i ) => {
-                                                     Meteor.call(
-                                                       'subtasks.removeSubtask',
-                                                       subtask._id
-                                                     )
-                                                   } );
-                                                   commentsToDelete.forEach( ( comment, i ) => {
-                                                     removeComment( comment._id );
-                                                       Meteor.call(
-                                                         'comments.removeComment',
-                                                         comment._id
-                                                       )
-                                                   } );
 
                                                    difference -= 1;
                                                  }
                                                }
+
+                                               subtasksToDelete.forEach( ( subtask, i ) => {
+                                                 Meteor.call(
+                                                   'subtasks.removeSubtask',
+                                                   subtask._id
+                                                 )
+                                               } );
+                                               commentsToDelete.forEach( ( comment, i ) => {
+                                                 removeComment( comment._id );
+                                                 Meteor.call(
+                                                   'comments.removeComment',
+                                                   comment._id
+                                                 )
+                                               } );
 
                                                let data = {
                                                  removedDate: moment().unix(),
@@ -804,8 +804,7 @@ const containers = useMemo( () => {
                                                    Meteor.call(
                                                      'repeats.removeTaskFromRepeat',
                                                      task._id,
-                                                     task.repeat._id,
-                                                     allTasks
+                                                     task.repeat
                                                    )
                                                  }
                                                  subtasksToDelete.forEach( ( subtask, i ) => {
@@ -912,7 +911,12 @@ const containers = useMemo( () => {
       chosenTask &&
       <Modal isOpen={true}>
         <ModalBody>
-          <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
+          <EditTask
+            {...props}
+            taskId={chosenTask}
+            tasksHandlerReady={tasksHandlerReady}
+            close={() => dispatch(setChosenTask(null))}
+            />
         </ModalBody>
       </Modal>
       }

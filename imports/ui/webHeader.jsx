@@ -10,6 +10,10 @@ import {
 } from 'react-redux';
 
 import {
+  Spinner
+} from 'reactstrap';
+
+import {
   useTracker
 } from 'meteor/react-meteor-data';
 
@@ -48,12 +52,25 @@ export default function WebHeader( props ) {
   const {
     match,
     location,
+    loggingOut,
+    setLoggingOut
   } = props;
+
+  console.log(loggingOut);
 
   const { folderID, filterID } = match.params;
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );
-  const logout = () => Meteor.logout();
+  const logout = () => {
+    setLoggingOut(true);
+    setBackground("#0078d4");
+    dispatch( setSidebarOpen( false ) );
+    setOpenSort(false);
+    setOpenSearch(false);
+    setOpenNotifications(false);
+    console.log(Meteor.logout());
+    props.history.push("/login");
+  }
 
   const {
     folder,
@@ -263,20 +280,21 @@ export default function WebHeader( props ) {
             font="white"
             onClick={(e) => {
               e.preventDefault();
-              setBackground("#0078d4");
-              props.history.push("/login");
-              dispatch( setSidebarOpen( true ) );
-              setOpenSort(false);
-              setOpenSearch(false);
-              setOpenNotifications(false);
               logout();
             }}
             >
-            <img
-              className="icon"
-              src={LogoutIcon}
-              alt="Logout icon not found"
-              />
+            {
+              loggingOut &&
+              <Spinner color="light" size="1em" className="spinner" children="" style={{height: "1em", width: "1em"}}/>
+            }
+            {
+              !loggingOut &&
+              <img
+                className="icon"
+                src={LogoutIcon}
+                alt="Logout icon not found"
+                />
+            }
           </LinkButton>
         }
       </section>

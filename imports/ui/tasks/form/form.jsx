@@ -7,6 +7,10 @@ import Select from 'react-select';
 
 import moment from 'moment';
 
+import {
+  Spinner
+} from 'reactstrap';
+
 import Scheduled from './scheduled';
 import Description from './description';
 import Files from './files';
@@ -96,6 +100,8 @@ export default function TaskForm( props ) {
     displayedComments,
     comments,
     setComments,
+    subtasksLoading,
+    commentsLoading,
     mappedHistory,
     history,
     folders,
@@ -542,6 +548,7 @@ export default function TaskForm( props ) {
             history={history}
             language={language}
             addNewTask={addNewTask}
+            subtasksLoading={subtasksLoading}
             />
       </div>
 
@@ -556,6 +563,10 @@ export default function TaskForm( props ) {
           }}
           >
           {translations[language].comments}
+          {
+            commentsLoading &&
+            <Spinner color="primary" size="1em" className="spinner" children="" style={{marginLeft: "0.6em"}}/>
+          }
         </LinkButton>
         |
         <LinkButton

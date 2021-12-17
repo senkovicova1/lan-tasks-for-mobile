@@ -109,6 +109,8 @@ export default function MainPage( props ) {
 
   console.log( "All our amazing icons are from FlatIcon (https://www.flaticon.com/). Thank you to all creators whose icons we could use: PixelPerfect (https://www.flaticon.com/authors/pixel-perfect), Dmitri13 (https://www.flaticon.com/authors/dmitri13), Phatplus (https://www.flaticon.com/authors/phatplus), Freepik (https://www.flaticon.com/authors/freepik), Muhazdinata (https://www.flaticon.com/authors/muhazdinata)" );
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const currentUser = useTracker( () => Meteor.user() );
   const userId = Meteor.userId();
   const {
@@ -116,6 +118,21 @@ export default function MainPage( props ) {
     sidebarOpen,
     filter
   } = useSelector( ( state ) => state.metadata.value );
+
+  const { tasksHandlerReady } = useTracker(() => {
+
+    if (!Meteor.user()) {
+      return { tasksHandlerReady: false };
+    }
+
+    const tasksHandler = Meteor.subscribe('tasks');
+
+    if (!tasksHandler.ready()) {
+      return { tasksHandlerReady: false };
+    }
+
+    return { tasksHandlerReady: true };
+  });
 
   const { folders, foldersLoading } = useTracker(() => {
 
@@ -134,10 +151,7 @@ export default function MainPage( props ) {
       return noDataAvailable;
     }
 
-      folders = FoldersCollection.find(
-        {
-          archived: false,
-        }, {
+      folders = FoldersCollection.find({}, {
           sort: { name: 1 },
         }
       ).fetch();
@@ -182,11 +196,13 @@ export default function MainPage( props ) {
         return noDataAvailable;
       }
 
-      notifications = NotificationsCollection.find(
-        {}, {
+      notifications = NotificationsCollection.findOne(
+        {
+          _id: userId
+        }, {
           sort: { dateCreated: 1 },
         }
-      ).fetch();
+      );
 
       return { notifications };
     });
@@ -207,8 +223,7 @@ export default function MainPage( props ) {
         return noDataAvailable;
       }
 
-      filters = FiltersCollection.find(
-        {}, {
+      filters = FiltersCollection.find({}, {
           sort: { name: 1 },
         }
       ).fetch();
@@ -222,10 +237,10 @@ export default function MainPage( props ) {
       label: folder.name,
       value: folder._id
     } ) );
-    //const activeFolders = newMyFolders.filter( folder => !folder.archived );
-//    const archivedFolders = newMyFolders.filter( folder => folder.archived );
+    const activeFolders = newMyFolders.filter( folder => !folder.archived );
+    const archivedFolders = newMyFolders.filter( folder => folder.archived );
     dispatch( setActive( newMyFolders ) );
-    //dispatch( setArchived( archivedFolders ) );
+    dispatch( setArchived( archivedFolders ) );
   }, [ folders ] );
 
   useEffect( () => {
@@ -266,13 +281,23 @@ export default function MainPage( props ) {
               {...props}
               foldersLoading={foldersLoading}
               filtersLoading={filtersLoading}
+              loggingOut={loggingOut}
+              setLoggingOut={setLoggingOut}
               />
           )}
           />
         {
           !currentUser &&
           <Content withSidebar={false}>
-            <Route path={["/", "/login"]} component={Login} />
+            <Route
+              path={["/", "/login"]}
+              render={(props) => (
+                <Login
+                  {...props}
+                  setLoggingOut={setLoggingOut}
+                  />
+              )}
+              />
           </Content>
         }
         {
@@ -288,7 +313,10 @@ export default function MainPage( props ) {
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 render={(props) => (
-                  <TaskContainer {...props}/>
+                  <TaskContainer
+                    {...props}
+                    tasksHandlerReady={tasksHandlerReady}
+                    />
                 )}
                 />
             }
@@ -299,7 +327,10 @@ export default function MainPage( props ) {
                 exact
                 path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                 render={(props) => (
-                  <TaskContainer {...props}/>
+                  <TaskContainer
+                    {...props}
+                    tasksHandlerReady={tasksHandlerReady}
+                    />
                 )}
                 />
             }
@@ -310,7 +341,10 @@ export default function MainPage( props ) {
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   render={(props) => (
-                    <TaskContainer {...props}/>
+                    <TaskContainer
+                      {...props}
+                      tasksHandlerReady={tasksHandlerReady}
+                      />
                   )}
                   />
               }
@@ -334,7 +368,10 @@ export default function MainPage( props ) {
                   exact
                   path={["/", "/:folderID/list", "/folders/archived/:folderID", "/filters/:filterID/list"]}
                   render={(props) => (
-                    <TaskContainer {...props}/>
+                    <TaskContainer
+                      {...props}
+                      tasksHandlerReady={tasksHandlerReady}
+                      />
                   )}
                   />
               }

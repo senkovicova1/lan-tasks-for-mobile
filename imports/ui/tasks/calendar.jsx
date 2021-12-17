@@ -109,8 +109,7 @@ export default function CalendarList( props ) {
   setShowClosed,
   folder,
   tasksWithAdvancedFilters,
-  removedTasks,
-  allTasks
+  removedTasks
 } = props;
 
 const {
@@ -546,8 +545,7 @@ document.onkeydown = function( e ) {
                            Meteor.call(
                              'repeats.removeTaskFromRepeat',
                              task._id,
-                             task.repeat._id,
-                             allTasks
+                             task.repeat
                            )
                          }
                          subtasksToDelete.forEach( ( subtask, i ) => {
@@ -745,7 +743,8 @@ document.onkeydown = function( e ) {
               }
               <LinkButton
                 onClick={(e) => {
-                  e.preventDefault(); if ( removedTasks.length >= 5 ) {
+                  e.preventDefault();
+                   if ( removedTasks.length >= 5 ) {
                    let difference = removedTasks.length - 4;
                    const idsToDelete = removedTasks.slice( 4 ).map( t => t._id );
                    const subtasksToDelete = subtasks.filter( subtask => idsToDelete.includes( subtask.task ) );
@@ -757,27 +756,27 @@ document.onkeydown = function( e ) {
                          Meteor.call(
                            'repeats.removeTaskFromRepeat',
                            task._id,
-                           task.repeat._id,
-                           allTasks
+                           task.repeat
                          )
                        }
-                       subtasksToDelete.forEach( ( subtask, i ) => {
-                         Meteor.call(
-                           'subtasks.removeSubtask',
-                           subtask._id
-                         )
-                       } );
-                       commentsToDelete.forEach( ( comment, i ) => {
-                         removeComment( comment._id );
-                           Meteor.call(
-                             'comments.removeComment',
-                             comment._id
-                           )
-                       } );
 
                        difference -= 1;
                      }
                    }
+
+                   subtasksToDelete.forEach( ( subtask, i ) => {
+                     Meteor.call(
+                       'subtasks.removeSubtask',
+                       subtask._id
+                     )
+                   } );
+                   commentsToDelete.forEach( ( comment, i ) => {
+                     removeComment( comment._id );
+                     Meteor.call(
+                       'comments.removeComment',
+                       comment._id
+                     )
+                   } );
 
                    let data = {
                      removedDate: moment().unix(),
@@ -864,7 +863,12 @@ document.onkeydown = function( e ) {
       chosenTask &&
       <Modal isOpen={true}>
         <ModalBody>
-          <EditTask {...props} taskId={chosenTask} close={() => dispatch(setChosenTask(null))}/>
+          <EditTask
+            {...props}
+            taskId={chosenTask}
+            tasksHandlerReady={tasksHandlerReady}
+            close={() => dispatch(setChosenTask(null))}
+            />
         </ModalBody>
       </Modal>
     }

@@ -76,6 +76,8 @@ export default function FormIndex( props ) {
     repeat: taskRepeat,
     allSubtasks,
     allComments,
+    subtasksLoading,
+    commentsLoading,
     history,
     title,
     language,
@@ -409,9 +411,12 @@ export default function FormIndex( props ) {
     displayedSubtasks={displayedSubtasks}
     addedSubtasks={addedSubtasks}
     setAddedSubtasks={setAddedSubtasks}
+    allSubtasks={allSubtasks}
+    subtasksLoading={subtasksLoading}
 
     displayedComments={displayedComments}
     comments={comments}
+    commentsLoading={commentsLoading}
     setComments={setComments}
 
     mappedHistory={mappedHistory}
@@ -422,7 +427,6 @@ export default function FormIndex( props ) {
     notifications={notifications}
     usersWithRights={usersWithRights}
     containers={containers}
-    allSubtasks={allSubtasks}
     onCancel={onCancel}
     />
   );

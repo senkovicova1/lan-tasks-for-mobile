@@ -104,6 +104,7 @@ export default function Subtasks( props ) {
     language,
     addNewTask,
     onCancel,
+    subtasksLoading,
   } = props;
 
   const [ possibleSubtaskName, setPossibleSubtaskName ] = useState("");
@@ -209,6 +210,12 @@ export default function Subtasks( props ) {
   return (
       <section className="subtasks">
         <label htmlFor="subtasks">{translations[language].subtasks}</label>
+
+      {
+        !addNewTask &&
+        subtasksLoading &&
+        <Spinner color="primary" size="1em" className="spinner" children=""/>
+      }
 
         <List style={{height: "auto", padding: "0px"}}>
           {

@@ -18,10 +18,6 @@ import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 
-import {
-  RepeatsCollection
-} from '/imports/api/repeatsCollection';
-
 import TasksList from '/imports/ui/tasks/list';
 import Calendar from '/imports/ui/tasks/calendar';
 import Dnd from '/imports/ui/tasks/dnd';
@@ -51,6 +47,7 @@ export default function TasksContainer( props ) {
   const {
     match,
     history,
+    tasksHandlerReady
   } = props;
 
   const {
@@ -100,30 +97,6 @@ export default function TasksContainer( props ) {
 //  const tasks = useSelector( ( state ) => state.tasks.value );
 
 const [showClosed, setShowClosed] = useState(false);
-
-
-  const { repeats, repeatsLoading } = useTracker(() => {
-
-    let repeats = [];
-    let repeatsLoading = true;
-
-    const noDataAvailable = {repeats, repeatsLoading };
-
-    if (!Meteor.user()) {
-      return noDataAvailable;
-    }
-
-    const repeatsHandler = Meteor.subscribe('repeats');
-
-    if (!repeatsHandler.ready()) {
-      return noDataAvailable;
-    }
-
-    repeats = RepeatsCollection.find({}).fetch();
-
-    return { repeats, repeatsLoading: false };
-  });
-
 
   const getFilter = () => {
     let query = {};
@@ -192,7 +165,7 @@ const [showClosed, setShowClosed] = useState(false);
       };
     }
 
-    if (!showClosed){
+    if ((!sidebarFilter || !sidebarFilter.showClosed) && (!filter || !filter.showClosed) && !showClosed){
       query.closed = false;
     }
 
@@ -208,15 +181,8 @@ const [showClosed, setShowClosed] = useState(false);
     let tasksLoading = true;
 
     const noDataAvailable = { tasks, removedTasks, tasksLoading };
-    if (!Meteor.user() ) {
-      return noDataAvailable;
-    }
 
-    const tasksHandler = Meteor.subscribe('tasks');
-
-    console.log("handler check");
-
-    if ( !tasksHandler.ready() ) {
+    if ( !tasksHandlerReady ) {
           console.log("handler not ready");
           return noDataAvailable;
     }
@@ -261,7 +227,6 @@ const [showClosed, setShowClosed] = useState(false);
       let newTask = {
         ...task,
         folder: folders.length > 0 ? folders.find( folder => folder._id === task.folder ) : {},
-        repeat: repeats.find(repeat => repeat._id === task.repeat),
         container: task.container ? task.container : 0,
         assigned: []
       }
@@ -398,7 +363,7 @@ const [showClosed, setShowClosed] = useState(false);
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
-          allTasks={tasks}
+          tasksHandlerReady={tasksHandlerReady}
           />
     );
   }
@@ -414,7 +379,7 @@ const [showClosed, setShowClosed] = useState(false);
           removedTasks={removedTasks}
           folder={folder}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
-          allTasks={tasks}
+          tasksHandlerReady={tasksHandlerReady}
           />
     );
   }
@@ -431,7 +396,7 @@ const [showClosed, setShowClosed] = useState(false);
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
-          allTasks={tasks}
+          tasksHandlerReady={tasksHandlerReady}
           />
     );
   }
@@ -450,13 +415,13 @@ const [showClosed, setShowClosed] = useState(false);
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           addQuickTask={addQuickTask}
           folder={folder}
-          allTasks={tasks}
+          tasksHandlerReady={tasksHandlerReady}
           />
       </div>
       <div style={{width: "50%", borderLeft: "1px solid #d6d6d6", height: "-webkit-fill-available", position: "relative",  padding: "5px 15px"}}>
         {
           chosenTask &&
-          <EditTask {...props} taskId={chosenTask}/>
+          <EditTask {...props} tasksHandlerReady={tasksHandlerReady} taskId={chosenTask}/>
         }
         {
           !chosenTask &&

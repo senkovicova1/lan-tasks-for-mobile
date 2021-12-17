@@ -97,7 +97,7 @@ export default function TaskList( props ) {
   removedTasks,
   addQuickTask,
   sidebarFilter,
-  allTasks,
+  tasksHandlerReady
 } = props;
 
 const [ newTaskName, setNewTaskName ] = useState( "" );
@@ -238,6 +238,7 @@ document.onkeydown = function( e ) {
             <EditTask
               {...props}
               taskId={chosenTask}
+              tasksHandlerReady={tasksHandlerReady}
               folder={folder}
               close={() => dispatch(setChosenTask(null))}
               />
@@ -430,27 +431,27 @@ document.onkeydown = function( e ) {
                             Meteor.call(
                               'repeats.removeTaskFromRepeat',
                               task._id,
-                              task.repeat._id,
-                              allTasks
+                              task.repeat
                             )
                           }
-                          subtasksToDelete.forEach( ( subtask, i ) => {
-                            Meteor.call(
-                              'subtasks.removeSubtask',
-                              subtask._id
-                            )
-                          } );
-                          commentsToDelete.forEach( ( comment, i ) => {
-                            removeComment( comment._id );
-                              Meteor.call(
-                                'comments.removeComment',
-                                comment._id
-                              )
-                          } );
 
                           difference -= 1;
                         }
                       }
+
+                      subtasksToDelete.forEach( ( subtask, i ) => {
+                        Meteor.call(
+                          'subtasks.removeSubtask',
+                          subtask._id
+                        )
+                      } );
+                      commentsToDelete.forEach( ( comment, i ) => {
+                        removeComment( comment._id );
+                        Meteor.call(
+                          'comments.removeComment',
+                          comment._id
+                        )
+                      } );
 
                       let data = {
                         removedDate: moment().unix(),
@@ -510,9 +511,7 @@ document.onkeydown = function( e ) {
       </ItemContainer>
 
       {
-        !sidebarFilter.showClosed &&
-        !filter.showClosed &&
-        !showClosed &&
+        (sidebarFilter.showClosed || filter.showClosed || showClosed) &&
         closedTasks.length === 0 &&
         <span className="message">{translations[language].noClosedTasks}</span>
       }
@@ -568,8 +567,7 @@ document.onkeydown = function( e ) {
                         Meteor.call(
                           'repeats.removeTaskFromRepeat',
                           task._id,
-                          task.repeat._id,
-                          allTasks
+                          task.repeat
                         )
                       }
                       subtasksToDelete.forEach( ( subtask, i ) => {
