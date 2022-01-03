@@ -201,6 +201,10 @@ export const Content = styled.main `
     padding-left: ${(props) => props.withSidebar ? `${sidebarWidthWeb}` : "30px"};
     padding-right: 0px;
   }
+
+  .rbc-event-label{
+    display: none;
+  }
 `;
 
 

@@ -26,7 +26,12 @@ import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 
+import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+
 import Form from './form';
+import Loader from '/imports/ui/other/loadingScreen';
 
 import {
   UserIcon,
@@ -70,8 +75,9 @@ export default function EditTaskContainer( props ) {
   //  const tasksHandler = Meteor.subscribe('tasks');
     const subtasksHandler = Meteor.subscribe('subtasks');
     const commentsHandler = Meteor.subscribe('comments');
+    const repeatsHandler = Meteor.subscribe('repeats');
 
-    if ( !tasksHandlerReady) {
+    if ( !tasksHandlerReady || !repeatsHandler.ready()) {
       return noDataAvailable;
     }
 
@@ -95,10 +101,14 @@ export default function EditTaskContainer( props ) {
 
       const folder = folders.active.find(f => f._id === task.folder);
 
+      const repeat = RepeatsCollection.findOne({
+          _id: task.repeat,
+        });
+
       let newTask = {
         ...task,
         folder,
-        repeat: null,
+        repeat: repeat ? repeat : null,
         container: task.container ? task.container : 0,
         assigned: []
       }
@@ -142,7 +152,7 @@ export default function EditTaskContainer( props ) {
   });
 
   if (!task){
-    return <div></div>;
+    return <Loader />;
   }
 
   return (

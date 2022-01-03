@@ -9,6 +9,10 @@ import {
 } from 'react-redux';
 
 import {
+  TasksCollection
+} from '/imports/api/tasksCollection';
+
+import {
   RepeatsCollection
 } from '/imports/api/repeatsCollection';
 
@@ -68,20 +72,23 @@ Meteor.methods({
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
-/*
-      const tasksWithThisRepeat = allTasks.filter(task => task.repeat === repeatId);
-      if (tasksWithThisRepeat.length > 1){*/
+
+        const tasksWithThisRepeat = TasksCollection.find({
+          repeat: repeatId
+        }).fetch();
+
+      if (tasksWithThisRepeat.length > 1){
         RepeatsCollection.update( repeatId, {
           $pull: {
             tasks: taskId
           }
         } );
-  /*    } else {
+     } else {
         RepeatsCollection.remove( { _id: repeatId });
-      }*/
+      }
   },
 
-  'repeats.editRepeatInTask'( oldRepeat, newRepeat, allTasks ) {
+  'repeats.editRepeatInTask'( oldRepeat, newRepeat ) {
   //  check(taskId, String);
   //  check(isChecked, Boolean);
 
@@ -89,7 +96,9 @@ Meteor.methods({
       throw new Meteor.Error('Not authorized.');
     }
 
-    const tasksWithThisRepeat = allTasks.filter(task => oldRepeat.tasks.includes(task._id));
+    const tasksWithThisRepeat = TasksCollection.find({
+      repeat: oldRepeat._id
+    }).fetch();
 
     if (tasksWithThisRepeat.some(task => task.closed)){
       RepeatsCollection.insert( {
@@ -101,17 +110,24 @@ Meteor.methods({
         repeatUntil: newRepeat.repeatUntil,
         tasks: tasksWithThisRepeat.filter(task => !task.closed).map(task => task._id)
       }, ( error, _id ) => {
-        tasksWithThisRepeat.filter(task => !task.closed).forEach((task, i) => {
-            Meteor.call(
-              'tasks.updateSimpleAttribute',
-              task._id,
-              {repeat: _id}
-            )
-        });
-      } );
-      RepeatsCollection.update( oldRepeat._id, {
-        $set: {
-          tasks: tasksWithThisRepeat.filter(task => task.closed).map(task => task._id),
+        if (error){
+          console.log(error);
+        } else {
+          tasksWithThisRepeat.filter(task => !task.closed).forEach((task, i) => {
+
+              TasksCollection.update( task._id, {
+                $set: {repeat: _id}
+              }, (e, i) => {
+                console.log(e);
+              } );
+
+          });
+
+          RepeatsCollection.update( oldRepeat._id, {
+            $set: {
+              tasks: tasksWithThisRepeat.filter(task => task.closed).map(task => task._id),
+            }
+          } );
         }
       } );
     } else {
@@ -131,16 +147,6 @@ Meteor.methods({
         }
       } );
     }
-
-    tasksWithThisRepeat.forEach((task, i) => {
-      if (!task.closed){
-        Meteor.call(
-          'tasks.updateSimpleAttribute',
-          task._id,
-          {repeat: oldRepeat._id}
-        )
-      }
-    });
   },
 
   'repeats.removeRepeat'( _id ) {

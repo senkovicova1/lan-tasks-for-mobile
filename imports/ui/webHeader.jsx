@@ -56,8 +56,6 @@ export default function WebHeader( props ) {
     setLoggingOut
   } = props;
 
-  console.log(loggingOut);
-
   const { folderID, filterID } = match.params;
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );

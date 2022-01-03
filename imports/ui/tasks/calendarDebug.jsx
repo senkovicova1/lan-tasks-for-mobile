@@ -101,7 +101,7 @@ import {
 
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
-
+let breakPoint = 100;
 export default function CalendarList( props ) {
 
   const dispatch = useDispatch();
@@ -234,12 +234,15 @@ const notifications = useSelector( ( state ) => state.notifications.value );
         $in: repeatIds
       }
     }  ).fetch();
+    console.log(repeats, repeatIds);
 
     return { repeats };
   });
 
+  console.log(repeats);
 
   useEffect( () => {
+    breakPoint -= 1;
 
     const mappedAndFilteredTasks = tasksWithAdvancedFilters.filter( task => !task.closed ).map( task => ( {
       ...task,
@@ -254,6 +257,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     let tasksToSave = mappedAndFilteredTasks;
 
     if ( repeats.length > 0 ) {
+      console.log("REPEATS");
       const currentWeekStart = moment().day( 0 ).hour( 0 ).minute( 0 ).second( 0 ).unix();
 
       let tasksWithValidRepeat = mappedAndFilteredTasks
@@ -305,7 +309,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     setMaxDateReached( currentWeekEnd );
    setTasksWithDatetimes( tasksToSave );
 
- }, [ tasksWithAdvancedFilters ] );
+ }, [ tasksWithAdvancedFilters, (breakPoint < 0 ? false : repeats) ] );
 
   useEffect(() => {
 

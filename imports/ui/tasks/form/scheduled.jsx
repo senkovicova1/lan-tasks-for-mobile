@@ -100,6 +100,46 @@ export default function Scheduled( props ) {
     }
   }
 
+  const addRepeatToTask = (taskId, newRepeat) => {
+    Meteor.call("repeats.addRepeat",
+      newRepeat.intervalNumber,
+      newRepeat.intervalFrequency,
+      [false, false, false, false, false, false, false],
+      false,
+      newRepeat.repeatStart,
+      newRepeat.repeatUntil,
+      [taskId],
+      (err, response) => {
+      if (err) {
+        console.log(err);
+      } else if (response) {
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          taskId,
+          {
+            repeat: response,
+          }
+        );
+      }
+    }
+    );
+  };
+
+
+  const editRepeatInTask = (oldRepeat, newRepeat) => {
+    console.log("HI");
+    Meteor.call("repeats.editRepeatInTask",
+      oldRepeat,
+      newRepeat,
+      (err, response) => {
+      if (err) {
+        console.log(err);
+      } else if (response) {
+      }
+    }
+    );
+  };
+
 if (closed || !openDatetime){
   return (
     <section className="inline">
@@ -543,9 +583,10 @@ if (closed || !openDatetime){
               if ( !addNewTask ) {
                 if (oldRepeat !== newHistoryRepeat){
                   if (repeat && repeat._id ){
-                    /*editRepeatInTask(taskRepeat, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value , repeatStart: startDatetime ? startDatetime: possibleStartDatetime}, allTasks);*/
+                    console.log("HI");
+                    editRepeatInTask(repeat, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value , repeatStart: startDatetime ? startDatetime: possibleStartDatetime});
                   } else {
-                    /*addRepeatToTask(taskId, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value, repeatStart: startDatetime ? startDatetime: possibleStartDatetime});*/
+                    addRepeatToTask(taskId, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value, repeatStart: startDatetime ? startDatetime : possibleStartDatetime});
                   }
                 }
 

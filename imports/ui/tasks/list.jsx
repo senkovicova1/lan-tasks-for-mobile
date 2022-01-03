@@ -337,6 +337,11 @@ document.onkeydown = function( e ) {
               onChange={() => {
                 Meteor.call('tasks.closeTask', task, subtasks);
 
+                let taskHistory = history.find(entry => entry.task === task._id);
+                if (!taskHistory){
+                  taskHistory = [];
+                }
+
                 const historyData = {
                   dateCreated: moment().unix(),
                   user: userId,
@@ -361,7 +366,7 @@ document.onkeydown = function( e ) {
 
                 if (task.assigned.length > 0){
                   task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+                    let usersNotifications = notifications ? notifications : [];
                     const notificationData = {
                       ...historyData,
                       args: [name],
@@ -408,6 +413,15 @@ document.onkeydown = function( e ) {
                 alt="Empty star icon not found"
                 />
             }
+            {
+            task.repeat &&
+              <img
+                className="icon"
+                style={{ marginLeft: "0.6em"}}
+                src={RestoreIcon}
+                alt="RestoreIcon not found"
+                />
+          }
             <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
               {task.name}
             </span>
@@ -434,24 +448,25 @@ document.onkeydown = function( e ) {
                               task.repeat
                             )
                           }
-
                           difference -= 1;
                         }
+
+                        subtasksToDelete.forEach( ( subtask, i ) => {
+                          Meteor.call(
+                            'subtasks.removeSubtask',
+                            subtask._id
+                          )
+                        } );
+                        commentsToDelete.forEach( ( comment, i ) => {
+                          removeComment( comment._id );
+                          Meteor.call(
+                            'comments.removeComment',
+                            comment._id
+                          )
+                        } );
+
                       }
 
-                      subtasksToDelete.forEach( ( subtask, i ) => {
-                        Meteor.call(
-                          'subtasks.removeSubtask',
-                          subtask._id
-                        )
-                      } );
-                      commentsToDelete.forEach( ( comment, i ) => {
-                        removeComment( comment._id );
-                        Meteor.call(
-                          'comments.removeComment',
-                          comment._id
-                        )
-                      } );
 
                       let data = {
                         removedDate: moment().unix(),
@@ -544,6 +559,15 @@ document.onkeydown = function( e ) {
                 alt="Empty star icon not found"
                 />
             }
+            {
+            task.repeat &&
+              <img
+                className="icon"
+                style={{ marginLeft: "0.6em"}}
+                src={RestoreIcon}
+                alt="RestoreIcon not found"
+                />
+          }
             <span htmlFor={`task_name ${task._id}`} onClick={() => dispatch(setChosenTask(task._id))}>
               {task.name}
             </span>
@@ -570,22 +594,22 @@ document.onkeydown = function( e ) {
                           task.repeat
                         )
                       }
-                      subtasksToDelete.forEach( ( subtask, i ) => {
-                        Meteor.call(
-                          'subtasks.removeSubtask',
-                          subtask._id
-                        )
-                      } );
-                      commentsToDelete.forEach( ( comment, i ) => {
-                        removeComment( comment._id );
-                          Meteor.call(
-                            'comments.removeComment',
-                            comment._id
-                          )
-                      } );
 
                       difference -= 1;
                     }
+                    subtasksToDelete.forEach( ( subtask, i ) => {
+                      Meteor.call(
+                        'subtasks.removeSubtask',
+                        subtask._id
+                      )
+                    } );
+                    commentsToDelete.forEach( ( comment, i ) => {
+                      removeComment( comment._id );
+                      Meteor.call(
+                        'comments.removeComment',
+                        comment._id
+                      )
+                    } );
                   }
 
                   let data = {

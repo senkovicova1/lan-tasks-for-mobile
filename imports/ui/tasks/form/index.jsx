@@ -269,7 +269,7 @@ export default function FormIndex( props ) {
   }, [ history, dbUsers ] );
 
   const subtasks = useMemo( () => {
-    return allSubtasks.filter( subtask => subtask.task === taskId );
+    return allSubtasks ? allSubtasks.filter( subtask => subtask.task === taskId ) : [];
   }, [ taskId, allSubtasks ] );
 
   const containers = useMemo( () => {
@@ -295,10 +295,10 @@ export default function FormIndex( props ) {
   }, [ taskId, folder ] );
 
   useEffect( () => {
-    let newComments = allComments.filter( comment => comment.task === taskId ).map( comment => ( {
+    let newComments = allComments ? allComments.filter( comment => comment.task === taskId ).map( comment => ( {
       ...comment,
       change: NO_CHANGE
-    } ) );
+    } ) ) : [];
     setComments( newComments );
   }, [ taskId, allComments ] );
 
@@ -334,6 +334,7 @@ export default function FormIndex( props ) {
     }
     return [];
   }, [ folder, dbUsers ] );
+
 
 
   return (

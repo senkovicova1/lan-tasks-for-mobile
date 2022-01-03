@@ -8,14 +8,25 @@ import {
   Accounts
 } from 'meteor/accounts-base';
 
+import {
+  useDispatch,
+} from 'react-redux';
+
 import AddUser from '/imports/ui/users/userForm';
 import Loader from "/imports/ui/other/loadingScreen";
 
+import {
+  setSidebarOpen,
+} from '/imports/redux/metadataSlice';
+
 export default function SignInForm( props ) {
+
+  const dispatch = useDispatch();
 
   const {
     history,
-    openLogIn
+    openLogIn,
+    setLoggingOut
   } = props;
   const [ errorMessage, setErrorMessage ] = useState( '' );
   const [ showLoading, setShowLoading ] = useState( false );
@@ -47,6 +58,9 @@ export default function SignInForm( props ) {
         } else {
           setErrorMessage( error.reason );
         }
+      } else {
+        setLoggingOut(false);
+        dispatch( setSidebarOpen( true ) );
       }
     } );
   };

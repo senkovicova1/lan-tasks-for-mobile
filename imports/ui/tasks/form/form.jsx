@@ -159,7 +159,7 @@ export default function TaskForm( props ) {
         );
     }
   }
-
+  
   return (
     <Form excludeBtn={true}>
 

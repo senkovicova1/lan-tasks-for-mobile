@@ -8,6 +8,10 @@ import {
 } from '/imports/api/tasksCollection';
 
 import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+
+import {
   NO_CHANGE,
   ADDED,
   EDITED,
@@ -40,11 +44,9 @@ Meteor.methods({
   'tasks.addFullTask'(name, important, assigned, startDatetime, endDatetime, hours, description, files, repeatId, folder, container, dateCreated ) {
 //    check(text, String);
 
-  console.log("ADD FULL TASK");
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
-      console.log("HI FULL TASK");
 
       return TasksCollection.insert({
         name,
@@ -118,10 +120,14 @@ Meteor.methods({
     } );
 
     if (task.repeat){
-      let addAmount = task.repeat.intervalNumber;
-      let addTimeType = task.repeat.intervalFrequency;
+      let repeat = RepeatsCollection.findOne({
+        _id: task.repeat
+      });
+
+      let addAmount = parseInt(repeat.intervalNumber);
+      let addTimeType = repeat.intervalFrequency;
       const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
-      if (!task.closed && task.repeat && (newStartDatetime <= task.repeat.repeatUntil || !repeatUntil)){
+      if (!task.closed && task.repeat && (newStartDatetime <= repeat.repeatUntil || !repeat.repeatUntil)){
 
         let data = {
           name: task.name,
@@ -132,12 +138,12 @@ Meteor.methods({
           allDay: task.allDay,
           hours: task.hours,
           description: task.description,
-          files: [...task.files],
+          files: task.files ? [...task.files] : [],
           closed: false,
           folder: task.folder._id,
           container: 0,
           dateCreated: moment().unix(),
-          repeat: task.repeat._id
+          repeat: repeat._id
         };
         TasksCollection.insert({
             ...data
@@ -145,7 +151,6 @@ Meteor.methods({
           if (error){
             console.log(error);
           } else {
-
             subtasks.filter( subtask => subtask.task === task._id ).forEach( ( subtask, i ) => {
               Meteor.call(
                 'subtasks.addNewSubtask',
@@ -155,13 +160,11 @@ Meteor.methods({
                  moment().unix()
               )
             } );
-
             Meteor.call(
               'repeats.addRepeatTask',
               task.repeat._id,
               _id
-            )
-
+            );
           }
         } );
       }

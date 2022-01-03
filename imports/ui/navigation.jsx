@@ -203,6 +203,10 @@ export default function MainPage( props ) {
           sort: { dateCreated: 1 },
         }
       );
+      
+      if (!notifications){
+        notifications = [];
+      }
 
       return { notifications };
     });
@@ -239,7 +243,7 @@ export default function MainPage( props ) {
     } ) );
     const activeFolders = newMyFolders.filter( folder => !folder.archived );
     const archivedFolders = newMyFolders.filter( folder => folder.archived );
-    dispatch( setActive( newMyFolders ) );
+    dispatch( setActive( activeFolders ) );
     dispatch( setArchived( archivedFolders ) );
   }, [ folders ] );
 

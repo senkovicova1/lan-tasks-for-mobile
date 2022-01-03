@@ -109,6 +109,10 @@ const [showClosed, setShowClosed] = useState(false);
           $eq: userId
         }
       };
+      const foldersIds = folders.active.map( folder => folder._id );
+      query.folder = {
+        $in: foldersIds
+      };
     } else if (folder && folder.value === "important"){
       query.important = true;
     } else {
@@ -183,11 +187,9 @@ const [showClosed, setShowClosed] = useState(false);
     const noDataAvailable = { tasks, removedTasks, tasksLoading };
 
     if ( !tasksHandlerReady ) {
-          console.log("handler not ready");
           return noDataAvailable;
     }
 
-      console.log("querying...");
 
       let query = {...getFilter()};
       const fields = {
@@ -199,7 +201,9 @@ const [showClosed, setShowClosed] = useState(false);
         endDatetime: 1,
         allDay: 1,
         assigned: 1,
-        dateCreated: 1
+        dateCreated: 1,
+        folder: 1,
+        repeat: 1,
       };
       tasks = TasksCollection.find(
         query,
@@ -208,7 +212,6 @@ const [showClosed, setShowClosed] = useState(false);
         }
       ).fetch();
 
-      console.log("tasks acquired");
       removedTasks = TasksCollection.find(
         {
           ...query,
@@ -218,7 +221,6 @@ const [showClosed, setShowClosed] = useState(false);
           fields
         }
       ).fetch();
-    console.log("removed tasks acquired");
 
     if (sidebarFilter && sidebarFilter.title){
       tasks = tasks.filter(task => task.name.toLowerCase().includes(sidebarFilter.title.toLowerCase()));
@@ -226,7 +228,7 @@ const [showClosed, setShowClosed] = useState(false);
     tasks = tasks.map( task => {
       let newTask = {
         ...task,
-        folder: folders.length > 0 ? folders.find( folder => folder._id === task.folder ) : {},
+        folder: [...folders.active, ...folders.archived].length > 0 ? [...folders.active, ...folders.archived].find( folder => folder._id === task.folder ) : {},
         container: task.container ? task.container : 0,
         assigned: []
       }
@@ -246,11 +248,8 @@ const [showClosed, setShowClosed] = useState(false);
       }
       return newTask;
     } );
-
-    console.log("tasks mapped");
     tasksLoading = false;
 
-    console.log("returning tasks");
     return { tasks, removedTasks, tasksLoading};
   });
 

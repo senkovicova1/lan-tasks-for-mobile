@@ -116,6 +116,7 @@ export default function DND( props ) {
   sortedTasks,
   removedTasks,
   addQuickTask,
+  tasksHandlerReady
 } = props;
 
 const {
@@ -688,6 +689,15 @@ const containers = useMemo( () => {
                                           </LinkButton>
                                         </div>
                                         <div>
+                                        {
+                                          task.repeat &&
+                                            <img
+                                              className="icon"
+                                              style={{ marginRight: "0.3em"}}
+                                              src={RestoreIcon}
+                                              alt="RestoreIcon not found"
+                                              />
+                                        }
                                           <span
                                             className="dnd-task-title"
                                            onClick={() => dispatch(setChosenTask(task._id))}
@@ -752,7 +762,6 @@ const containers = useMemo( () => {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      onClick={() => dispatch(setChosenTask(task._id))}
                                       >
                                       <div className="info-bar">
                                         <Input
@@ -844,7 +853,20 @@ const containers = useMemo( () => {
                                         </LinkButton>
                                       </div>
                                       <div>
-                                        <span htmlFor={`task_name ${task._id}`}>
+                                      {
+                                        task.repeat &&
+                                          <img
+                                            className="icon"
+                                            style={{ marginRight: "0.3em"}}
+                                            src={RestoreIcon}
+                                            alt="RestoreIcon not found"
+                                            />
+                                      }
+                                        <span
+                                          className="dnd-task-title"
+                                         onClick={() => dispatch(setChosenTask(task._id))}
+                                          htmlFor={`task_name ${task._id}`}
+                                          >
                                           {task.name}
                                         </span>
                                       </div>
