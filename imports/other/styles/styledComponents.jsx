@@ -649,6 +649,10 @@ export const Form = styled.form `
     color: #757575;
   }
 
+  .datetime-span.closed:hover{
+    cursor: default;
+  }
+
   .datetime-span span {
     width: -webkit-fill-available;
     height: 40px;
@@ -672,6 +676,12 @@ export const Form = styled.form `
     margin-right: 5px;
     width: 1em;
     height: 1em;
+  }
+
+  input[type=checkbox].big-checkbox{
+    margin-right: 5px;
+    width: 1.5em;
+    height: 1.5em;
   }
 
   input[type=file]{

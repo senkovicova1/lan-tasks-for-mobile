@@ -94,6 +94,7 @@ export default function Subtasks( props ) {
   const {
     userId,
     taskId,
+    closed,
     displayedSubtasks,
     addedSubtasks,
     setAddedSubtasks,

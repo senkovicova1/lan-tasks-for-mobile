@@ -74,7 +74,7 @@ export default function Comments( props ) {
             disabled={closed}
             id="comments"
             name="comments"
-            placeholder="Write a comment"
+            placeholder={translations[language].writeComment}
             value={newCommentBody}
             onChange={(e) => setNewCommentBody(e.target.value)}
             />
@@ -139,7 +139,7 @@ export default function Comments( props ) {
         {
           closed &&
           displayedComments.length === 0 &&
-          <span>No comments</span>
+          <span>{translations[language].noComments}</span>
         }
           {
             displayedComments.length > 0 &&

@@ -66,7 +66,7 @@ export default function WebHeader( props ) {
     setOpenSort(false);
     setOpenSearch(false);
     setOpenNotifications(false);
-    console.log(Meteor.logout());
+    Meteor.logout();
     props.history.push("/login");
   }
 

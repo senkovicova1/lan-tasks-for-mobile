@@ -46,6 +46,7 @@ export default function Files( props ) {
   const {
     userId,
     taskId,
+    closed,
     files,
     folder,
     dbUsers,

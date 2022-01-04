@@ -127,7 +127,6 @@ export default function Scheduled( props ) {
 
 
   const editRepeatInTask = (oldRepeat, newRepeat) => {
-    console.log("HI");
     Meteor.call("repeats.editRepeatInTask",
       oldRepeat,
       newRepeat,
@@ -583,7 +582,6 @@ if (closed || !openDatetime){
               if ( !addNewTask ) {
                 if (oldRepeat !== newHistoryRepeat){
                   if (repeat && repeat._id ){
-                    console.log("HI");
                     editRepeatInTask(repeat, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value , repeatStart: startDatetime ? startDatetime: possibleStartDatetime});
                   } else {
                     addRepeatToTask(taskId, {...possibleRepeat, intervalFrequency: possibleRepeat.intervalFrequency.value, repeatStart: startDatetime ? startDatetime : possibleStartDatetime});

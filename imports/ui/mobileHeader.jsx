@@ -14,7 +14,7 @@ import {
 } from 'meteor/react-meteor-data';
 
 import Menu from '/imports/ui/sidebar';
-import Filter from '/imports/ui/other/filter';
+import Filter from '/imports/ui/filters/setContainer';
 import SortAndLayout from '/imports/ui/other/sortAndLayout';
 
 import {

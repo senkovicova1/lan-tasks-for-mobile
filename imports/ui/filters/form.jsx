@@ -21,13 +21,14 @@ import {
 import Switch from "react-switch";
 
 import {
+  setSearch,
+  setFilter
+} from '/imports/redux/metadataSlice';
+
+import {
   Modal,
   ModalBody
 } from 'reactstrap';
-
-import {
-  setFilter
-} from '/imports/redux/metadataSlice';
 
 import {
   SettingsIcon,
@@ -71,28 +72,37 @@ export default function FilterForm( props ) {
     location,
     filterId,
     filter,
+    search,
     submit,
     cancel,
-    remove
+    remove,
+    setOpenFilter,
+    setSaveFilter,
+    setNewFilterInParent,
+    setNewSearchInParent,
   } = props;
 
 
-  const folderID = match.params.folderID;
+  const { folderID, filterID } = match.params;
   const userId = Meteor.userId();
 
   const folders = useSelector( ( state ) => state.folders.value );
   const users = useSelector( ( state ) => state.users.value );
 
   const language = useMemo( () => {
-    return 'en' //users.find( user => user._id === userId ).language;
-  }, [ userId, users ] );
+    if (users.length > 0){
+      return users.find( user => user._id === userId ).language;
+    }
+    return "en";
+    }, [ userId, users ] );
 
   const [ newFilterName, setNewFilterName] = useState(filter.name);
   const [ newFilter, setNewFilter] = useState({});
+  const [ newSearch, setNewSearch] = useState("");
 
     useEffect( () => {
 
-      if ( filter && [...folders.active, ...folders.archived ].length > 0 && users.length > 0 ) {
+      if ( filter && filterId && [...folders.active, ...folders.archived ].length > 0 && users.length > 0 ) {
         setNewFilter( {
           ...filter,
           assigned: filter.assigned.map(user => users.find(u => u._id === user)),
@@ -102,7 +112,11 @@ export default function FilterForm( props ) {
         setNewFilter( {...filter} );
       }
 
-    }, [ filter, folders, users ] );
+      if (!newSearch){
+        setNewSearch(search);
+      }
+
+    }, [ filter, folders, users, search ] );
 
   const usersForFilter = useMemo(() => {
     if (folderID ===  "archived"){
@@ -121,9 +135,15 @@ export default function FilterForm( props ) {
     return [];
   }, [users, folders, folderID]);
 
+    if (!newFilter){
+      return <div></div>
+    }
+
   return (
       <Form>
 
+        {
+          filterId &&
         <section className="inline">
           <span className="icon-container">
             {translations[language].name}
@@ -139,6 +159,7 @@ export default function FilterForm( props ) {
             }}
             />
         </section>
+      }
 
         <section className="inline">
           <span className="icon-container">
@@ -154,13 +175,20 @@ export default function FilterForm( props ) {
             name="title"
             id="title"
             placeholder={translations[language].filterByTitle}
-            value={newFilter.title}
+            value={filterId ? newFilter.title : newSearch}
             onChange={(e) => {
-              setNewFilter({...newFilter, title: e.target.value});
+              if (filterId){
+                setNewFilter({...newFilter, title: e.target.value});
+              } else {
+                setNewSearch( e.target.value );
+              }
             }}
             />
         </section>
 
+        {
+          (filterId || ['all', 'important'].includes(folderID)
+        || filterID || !folderID) &&
           <section className="inline">
             <span className="icon-container">
               <img
@@ -185,6 +213,7 @@ export default function FilterForm( props ) {
                 />
             </div>
           </section>
+        }
 
       <section className="inline fit">
         <LinkButton
@@ -256,7 +285,7 @@ export default function FilterForm( props ) {
         <Datetime
           className="full-width"
           dateFormat={"DD.MM.yyyy"}
-          timeFormat={"HH:mm"}
+          timeFormat={false}
           value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin) : null}
           name="datetimeMin"
           id="datetimeMin"
@@ -273,7 +302,7 @@ export default function FilterForm( props ) {
           renderInput={(props) => {
               return <Input
                 {...props}
-                value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                value={newFilter.datetimeMin ? moment.unix(newFilter.datetimeMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                 />
           }}
           />
@@ -297,13 +326,14 @@ export default function FilterForm( props ) {
           <Datetime
             className="full-width"
             dateFormat={"DD.MM.yyyy"}
-            timeFormat={"HH:mm"}
+            timeFormat={false}
             name="datetimeMax"
             id="datetimeMax"
             inputProps={{
             placeholder: translations[language].setDatetime,
             }}
             onChange={(date) => {
+              date.hours(23).minutes(59).seconds(59);
               if (typeof date !== "string"){
                   setNewFilter({...newFilter, datetimeMax: date.unix()});
               } else {
@@ -313,7 +343,7 @@ export default function FilterForm( props ) {
             renderInput={(props) => {
                 return <Input
                   {...props}
-                  value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                  value={newFilter.datetimeMax ? moment.unix(newFilter.datetimeMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                   />
             }}
             />
@@ -358,7 +388,7 @@ export default function FilterForm( props ) {
           renderInput={(props) => {
               return <Input
                 {...props}
-                value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                value={newFilter.dateCreatedMin ? moment.unix(newFilter.dateCreatedMin).format("DD.MM.yyyy").replace("T", " ") : ""}
                 />
           }}
           />
@@ -388,6 +418,7 @@ export default function FilterForm( props ) {
             placeholder: translations[language].setCreatedDate,
             }}
             onChange={(date) => {
+              date.hours(23).minutes(59).seconds(59);
               if (typeof date !== "string"){
                   setNewFilter({...newFilter, dateCreatedMax: date.unix()});
               } else {
@@ -397,7 +428,7 @@ export default function FilterForm( props ) {
             renderInput={(props) => {
                 return <Input
                   {...props}
-                  value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy kk:mm").replace("T", " ") : ""}
+                  value={newFilter.dateCreatedMax ? moment.unix(newFilter.dateCreatedMax).format("DD.MM.yyyy").replace("T", " ") : ""}
                   />
             }}
             />
@@ -423,9 +454,9 @@ export default function FilterForm( props ) {
           id="show-closed"
           name="show-closed"
           onChange={() => {
-            setNewFilter({...newFilter, dateCreatedMax: !newFilter.showClosed});
+            setNewFilter({...newFilter, showClosed: !newFilter.showClosed});
           }}
-          checked={newFilter.showClosed}
+          checked={newFilter.showClosed ? newFilter.showClosed : false}
           onColor="#0078d4"
           uncheckedIcon={false}
           checkedIcon={false}
@@ -444,7 +475,34 @@ export default function FilterForm( props ) {
         </span>
       </section>
 
+      {
+        !filterId &&
+        <ButtonRow>
+          <LinkButton
+            onClick={(e) => {
+              e.preventDefault();
+              setNewFilterInParent({...newFilter});
+              setNewSearchInParent(newSearch);
+              setSaveFilter(true);
+            }}
+            >
+            {translations[language].saveFilter}
+          </LinkButton>
+          <FullButton
+            onClick={(e) => {
+              e.preventDefault();
+              dispatch(setSearch(newSearch));
+              dispatch(setFilter({...newFilter}));
+              setOpenFilter(false);
+            }}
+            >
+            {translations[language].applyFilter}
+          </FullButton>
+        </ButtonRow>
+      }
 
+      {
+      filterId &&
       <ButtonRow>
         <FullButton colour="grey" onClick={(e) => {e.preventDefault(); cancel();}}>{translations[language].cancel}</FullButton>
         <FullButton colour="red" onClick={(e) => {e.preventDefault(); remove();}}>{translations[language].delete}</FullButton>
@@ -472,6 +530,8 @@ export default function FilterForm( props ) {
           {translations[language].save}
         </FullButton>
       </ButtonRow>
+    }
+
     </Form>
   );
 };

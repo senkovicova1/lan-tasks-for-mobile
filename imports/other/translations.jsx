@@ -35,6 +35,8 @@ export const translations = {
     'comments': 'Comments',
     'eraseBody': 'Clear',
     'sendComment': 'Add comment',
+    'noComment': 'No comment',
+    'writeComment': 'Write a comment',
     'files': 'Files',
 
     'calendarView': 'Calendar',
@@ -73,6 +75,12 @@ export const translations = {
     'calendar': "Calendar",
     'dnd': "Planner",
     'customOrder': "Custom order",
+
+    'sortBy': 'Sort by',
+    'asc': 'Ascending',
+    'desc': 'Descending',
+    'assignedUser': 'Assigned user',
+    'dateCreated': 'Date created',
 
     'unscheduled': "Unscheduled tasks",
     'noOpenTasks': "You have no open tasks.",
@@ -118,6 +126,7 @@ export const translations = {
     'userProf': 'Uživateľský profil',
     'forgotPass': 'Zabudnuté heslo',
     'accountReg': 'Registrácia',
+    'close': "Zatvoriť",
 
     'allFolders': 'Všetky moje úlohy',
     'importantFolder': 'Dôležité úlohy',
@@ -135,6 +144,8 @@ export const translations = {
     'comments': 'Komentáre',
     'eraseBody': 'Zmazať komentár',
     'sendComment': 'Pridať komentár',
+    'noComment': 'Žiadne komentáre',
+    'writeComment': 'Napíšte komentár',
     'files': 'Súbory',
 
     'calendarView': 'Kalendár',
@@ -173,6 +184,12 @@ export const translations = {
     'calendar': "Kalendár",
     'dnd': "Plánovač",
     'customOrder': "Vlastné poradie",
+
+    'sortBy': 'Zoradiť podľa',
+    'asc': 'A-Z',
+    'desc': 'Z-A',
+    'assignedUser': 'Priradený riešiteľ',
+    'dateCreated': 'Dátum vytvorenia',
 
     'unscheduled': "Nenaplánované úlohy",
     'noOpenTasks': "Namáte žiadne otvorené úlohy.",

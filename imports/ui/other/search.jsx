@@ -12,7 +12,7 @@ import {
   setSearchInFilter
 } from '/imports/redux/metadataSlice';
 
-import Filter from '/imports/ui/other/filter';
+import Filter from '/imports/ui/filters/setContainer';
 
 import {
   CloseIcon,

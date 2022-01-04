@@ -73,6 +73,82 @@ export const selectStyle = {
   } ),
 };
 
+export const closedSelectStyle = {
+  control: ( base, {isFocused, isDisabled} ) => ( {
+    ...base,
+    minHeight: 30,
+    height: "2.5em",
+    backgroundColor: "transparent" ,
+    border: "0px solid #d6d6d6",
+    borderRadius: 0,
+    width: "100%",
+  } ),
+  dropdownIndicator: base => ( {
+    ...base,
+    color: "transparent",
+    padding: 4,
+  } ),
+  clearIndicator: base => ( {
+    ...base,
+    padding: 4,
+  } ),
+  multiValue: ( base, {
+    data
+  } ) => {
+    return {
+      ...base,
+      backgroundColor: "transparent",
+      borderRadius: 0,
+      padding: 0,
+    };
+  },
+  multiValueLabel: ( base, {
+    data
+  } ) => ( {
+    ...base,
+    color: "#757575",
+    fontSize: "15px",
+    paddingLeft: 0,
+    paddingRight: "0.6em"
+  } ),
+  multiValueRemove: ( styles, {
+    data
+  } ) => ( {
+    ...styles,
+    display: "none",
+    color: "black",
+    backgroundColor: "transparent",
+  } ),
+  valueContainer: base => ( {
+    ...base,
+    padding: '0px 6px',
+    borderRadius: 0,
+    font: '14px Segoe UI',
+    color: '#333',
+    width: "100%",
+  } ),
+  input: base => ( {
+    ...base,
+    margin: 0,
+    padding: 0,
+    backgroundColor: "inherit",
+    borderRadius: 0
+  } ),
+  indicatorSeparator: base => ( {
+    ...base,
+    width: 0,
+  } ),
+  placeholder: base => ( {
+    ...base,
+    font: '14px Segoe UI',
+    color: '#777',
+  } ),
+  menu: base => ( {
+    ...base,
+    zIndex: 50,
+  } ),
+};
+
 export const invisibleSelectStyle = {
   container: ( base, state ) => ( {
     ...base,

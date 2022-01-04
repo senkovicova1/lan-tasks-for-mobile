@@ -94,6 +94,9 @@ export default function Menu( props ) {
 
   const userId = Meteor.userId();
   const currentUser = useTracker( () => Meteor.user() );
+  const language = useMemo( () => {
+    return currentUser.profile.language;
+  }, [ currentUser ] );
 
   const folders = useSelector( ( state ) => state.folders.value );
   const users = useSelector( ( state ) => state.users.value );
@@ -248,7 +251,7 @@ export default function Menu( props ) {
           src={PlusIcon}
           alt="Plus icon not found"
           />
-        Folder
+        {translations[language].folder}
       </NavLink>
 
       <NavLink

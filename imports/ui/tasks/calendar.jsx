@@ -102,6 +102,8 @@ import {
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
+let breakPoint = 50;
+
 export default function CalendarList( props ) {
 
   const dispatch = useDispatch();
@@ -113,6 +115,7 @@ export default function CalendarList( props ) {
   setShowClosed,
   folder,
   tasksWithAdvancedFilters,
+  repeats,
   removedTasks,
   tasksHandlerReady
 } = props;
@@ -215,31 +218,9 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     return { comments };
   });
 
-  const { repeats } = useTracker(() => {
-    const noDataAvailable = { repeats: [] };
-
-    if (!Meteor.user()) {
-      return noDataAvailable;
-    }
-
-    const repeatsHandler = Meteor.subscribe('repeats');
-
-    if (!repeatsHandler.ready()) {
-      return { ...noDataAvailable };
-    }
-
-    const repeatIds = [...tasksWithAdvancedFilters].filter(task => task.repeat).map(task => task.repeat);
-    const repeats = RepeatsCollection.find(  {
-      _id: {
-        $in: repeatIds
-      }
-    }  ).fetch();
-
-    return { repeats };
-  });
-
 
   useEffect( () => {
+    //breakPoint -= 1;
 
     const mappedAndFilteredTasks = tasksWithAdvancedFilters.filter( task => !task.closed ).map( task => ( {
       ...task,
@@ -256,56 +237,15 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     if ( repeats.length > 0 ) {
       const currentWeekStart = moment().day( 0 ).hour( 0 ).minute( 0 ).second( 0 ).unix();
 
-      let tasksWithValidRepeat = mappedAndFilteredTasks
-        .filter( task => task.repeat )
-        .map( task => ( {
-          ...task,
-          repeat: task.repeat._id ? {
-            ...task.repeat
-          } : repeats.find( repeat => repeat._id === task.repeat )
-        } ) )
-        .filter( task =>
-          ( !task.repeat.repeatUntil || task.repeat.repeatUntil >= currentWeekStart ) &&
-          task.repeat.repeatStart <= currentWeekEnd &&
-          moment( task.startDatetime ).unix() <= currentWeekStart );
-
-      let dummyTasks = [];
-
-      repeats.forEach( ( repeat, i ) => {
-        let tasksWithThisRepeat = tasksWithValidRepeat.filter( task => task.repeat._id === repeat._id );
-
-        if ( tasksWithThisRepeat.length === 0 ) {
-          return;
-        }
-
-        const latestTask = tasksWithThisRepeat.sort( ( t1, t2 ) => ( moment( t1.startDatetime ) < moment( t2.startDatetime ) ? 1 : -1 ) )[ 0 ];
-
-        let newDummyTask = {
-          ...latestTask
-        };
-        newDummyTask.isDummy = true;
-
-        while ( moment( newDummyTask.startDatetime ).unix() <= currentWeekEnd ) {
-
-          const newStartUnix = moment( newDummyTask.startDatetime ).add( latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency ).unix();
-          newDummyTask.startDatetime = new Date( newStartUnix * 1000 );
-          const newEndUnix = moment( newDummyTask.endDatetime ).add( latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency ).unix();
-          newDummyTask.endDatetime = new Date( newEndUnix * 1000 );
-
-          dummyTasks.push( {
-            ...newDummyTask
-          } );
-        }
-      } );
-
-      let newTasksWithDatetimes = [ ...mappedAndFilteredTasks, ...dummyTasks ];
-      tasksToSave = newTasksWithDatetimes;
+      let dummyTasks = generateDummyTasks(currentWeekStart, currentWeekEnd, mappedAndFilteredTasks);
+          
+      tasksToSave = [ ...mappedAndFilteredTasks, ...dummyTasks ];
 
     }
     setMaxDateReached( currentWeekEnd );
    setTasksWithDatetimes( tasksToSave );
 
- }, [ tasksWithAdvancedFilters ] );
+ }, [ tasksWithAdvancedFilters, (breakPoint < 0 ? false : repeats) ] );
 
   useEffect(() => {
 
@@ -337,42 +277,49 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       return;
     }
 
-    let tasksWithValidRepeat = tasksWithDatetimes
-    .filter(task => task.repeat)
-    .map(task => ({...task, repeat: task.repeat._id ? {...task.repeat} : repeats.find(repeat => repeat._id === task.repeat) }))
-    .filter(task =>
-      (!task.repeat.repeatUntil || task.repeat.repeatUntil >= startDateUnix)
-      && task.repeat.repeatStart <= endDateUnix
-      && moment(task.startDatetime).unix() <= startDateUnix);
-
-    let dummyTasks  = [];
-
-    repeats.forEach((repeat, i) => {
-      let tasksWithThisRepeat = tasksWithValidRepeat.filter(task => task.repeat._id === repeat._id);
-
-      if (tasksWithThisRepeat.length === 0){
-        return;
-      }
-
-      const latestTask = tasksWithThisRepeat.sort((t1,t2) => (moment(t1.startDatetime) < moment(t2.startDatetime) ? 1 : -1))[0];
-
-      let newDummyTask = {...latestTask};
-      newDummyTask.isDummy = true;
-
-      while (moment(newDummyTask.startDatetime).unix() <= endDateUnix){
-
-        const newStartUnix = moment(newDummyTask.startDatetime ? newDummyTask.startDatetime : latestTask.startDatetime).add(latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency).unix();
-        newDummyTask.startDatetime = new Date(newStartUnix*1000);
-        const newEndUnix = moment(newDummyTask.endDatetime ? newDummyTask.endDatetime : latestTask.endDatetime).add(latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency).unix();
-        newDummyTask.endDatetime = new Date(newEndUnix*1000);
-
-        dummyTasks.push({...newDummyTask});
-      }
-  });
+    let dummyTasks = generateDummyTasks(startDateUnix, endDateUnix, tasksWithDatetimes);
 
     let newTasksWithDatetimes = [...tasksWithDatetimes, ...dummyTasks];
     setTasksWithDatetimes(newTasksWithDatetimes);
     setMaxDateReached(endDateUnix);
+  }
+
+  const generateDummyTasks = (startRange, endRange, tasks) => {
+
+        let tasksWithValidRepeat = tasks
+        .filter(task => task.repeat)
+        .map(task => ({...task, repeat: task.repeat._id ? {...task.repeat} : repeats.find(repeat => repeat._id === task.repeat) }))
+        .filter(task =>
+          (!task.repeat.repeatUntil || task.repeat.repeatUntil >= startRange)
+          && task.repeat.repeatStart <= endRange
+          && moment(task.startDatetime).unix() <= endRange);
+
+        let dummyTasks  = [];
+
+        repeats.forEach((repeat, i) => {
+          let tasksWithThisRepeat = tasksWithValidRepeat.filter(task => task.repeat._id === repeat._id);
+
+          if (tasksWithThisRepeat.length === 0){
+            return;
+          }
+
+          const latestTask = tasksWithThisRepeat.sort((t1,t2) => (moment(t1.startDatetime) < moment(t2.startDatetime) ? 1 : -1))[0];
+
+          let newDummyTask = {...latestTask};
+          newDummyTask.isDummy = true;
+
+          while (moment(newDummyTask.startDatetime).unix() <= endRange){
+
+            const newStartUnix = moment(newDummyTask.startDatetime ? newDummyTask.startDatetime : latestTask.startDatetime).add(latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency === "m" ? "M" : latestTask.repeat.intervalFrequency).unix();
+            newDummyTask.startDatetime = new Date(newStartUnix*1000);
+            const newEndUnix = moment(newDummyTask.endDatetime ? newDummyTask.endDatetime : latestTask.endDatetime).add(latestTask.repeat.intervalNumber, latestTask.repeat.intervalFrequency === "m" ? "M" : latestTask.repeat.intervalFrequency).unix();
+            newDummyTask.endDatetime = new Date(newEndUnix*1000);
+
+            dummyTasks.push({...newDummyTask});
+          }
+      });
+
+      return dummyTasks;
   }
 
   const onEventResize = (data) => {

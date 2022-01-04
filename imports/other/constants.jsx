@@ -72,11 +72,11 @@ export const sortByOptions = [
   },
   {
     label: "Assigned user",
-    value: "assigned"
+    value: "assignedUser"
   },
   {
     label: "Creation date",
-    value: "date"
+    value: "dateCreated"
   },
 ];
 

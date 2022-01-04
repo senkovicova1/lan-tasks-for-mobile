@@ -150,7 +150,7 @@ export default function SortAndLayout( props ) {
           <label id="dnd-layout-label" htmlFor="dnd-layout">{translations[language].dnd}</label>
         </span>
       }
-      <h3 id="sort-menu-header-2">Sort by</h3>
+      <h3 id="sort-menu-header-2">{translations[language].sortBy}</h3>
         <span id="sort-menu-custom-order" key="customOrder">
           <input
             id="customOrder"
@@ -174,7 +174,7 @@ export default function SortAndLayout( props ) {
       {
         sortByOptions
         .flatMap(x => sortDirectionOptions.map(y => ({
-          label: `${x.label}  (${y.label})`,
+          label: `${translations[language][x.value]}  (${translations[language][y.value]})`,
           value: `${x.value}-${y.value}`,
           sortByValue: x.value,
           sortDirectionValue: y.value

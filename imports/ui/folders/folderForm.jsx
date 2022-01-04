@@ -174,6 +174,7 @@ export default function FolderForm( props ) {
           id="archived"
           name="archived"
           type="checkbox"
+          className="big-checkbox"
           checked={archived}
           onChange={(e) =>  setArchived(!archived)}
           />

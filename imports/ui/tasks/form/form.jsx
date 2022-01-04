@@ -35,7 +35,8 @@ import {
 } from "/imports/other/styles/icons";
 
 import {
-  selectStyle
+  selectStyle,
+  closedSelectStyle
 } from '/imports/other/styles/selectStyles';
 
 import {
@@ -159,7 +160,7 @@ export default function TaskForm( props ) {
         );
     }
   }
-  
+
   return (
     <Form excludeBtn={true}>
 
@@ -178,7 +179,6 @@ export default function TaskForm( props ) {
       }
 
 
-      <section>
       <section className="inline" style={{marginTop: "0.3em"}}>
         <TitleCheckbox
           id="task-checked"
@@ -241,7 +241,6 @@ export default function TaskForm( props ) {
           }}
           />
       </section>
-    </section>
 
             <div style={{position: "relative"}}>
       <section className="inline fit">
@@ -295,7 +294,7 @@ export default function TaskForm( props ) {
               />
           }
           <span style={{marginLeft: "10px"}}>
-            Important
+            {translations[language].important}
           </span>
         </LinkButton>
       </section>
@@ -316,7 +315,7 @@ export default function TaskForm( props ) {
             id="folder"
             name="folder"
             isDisabled={closed}
-            styles={selectStyle}
+            styles={closed ? closedSelectStyle : selectStyle}
             value={folder}
             onChange={(e) => {
               setFolder(e);
@@ -340,7 +339,7 @@ export default function TaskForm( props ) {
         <Select
           id="container"
           name="container"
-          styles={selectStyle}
+          styles={closed ? closedSelectStyle : selectStyle}
           isDisabled={closed}
           value={container ? container : defaultContainer}
           onChange={(e) => {
@@ -389,7 +388,7 @@ export default function TaskForm( props ) {
           <Select
             id="assigned"
             name="assigned"
-            styles={selectStyle}
+            styles={closed ? closedSelectStyle : selectStyle}
             isMulti
             value={assigned}
             isDisabled={closed}
@@ -525,6 +524,7 @@ export default function TaskForm( props ) {
       <Files
           userId={userId}
           taskId={taskId}
+          closed={closed}
           files={files}
           setFiles={setFiles}
           folder={folder}
@@ -539,6 +539,7 @@ export default function TaskForm( props ) {
         <Subtasks
             userId={userId}
             taskId={taskId}
+            closed={closed}
             displayedSubtasks={displayedSubtasks}
             addedSubtasks={addedSubtasks}
             setAddedSubtasks={setAddedSubtasks}

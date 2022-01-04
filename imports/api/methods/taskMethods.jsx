@@ -125,7 +125,7 @@ Meteor.methods({
       });
 
       let addAmount = parseInt(repeat.intervalNumber);
-      let addTimeType = repeat.intervalFrequency;
+      let addTimeType = repeat.intervalFrequency === "m" ? "M" : repeat.intervalFrequency;
       const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
       if (!task.closed && task.repeat && (newStartDatetime <= repeat.repeatUntil || !repeat.repeatUntil)){
 
@@ -177,6 +177,8 @@ Meteor.methods({
     if (!this.userId) {
       throw new Meteor.Error('Not authorized.');
     }
+
+    console.log("HI");
 
     let data = {
       removedDate: null,

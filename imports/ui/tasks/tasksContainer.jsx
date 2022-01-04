@@ -18,6 +18,10 @@ import {
   TasksCollection
 } from '/imports/api/tasksCollection';
 
+import {
+  RepeatsCollection
+} from '/imports/api/repeatsCollection';
+
 import TasksList from '/imports/ui/tasks/list';
 import Calendar from '/imports/ui/tasks/calendar';
 import Dnd from '/imports/ui/tasks/dnd';
@@ -161,12 +165,10 @@ const [showClosed, setShowClosed] = useState(false);
     if (sidebarFilter && (sidebarFilter.dateCreatedMin || sidebarFilter.dateCreatedMax)){
       const actualDateCreatedMin = sidebarFilter.dateCreatedMin ? sidebarFilter.dateCreatedMin : 0;
       const actualDateCreatedMax = sidebarFilter.dateCreatedMax ? sidebarFilter.dateCreatedMax : 8640000000000000;
-      query.dateCreated = {
-        $and: [
-          { $lte: actualDatetimeMax },
-          { $gte: actualDatetimeMin },
-        ]
-      };
+      query.$and = [
+          { dateCreated: {$lte: actualDateCreatedMax} },
+          { dateCreated: {$gte: actualDateCreatedMin} },
+        ];
     }
 
     if ((!sidebarFilter || !sidebarFilter.showClosed) && (!filter || !filter.showClosed) && !showClosed){
@@ -215,7 +217,7 @@ const [showClosed, setShowClosed] = useState(false);
       removedTasks = TasksCollection.find(
         {
           ...query,
-          removedDate: {$exists: true},
+          removedDate: {$gte: 0},
         },
         {
           fields
@@ -333,6 +335,30 @@ const [showClosed, setShowClosed] = useState(false);
       return sortedTasks.filter( task => task.closed );
   }, [ sortedTasks, sortBy, sortDirection ] );
 
+
+    const { repeats } = useTracker(() => {
+      const noDataAvailable = { repeats: [] };
+
+      if (!Meteor.user()) {
+        return noDataAvailable;
+      }
+
+      const repeatsHandler = Meteor.subscribe('repeats');
+
+      if (!repeatsHandler.ready() || layout !== CALENDAR) {
+        return { ...noDataAvailable };
+      }
+
+      const repeatIds = [...tasksWithAdvancedFilters].filter(task => task.repeat).map(task => task.repeat);
+      const repeats = RepeatsCollection.find(  {
+        _id: {
+          $in: repeatIds
+        }
+      }  ).fetch();
+
+      return { repeats };
+    });
+
   const addQuickTask = (newTaskName, container, dateCreated, onSuccess, onFail) => {
     addTask(
       newTaskName,
@@ -379,6 +405,7 @@ const [showClosed, setShowClosed] = useState(false);
           folder={folder}
           sidebarFilter={sidebarFilter ? sidebarFilter : {}}
           tasksHandlerReady={tasksHandlerReady}
+          repeats={repeats}
           />
     );
   }
