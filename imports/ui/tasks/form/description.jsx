@@ -87,7 +87,7 @@ export default function Description( props ) {
           history,
           assigned,
           notifications,
-          [[name]],
+          [[`id__${taskId}__id`]],
           folder._id,
           dbUsers,
         );

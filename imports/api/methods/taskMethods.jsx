@@ -178,8 +178,6 @@ Meteor.methods({
       throw new Meteor.Error('Not authorized.');
     }
 
-    console.log("HI");
-
     let data = {
       removedDate: null,
     };

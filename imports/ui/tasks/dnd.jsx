@@ -14,6 +14,10 @@ import {
 } from 'meteor/react-meteor-data';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 
@@ -90,6 +94,7 @@ import {
 import {
   CLOSED_STATUS,
   OPEN_STATUS,
+  CONTAINER
 } from '/imports/other/messages';
 
 const localizer = momentLocalizer(moment);
@@ -328,6 +333,38 @@ const containers = useMemo( () => {
         );
       });
 
+      let sourceContainer = folder.containers.find(container => parseInt(container._id) === parseInt(source.droppableId));
+      if (!sourceContainer){
+        sourceContainer = "New";
+      } else {
+        sourceContainer = sourceContainer.label
+      }
+
+      let destinationContainer = folder.containers.find(container => parseInt(container._id) === parseInt(destination.droppableId));
+      if (!destinationContainer){
+        destinationContainer = "New";
+      } else {
+        destinationContainer = destinationContainer.label
+      }
+
+      let taskHistory = [history.find(entry => entry.task === removed._id)];
+      if (taskHistory.length === 0){
+        taskHistory = [];
+      }
+
+      writeHistoryAndSendNotifications(
+        userId,
+        removed._id,
+        [CONTAINER],
+        [[sourceContainer, destinationContainer]],
+        taskHistory,
+        removed.assigned,
+        [],
+        [[`id__${removed._id}__id`, sourceContainer, destinationContainer]],
+        removed.folder._id,
+        dbUsers,
+      );
+
     }
   }
 
@@ -552,61 +589,24 @@ const containers = useMemo( () => {
                                                 task,
                                                 subtasks
                                               );
-
-                                              const taskHistory = history.find(entry => entry.task === task._id);
-                                              const historyData = {
-                                                dateCreated: moment().unix(),
-                                                user: userId,
-                                                type: CLOSED_STATUS,
-                                                args: [],
-                                              };
+                                              
+                                              let taskHistory = [history.find(entry => entry.task === task._id)];
                                               if (taskHistory.length === 0){
-                                                Meteor.call(
-                                                  'history.addNewHistory',
-                                                  task._id,
-                                                  [
-                                                    historyData
-                                                  ]
-                                                );
-                                              } else {
-                                                Meteor.call(
-                                                  'history.editHistory',
-                                                  taskHistory._id,
-                                                  historyData
-                                                )
+                                                taskHistory = [];
                                               }
 
-                                              if (task.assigned.length > 0){
-                                                task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                                                  let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                                                  const notificationData = {
-                                                    ...historyData,
-                                                    args: [name],
-                                                    read: false,
-                                                    taskId: task._id,
-                                                    folderId: folder._id,
-                                                  };
-                                                 if (usersNotifications.notifications.length > 0){
-                                                      Meteor.call(
-                                                        'notifications.editNotifications',
-                                                         assigned._id,
-                                                         assigned.email,
-                                                         notificationData,
-                                                         dbUsers
-                                                       );
-                                                  } else {
-                                                    Meteor.call(
-                                                      'notifications.addNewNotification',
-                                                      assigned._id,
-                                                      assigned.email,
-                                                      [
-                                                        notificationData
-                                                       ],
-                                                       dbUsers
-                                                     );
-                                                  }
-                                                })
-                                              };
+                                              writeHistoryAndSendNotifications(
+                                                userId,
+                                                task._id,
+                                                [CLOSED_STATUS],
+                                                [[]],
+                                                taskHistory,
+                                                task.assigned,
+                                                [],
+                                                [[`id__${task._id}__id`]],
+                                                task.folder._id,
+                                                dbUsers,
+                                              );
 
                                               e.stopPropagation();
                                             }}

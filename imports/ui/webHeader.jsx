@@ -310,7 +310,11 @@ export default function WebHeader( props ) {
 
       {
         openNotifications &&
-        <NotificationsList {...props} setOpenNotifications={setOpenNotifications} />
+        <NotificationsList
+          {...props}
+          setOpenNotifications={setOpenNotifications}
+          tasksHandlerReady={props.tasksHandlerReady}
+          />
       }
 
     </PageHeader>

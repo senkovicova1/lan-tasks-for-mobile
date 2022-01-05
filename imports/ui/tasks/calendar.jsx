@@ -53,6 +53,10 @@ import {
 } from 'reactstrap';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   setChosenTask
 } from '/imports/redux/metadataSlice';
 
@@ -238,7 +242,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       const currentWeekStart = moment().day( 0 ).hour( 0 ).minute( 0 ).second( 0 ).unix();
 
       let dummyTasks = generateDummyTasks(currentWeekStart, currentWeekEnd, mappedAndFilteredTasks);
-          
+
       tasksToSave = [ ...mappedAndFilteredTasks, ...dummyTasks ];
 
     }
@@ -326,8 +330,16 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     const { start, end, event } = data;
 
     let newTasksWithDatetimes = [...tasksWithDatetimes];
+    let oldStart = 0;
+    let oldEnd = 0;
+    let assigned = [];
+    let folderId = null;
     newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
       if (task._id === event._id){
+        oldStart = task.startDatetime ? task.startDatetime : "UNSET";
+        oldEnd = task.endDatetime ? task.endDatetime : "UNSET";
+        assigned = [...task.assigned];
+        folderId = task.folder._id;
         return ({
           ...task,
           startDatetime: start,
@@ -343,13 +355,40 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       event._id,
       {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
     );
+
+      let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+      if (taskHistory.length === 0){
+        taskHistory = [];
+      }
+
+    writeHistoryAndSendNotifications(
+      userId,
+      event._id,
+      [SET_START, SET_END],
+      [[moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      taskHistory,
+      assigned,
+      [],
+      [[`id__${event._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [`id__${event._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      folderId,
+      dbUsers,
+    );
+
   };
 
   const onEventDrop = (data) => {
     const { start, end, event } = data;
 
     let newTasksWithDatetimes = [...tasksWithDatetimes];
+    let oldStart = 0;
+    let oldEnd = 0;
+    let assigned = [];
+    let folderId = null;
     newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
+        oldStart = task.startDatetime ? task.startDatetime : "UNSET";
+        oldEnd = task.endDatetime ? task.endDatetime : "UNSET";
+        assigned = [...task.assigned];
+        folderId = task.folder._id;
       if (task._id === event._id){
         return ({
           ...task,
@@ -366,6 +405,25 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       event._id,
       {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
     );
+
+      let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+      if (taskHistory.length === 0){
+        taskHistory = [];
+      }
+
+    writeHistoryAndSendNotifications(
+      userId,
+      event._id,
+      [SET_START, SET_END],
+      [[moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      taskHistory,
+      assigned,
+      [],
+      [[`id__${event._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [`id__${event._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      folderId,
+      dbUsers,
+    );
+
   };
 
   const handleDragStart = (event) => {
@@ -410,98 +468,40 @@ const notifications = useSelector( ( state ) => state.notifications.value );
 
     }
 
+    let assigned = [...draggedEvent.assigned];
+    let folderId = draggedEvent.folder._id;
+
+    const newStartDatetime = start.getTime() / 1000;
+    const newEndDatetime = moment.unix(end.getTime() / 1000).subtract('s', 1).unix();
+
     Meteor.call(
       'tasks.updateSimpleAttribute',
       draggedEvent._id,
       {
-        startDatetime: start.getTime() / 1000,
-        endDatetime: moment.unix(end.getTime() / 1000).subtract('s', 1).unix()
+        startDatetime: newStartDatetime,
+        endDatetime: newEndDatetime
       }
     );
 
-    let taskHistory = history.find(entry => entry.task === draggedEvent._id);
-    if (!taskHistory){
+    let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+    if (taskHistory.length === 0){
       taskHistory = [];
     }
-    const historyData1 = {
-      dateCreated: moment().unix(),
-      user: userId,
-      type: SET_START,
-      args: [],
-    };
-    const historyData2 = {
-      dateCreated: moment().unix(),
-      user: userId,
-      type: SET_END,
-      args: [],
-    };
-    if (taskHistory.length === 0){
-      Meteor.call(
-        'history.addNewHistory',
-        draggedEvent._id,
-        [
-          historyData1,
-          historyData2
-        ]
-      );
-    } else {
-      Meteor.call(
-        'history.editHistory',
-        taskHistory._id,
-        historyData1
-      );
-      Meteor.call(
-        'history.editHistory',
-        taskHistory._id,
-        historyData2
-      );
-    }
+
+    writeHistoryAndSendNotifications(
+      userId,
+      draggedEvent._id,
+      [SET_START, SET_END],
+      [[moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(newStartDatetime).format("D.M.YYYY HH:mm:ss")], [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(newEndDatetime).format("D.M.YYYY HH:mm:ss")]],
+      taskHistory,
+      assigned,
+      [],
+      [[`id__${draggedEvent._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(newStartDatetime).format("D.M.YYYY HH:mm:ss")], [`id__${draggedEvent._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(newEndDatetime).format("D.M.YYYY HH:mm:ss")]],
+      folderId,
+      dbUsers,
+    );
 
 
-    if (draggedEvent.assigned.length > 0){
-      draggedEvent.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-        const notificationData1 = {
-          ...historyData1,
-          args: [name, moment.unix(oldStart).format("D.M.YYYY HH:mm"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm")],
-          read: false,
-          taskId: draggedEvent._id,
-        };
-        const notificationData2 = {
-          ...historyData2,
-          args: [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm")],
-          read: false,
-          taskId: draggedEvent._id,
-        };
-       if (usersNotifications.notifications.length > 0){
-            Meteor.call(
-              'notifications.editNotifications',
-               assigned._id,
-               assigned.email,
-               notificationData1,
-               dbUsers
-             );
-             Meteor.call(
-               'notifications.editNotifications',
-                assigned._id,
-                assigned.email,
-                notificationData2,
-                dbUsers
-              );
-        } else {
-          Meteor.call(
-            'notifications.addNewNotification',
-            assigned._id,
-            assigned.email,
-            [
-              notificationData1,
-              notificationData2
-             ],
-             dbUsers
-           );
-        }
-      })
-    }
   }
 
 
@@ -547,60 +547,24 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                   checked={task.closed}
                   onChange={() => {
                     Meteor.call('tasks.closeTask', task, subtasks);
-                    const taskHistory = history.find(entry => entry.task === task._id);
-                    const historyData = {
-                      dateCreated: moment().unix(),
-                      user: userId,
-                      type: CLOSED_STATUS,
-                      args: [],
-                    };
+
+                    let taskHistory = [history.find(entry => entry.task === task._id)];
                     if (taskHistory.length === 0){
-                      Meteor.call(
-                        'history.addNewHistory',
-                        task._id,
-                        [
-                          historyData
-                        ]
-                      );
-                    } else {
-                      Meteor.call(
-                        'history.editHistory',
-                        taskHistory._id,
-                        historyData
-                      );
+                      taskHistory = [];
                     }
 
-                    if (task.assigned.length > 0){
-                      task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                        let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                        const notificationData = {
-                          ...historyData,
-                          args: [name],
-                          read: false,
-                          taskId: task._id,
-                          folderId: folder._id,
-                        };
-                        if (usersNotifications.notifications.length > 0){
-                          Meteor.call(
-                            'notifications.editNotifications',
-                            assigned._id,
-                            assigned.email,
-                            notificationData,
-                            dbUsers
-                          );
-                        } else {
-                          Meteor.call(
-                            'notifications.addNewNotification',
-                            assigned._id,
-                            assigned.email,
-                            [
-                              notificationData
-                            ],
-                            dbUsers
-                          );
-                        }
-                      })
-                    }
+                    writeHistoryAndSendNotifications(
+                      userId,
+                      task._id,
+                      [CLOSED_STATUS],
+                      [[]],
+                      taskHistory,
+                      task.assigned,
+                      [],
+                      [[`id__${task._id}__id`]],
+                      task.folder._id,
+                      dbUsers,
+                    );                    
 
                   }}
                   />
@@ -755,63 +719,27 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                     'tasks.updateSimpleAttribute',
                     task._id,
                     {
-                    closed: false
-                  }
-                );
-                const taskHistory = history.find(entry => entry.task === task._id);
-                const historyData = {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  type: OPEN_STATUS,
-                  args: [],
-                };
-                if (taskHistory.length === 0){
-                  Meteor.call(
-                    'history.addNewHistory',
-                    task._id,
-                    [
-                      historyData
-                    ]
-                  );
-                } else {
-                  Meteor.call(
-                    'history.editHistory',
-                    taskHistory._id,
-                    historyData
-                  );
-                }
-
-                if (task.assigned.length > 0){
-                  task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications.find( notif => notif._id === assigned._id );
-                    const notificationData = {
-                      ...historyData,
-                      args: [name],
-                      read: false,
-                      taskId: task._id,
-                      folderId: folder._id,
-                    };
-                    if (usersNotifications.notifications.length > 0){
-                      Meteor.call(
-                        'notifications.editNotifications',
-                        assigned._id,
-                        assigned.email,
-                        notificationData,
-                        dbUsers
-                      );
-                    } else {
-                      Meteor.call(
-                        'notifications.addNewNotification',
-                        assigned._id,
-                        assigned.email,
-                        [
-                          notificationData
-                        ],
-                        dbUsers
-                      );
+                      closed: false
                     }
-                  })
-                }
+                  );
+
+                  let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+                  if (taskHistory.length === 0){
+                    taskHistory = [];
+                  }
+
+                  writeHistoryAndSendNotifications(
+                    userId,
+                    task._id,
+                    [OPEN_STATUS],
+                    [[]],
+                    taskHistory,
+                    task.assigned,
+                    [],
+                    [[`id__${task._id}__id`]],
+                    task.folder._id,
+                    dbUsers,
+                  );
                 }}
                 />
               {

@@ -70,6 +70,10 @@ Meteor.methods({
 
 ${user.label} ${messageSk}
         `;
+        NotificationsCollection.insert( {
+          _id: userId,
+          notifications
+        } );
 
         Meteor.call(
         'sendEmail',
@@ -80,10 +84,6 @@ ${user.label} ${messageSk}
         );
     });
 
-    NotificationsCollection.insert( {
-      _id: userId,
-      notifications
-    } );
   },
 
   'notifications.editNotifications'(notificationId, email, additionalNotification, dbUsers ) {
@@ -110,6 +110,11 @@ ${user.label} ${messageSk}
 
 ${user.label} ${messageSk}
         `;
+        NotificationsCollection.update( notificationId, {
+          $push: {
+            notifications: additionalNotification
+          }
+        } );
 
         Meteor.call(
         'sendEmail',
@@ -120,11 +125,6 @@ ${user.label} ${messageSk}
         );
 
 
-    NotificationsCollection.update( notificationId, {
-      $push: {
-        notifications: additionalNotification
-      }
-    } )
   },
 
   'notifications.markReadOne'(  userId, notification, allNotifications  ) {

@@ -189,6 +189,7 @@ if (closed || !openDatetime){
         onClick={(e) => {
 
           e.preventDefault();
+          const oldRepeat = repeat;
           const oldStart = startDatetime;
           const oldEnd = endDatetime;
           setStartDatetime("");
@@ -206,7 +207,14 @@ if (closed || !openDatetime){
                 repeat: null
               }
             );
-            removeTaskFromRepeat(taskId, repeat._id, dbTasks);
+
+            if (oldRepeat){
+              Meteor.call(
+                'repeats.removeTaskFromRepeat',
+                taskId,
+                oldRepeat._id
+              );
+            }
 
             writeHistoryAndSendNotifications(
               userId,
@@ -216,7 +224,7 @@ if (closed || !openDatetime){
               history,
               assigned,
               notifications,
-              [[name], [name]],
+              [[`id__${taskId}__id`], [`id__${taskId}__id`]],
               folder._id,
               dbUsers,
             );
@@ -604,14 +612,14 @@ if (closed || !openDatetime){
                       [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
                       ];
                   let notifArgs = [
-                    [name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
-                    [name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                    [`id__${taskId}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                    [`id__${taskId}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
                   ];
 
                   if (oldRepeat !== newHistoryRepeat){
                     types.push(repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT);
                     historyArgs.push(repeat && repeat._id ? [oldRepeat, newHistoryRepeat] : [newHistoryRepeat]);
-                    notifArgs.push(repeat && repeat._id ? [oldRepeat, possibleRepeat, name] : [possibleRepeat, name]);
+                    notifArgs.push(repeat && repeat._id ? [oldRepeat, possibleRepeat, `id__${taskId}__id`] : [possibleRepeat, `id__${taskId}__id`]);
                   }
 
                   writeHistoryAndSendNotifications(

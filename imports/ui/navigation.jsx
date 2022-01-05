@@ -203,7 +203,7 @@ export default function MainPage( props ) {
           sort: { dateCreated: 1 },
         }
       );
-      
+
       if (!notifications){
         notifications = [];
       }
@@ -287,6 +287,7 @@ export default function MainPage( props ) {
               filtersLoading={filtersLoading}
               loggingOut={loggingOut}
               setLoggingOut={setLoggingOut}
+              tasksHandlerReady={tasksHandlerReady}
               />
           )}
           />

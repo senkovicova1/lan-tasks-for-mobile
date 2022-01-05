@@ -25,6 +25,10 @@ import {
 } from 'reactstrap';
 
 import {
+  writeHistoryAndSendNotifications,
+} from '/imports/api/handlers/tasksHandlers';
+
+import {
   HistoryCollection
 } from '/imports/api/historyCollection';
 
@@ -336,65 +340,25 @@ document.onkeydown = function( e ) {
               checked={task.closed}
               onChange={() => {
                 Meteor.call('tasks.closeTask', task, subtasks);
-
-                let taskHistory = history.find(entry => entry.task === task._id);
-                if (!taskHistory){
+                
+                let taskHistory = [history.find(entry => entry.task === task._id)];
+                if (taskHistory.length === 0){
                   taskHistory = [];
                 }
 
-                const historyData = {
-                  dateCreated: moment().unix(),
-                  user: userId,
-                  type: CLOSED_STATUS,
-                  args: [],
-                };
-                if (taskHistory.length === 0){
-                  Meteor.call(
-                    'history.addNewHistory',
-                    task._id,
-                    [
-                      historyData
-                    ]
-                  );
-                } else {
-                  Meteor.call(
-                    'history.editHistory',
-                    taskHistory._id,
-                    historyData
-                  );
-                }
+                writeHistoryAndSendNotifications(
+                  userId,
+                  task._id,
+                  [CLOSED_STATUS],
+                  [[]],
+                  taskHistory,
+                  task.assigned,
+                  [],
+                  [[`id__${task._id}__id`]],
+                  task.folder._id,
+                  dbUsers,
+                );
 
-                if (task.assigned.length > 0){
-                  task.assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-                    let usersNotifications = notifications ? notifications : [];
-                    const notificationData = {
-                      ...historyData,
-                      args: [name],
-                      read: false,
-                      taskId: task._id,
-                      folderId: folder._id,
-                    };
-                   if (usersNotifications.notifications.length > 0){
-                        Meteor.call(
-                          'notifications.editNotifications',
-                           assigned._id,
-                           assigned.email,
-                           notificationData,
-                           dbUsers
-                         );
-                    } else {
-                      Meteor.call(
-                        'notifications.addNewNotification',
-                        assigned._id,
-                        assigned.email,
-                        [
-                          notificationData
-                         ],
-                         dbUsers
-                       );
-                    }
-                  })
-                };
               }}
               />
             {

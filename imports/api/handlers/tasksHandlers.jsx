@@ -6,6 +6,10 @@ import {
 } from '/imports/api/tasksCollection';
 
 import {
+  NotificationsCollection
+} from '/imports/api/notificationsCollection';
+
+import {
   addNewSubtask,
   editSubtask,
   removeSubtask
@@ -229,14 +233,20 @@ const sendNotifications = (taskId, userId, historyDataArr, notificationArgs, fol
     for (var i = 0; i < historyDataArr.length; i++) {
       notificationDataArr.push({
           ...historyDataArr[i],
-          args: notificationArgs,
+          args: notificationArgs[i],
           read: false,
           taskId,
           folderId,
         })
     };
+    const userIds = assigned.filter(assigned => assigned._id !== userId).map(assigned => assigned._id);
+    const assignedNotifications = NotificationsCollection.find(
+      {
+        _id: { $in: userIds }
+      }
+    ).fetch();
     assigned.filter(assigned => assigned._id !== userId).map(assigned => {
-      let usersNotifications = notifications.find( notif => notif._id === assigned._id );
+      let usersNotifications = assignedNotifications.find(notif => notif._id === assigned._id);
      if (usersNotifications.notifications.length > 0){
        for (var i = 0; i < notificationDataArr.length; i++) {
          Meteor.call(

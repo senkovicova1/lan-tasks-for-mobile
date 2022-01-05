@@ -96,7 +96,7 @@ export default function Files( props ) {
                           history,
                           assigned,
                           notifications,
-                          [[oldFile.name, name]],
+                          [[oldFile.name, `id__${taskId}__id`]],
                           folder._id,
                           dbUsers,
                         );
@@ -163,7 +163,7 @@ export default function Files( props ) {
                     history,
                     assigned,
                     notifications,
-                    [[newFile.name, name]],
+                    [[newFile.name, `id__${taskId}__id`]],
                     folder._id,
                     dbUsers,
                   );

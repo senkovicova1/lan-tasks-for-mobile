@@ -139,7 +139,7 @@ export default function Subtasks( props ) {
             history,
             assigned,
             notifications,
-            [[newSubtaskName, name]],
+            [[newSubtaskName, `id__${taskId}__id`]],
             folder._id,
             dbUsers,
           );
@@ -181,7 +181,7 @@ export default function Subtasks( props ) {
           history,
           assigned,
           notifications,
-          [[oldName, name, newName]],
+          [[oldName, `id__${taskId}__id`, newName]],
           folder._id,
           dbUsers,
         );
@@ -264,7 +264,7 @@ export default function Subtasks( props ) {
                       history,
                       assigned,
                       notifications,
-                      [[subtask.name, name]],
+                      [[subtask.name, `id__${taskId}__id`]],
                       folder._id,
                       dbUsers,
                     );
@@ -318,7 +318,7 @@ export default function Subtasks( props ) {
                         history,
                         assigned,
                         notifications,
-                        [[oldName, name]],
+                        [[oldName, `id__${taskId}__id`]],
                         folder._id,
                         dbUsers,
                       );
@@ -370,7 +370,7 @@ export default function Subtasks( props ) {
                       history,
                       assigned,
                       notifications,
-                      [[oldName, name, newName]],
+                      [[oldName, `id__${taskId}__id`, newName]],
                       folder._id,
                       dbUsers,
                     );
@@ -459,7 +459,7 @@ export default function Subtasks( props ) {
                       history,
                       assigned,
                       notifications,
-                      [[newSubtaskName, name]],
+                      [[newSubtaskName, `id__${taskId}__id`]],
                       folder._id,
                       dbUsers,
                     );

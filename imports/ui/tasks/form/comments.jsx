@@ -118,7 +118,7 @@ export default function Comments( props ) {
                   history,
                   assigned,
                   notifications,
-                  [[name]],
+                  [[`id__${taskId}__id`]],
                   folder._id,
                   dbUsers,
                 );
@@ -203,7 +203,7 @@ export default function Comments( props ) {
                           history,
                           assigned,
                           notifications,
-                          [[name]],
+                          [[`id__${taskId}__id`]],
                           folder._id,
                           dbUsers,
                         );
@@ -279,7 +279,7 @@ export default function Comments( props ) {
                           history,
                           assigned,
                           notifications,
-                          [[name]],
+                          [[`id__${taskId}__id`]],
                           folder._id,
                           dbUsers,
                         );

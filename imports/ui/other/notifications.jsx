@@ -7,7 +7,15 @@ import {
   useDispatch
 } from 'react-redux';
 
+import {
+  useTracker
+} from 'meteor/react-meteor-data';
+
 import moment from 'moment';
+
+import {
+  TasksCollection
+} from '/imports/api/tasksCollection';
 
 import {
   setChosenTask,
@@ -63,6 +71,7 @@ export default function NotificationsList( props ) {
   const {
     history,
     setOpenNotifications,
+    tasksHandlerReady
   } = props;
 
   const userId = Meteor.userId();
@@ -81,8 +90,38 @@ export default function NotificationsList( props ) {
     notifications
   } = useSelector( ( state ) => state.notifications.value );
 
+  const { tasks, tasksLoading } = useTracker(() => {
+
+    let tasks = [];
+    let tasksLoading = true;
+
+    const noDataAvailable = { tasks, tasksLoading };
+
+    if ( !tasksHandlerReady ) {
+          return noDataAvailable;
+    }
+
+      const fields = {
+        name: 1,
+      };
+      const taskIds = notifications.map(notif => notif.taskId);
+      tasks = TasksCollection.find(
+        {
+          _id: { $in: taskIds }
+        },
+        {
+          fields
+        }
+      ).fetch();
+
+    tasksLoading = false;
+
+    return { tasks, tasksLoading};
+  });
+
     const mappedNotifications = useMemo(() => {
-      if (!notifications || (notifications && notifications.length === 0) || !dbUsers || ( dbUsers && dbUsers.length === 0)){
+      const taskIds = notifications.map(notif => notif.taskId);
+      if (!notifications || (notifications && notifications.length === 0) || !dbUsers || ( dbUsers && dbUsers.length === 0) || (taskIds > 0 && tasks.length === 0 )){
         return [];
       }
       return notifications.map(notif => {
@@ -94,9 +133,23 @@ export default function NotificationsList( props ) {
           message = message.replace(`[${i}]`, arg);
         });
 
+
         const fromIndex = message.indexOf( language === "en" ? 'the task' : " úloh");
-        const taskNameStart = message.indexOf("'", fromIndex);
-        const taskNameEnd = message.indexOf("'", taskNameStart + 1);
+        let taskNameStart = message.indexOf("'", fromIndex);
+        let taskNameEnd = message.indexOf("'", taskNameStart + 1);
+
+
+        if (message.slice(taskNameStart + 1 , taskNameStart + 5) === "id__"){
+          const taskId = message.slice(taskNameStart + 5, message.indexOf("__id"));
+          let taskName = tasks.find(task => task._id === taskId)?.name;
+          if (!taskName){
+            taskName = "Untitled";
+          }
+          message = message.replace(`id__${taskId}__id`, taskName);
+          taskNameStart = message.indexOf("'", fromIndex);
+          taskNameEnd = message.indexOf("'", taskNameStart + 1);
+        }
+
         const user = dbUsers.find(user => user._id === notif.user);
         return ({
         ...notif,

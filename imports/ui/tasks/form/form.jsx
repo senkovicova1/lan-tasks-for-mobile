@@ -211,7 +211,7 @@ export default function TaskForm( props ) {
                 history,
                 assigned,
                 notifications,
-                [[name]],
+                [[`id__${taskId}__id`]],
                 folder._id,
                 dbUsers,
               );
@@ -268,7 +268,7 @@ export default function TaskForm( props ) {
                 history,
                 assigned,
                 notifications,
-                [[name]],
+                [[`id__${taskId}__id`]],
                 folder._id,
                 dbUsers,
               );
@@ -363,7 +363,7 @@ export default function TaskForm( props ) {
                 history,
                 assigned,
                 notifications,
-                [[name, oldContainer.label, e.label]],
+                [[`id__${taskId}__id`, oldContainer.label, e.label]],
                 folder._id,
                 dbUsers,
               );
@@ -415,7 +415,7 @@ export default function TaskForm( props ) {
                   history,
                   assigned,
                   notifications,
-                  [[name, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
+                  [[`id__${taskId}__id`, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
                   folder._id,
                   dbUsers,
                 );
@@ -496,7 +496,7 @@ export default function TaskForm( props ) {
                 history,
                 assigned,
                 notifications,
-                [[name, hours]],
+                [[`id__${taskId}__id`, hours]],
                 folder._id,
                 dbUsers,
               );

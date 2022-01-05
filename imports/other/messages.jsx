@@ -80,7 +80,7 @@ export const historyEntryTypes = [
   {
     type: CONTAINER,
     message:{
-      "en": "changed the container of thid task from '[0]' to '[1]'",
+      "en": "changed the container of this task from '[0]' to '[1]'",
       "sk": "zmenil/a kontajner úlohy z '[0]' na '[1]'",
     }
   },

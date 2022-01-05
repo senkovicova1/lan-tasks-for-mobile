@@ -73,6 +73,7 @@ export default function MobileHeader( props ) {
   const [ openSort, setOpenSort ] = useState( false );
   const [ openFilter, setOpenFilter ] = useState( false );
   const [ openSearch, setOpenSearch ] = useState( true );
+  const [ openNotifications, setOpenNotifications ] = useState( false );
 
   useEffect( () => {
 
@@ -359,6 +360,15 @@ export default function MobileHeader( props ) {
       {
         openSort &&
         <SortAndLayout {...props} setOpenSort={setOpenSort} />
+      }
+
+      {
+        openNotifications &&
+        <NotificationsList
+          {...props}
+          setOpenNotifications={setOpenNotifications}
+          tasksHandlerReady={props.tasksHandlerReady}
+          />
       }
 
 
