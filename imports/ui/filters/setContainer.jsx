@@ -6,8 +6,6 @@ import React, {
 
 import Select from 'react-select';
 
-import moment from 'moment';
-
 import Datetime from 'react-datetime';
 
 import {

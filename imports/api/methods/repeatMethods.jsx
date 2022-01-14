@@ -2,8 +2,6 @@ import React from 'react';
 
 import { check } from 'meteor/check';
 
-import moment from 'moment';
-
 import {
   useSelector
 } from 'react-redux';

@@ -74,8 +74,8 @@ export default function SortAndLayout( props ) {
         <span id="sort-menu-plain-layout">
           <input
             id="plain-layout"
-            name="plain-layout"
-            type="checkbox"
+            name="layout"
+            type="radio"
             checked={layout === PLAIN}
             onChange={() => {
               dispatch(setLayout(PLAIN));
@@ -94,8 +94,8 @@ export default function SortAndLayout( props ) {
         <span id="sort-menu-columns-layout">
           <input
             id="columns-layout"
-            name="columns-layout"
-            type="checkbox"
+            name="layout"
+            type="radio"
             checked={layout === COLUMNS}
             onChange={() => {
               dispatch(setLayout(COLUMNS));
@@ -114,8 +114,8 @@ export default function SortAndLayout( props ) {
         <span id="sort-menu-calendar-layout">
           <input
             id="calendar-layout"
-            name="calendar-layout"
-            type="checkbox"
+            name="layout"
+            type="radio"
             checked={layout === CALENDAR}
             onChange={() => {
               dispatch(setLayout(CALENDAR));
@@ -137,8 +137,8 @@ export default function SortAndLayout( props ) {
         <span id="sort-menu-dnd-layout">
           <input
             id="dnd-layout"
-            name="dnd-layout"
-            type="checkbox"
+            name="layout"
+            type="radio"
             checked={layout === DND}
             onChange={() => {
               dispatch(setLayout(DND));
@@ -154,8 +154,8 @@ export default function SortAndLayout( props ) {
         <span id="sort-menu-custom-order" key="customOrder">
           <input
             id="customOrder"
-            name="customOrder"
-            type="checkbox"
+            name="sort"
+            type="radio"
             checked={sortBy === "customOrder"}
             onChange={() => {
               dispatch(setSortBy("customOrder"));
@@ -183,8 +183,8 @@ export default function SortAndLayout( props ) {
           <span id={`sort-menu-${item.value}`} key={item.value}>
             <input
               id={`${item.value}-order`}
-              name={item.value}
-              type="checkbox"
+              name="sort"
+              type="radio"
               checked={sortBy === item.sortByValue && sortDirection === item.sortDirectionValue}
               onChange={() => {
                 dispatch(setSortBy(item.sortByValue));
@@ -194,7 +194,7 @@ export default function SortAndLayout( props ) {
                 }
               }}
               />
-            <label id={`sort-menu-${item.value}-label`} htmlFor={item.value}>{item.label}</label>
+            <label id={`sort-menu-${item.value}-label`} htmlFor={`${item.value}-order`}>{item.label}</label>
           </span>
         ))
       }

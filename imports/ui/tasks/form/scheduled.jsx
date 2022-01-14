@@ -42,12 +42,16 @@ import {
   translations
 } from '/imports/other/translations';
 
+const { DateTime } = require("luxon");
+
 export default function Scheduled( props ) {
 
   const {
     userId,
     closed,
     taskId,
+    taskName,
+    changeID,
     folder,
     allDay,
     setAllDay,
@@ -118,6 +122,7 @@ export default function Scheduled( props ) {
           taskId,
           {
             repeat: response,
+            changeID: (changeID ? changeID + 1 : 1)%1000
           }
         );
       }
@@ -169,13 +174,13 @@ if (closed || !openDatetime){
         {
           (startDatetime || endDatetime) &&
           !allDay &&
-          (`${moment.unix(startDatetime).format("D.M.YYYY HH:mm")} - ${moment.unix(endDatetime).format("HH:mm")}` + (repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+          (`${DateTime.fromSeconds(startDatetime).toFormat("dd.LL.y HH:mm")} - ${DateTime.fromSeconds(endDatetime).toFormat("dd.LL.y HH:mm")}` + (repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? DateTime.fromSeconds(repeat.repeatUntil).toFormat("dd.LL.y HH:mm") : ""})` : "")
         )
         }
         {
           (startDatetime || endDatetime) &&
           allDay &&
-          (`${moment.unix(startDatetime).format("D.M.YYYY")} - ${moment.unix(endDatetime).format("D.M.YYYY")}` + ( repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""})` : "")
+          (`${DateTime.fromSeconds(startDatetime).toFormat("dd.LL.y")} - ${DateTime.fromSeconds(endDatetime).toFormat("dd.LL.y")}` + ( repeat ? ` (repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? "until" : ""} ${repeat.repeatUntil ? DateTime.fromSeconds(repeat.repeatUntil).toFormat("dd.LL.y") : ""})` : "")
         )
         }
       </span>
@@ -204,7 +209,9 @@ if (closed || !openDatetime){
                 name: e.target.value,
                 startDatetime: "",
                 endDatetime: "",
-                repeat: null
+                repeat: null,
+                allDay: false,
+                changeID: (changeID ? changeID + 1 : 1)%1000
               }
             );
 
@@ -225,6 +232,7 @@ if (closed || !openDatetime){
               assigned,
               notifications,
               [[`id__${taskId}__id`], [`id__${taskId}__id`]],
+              [[taskName], [taskName]],
               folder._id,
               dbUsers,
             );
@@ -577,8 +585,8 @@ if (closed || !openDatetime){
               const oldStart = startDatetime;
               const oldEnd = endDatetime;
 
-              const oldRepeat = repeat ? `Repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? moment.unix(repeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
-              const newHistoryRepeat = possibleRepeat ?  `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? moment.unix(possibleRepeat.repeatUntil).format("D.M.YYYY") : ""}` : "";
+              const oldRepeat = repeat ? `Repeat every ${repeat.intervalNumber} ${getLabelFromRepeatFrequency(repeat.intervalFrequency.value, repeat.intervalNumber)} ${repeat.repeatUntil ? DateTime.fromSeconds(repeat.repeatUntil).toFormat("dd.LL.y") : ""}` : "";
+              const newHistoryRepeat = possibleRepeat ?  `Repeat every ${possibleRepeat.intervalNumber} ${getLabelFromRepeatFrequency(possibleRepeat.intervalFrequency.value, possibleRepeat.intervalNumber)} ${possibleRepeat.repeatUntil ? DateTime.fromSeconds(possibleRepeat.repeatUntil).toFormat("dd.LL.y") : ""}` : "";
 
               setStartDatetime(possibleStartDatetime);
               setEndDatetime(possibleEndDatetime);
@@ -602,24 +610,30 @@ if (closed || !openDatetime){
                     {
                       allDay: allDay,
                       startDatetime: possibleStartDatetime,
-                      endDatetime: possibleEndDatetime
+                      endDatetime: possibleEndDatetime,
+                      changeID: (changeID ? changeID + 1 : 1)%1000
                     }
                   );
 
                   let types = [SET_START, SET_END];
                   let historyArgs = [
-                      [moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
-                      [moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                      [oldStart ? DateTime.fromSeconds(oldStart).toFormat("dd.LL.y HH:mm") : "UNSET", DateTime.fromSeconds(possibleStartDatetime).toFormat("dd.LL.y HH:mm")],
+                      [oldEnd ? DateTime.fromSeconds(oldEnd).toFormat("dd.LL.y HH:mm") : "UNSET", DateTime.fromSeconds(possibleEndDatetime).toFormat("dd.LL.y HH:mm")]
                       ];
                   let notifArgs = [
-                    [`id__${taskId}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
-                    [`id__${taskId}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(possibleEndDatetime).format("D.M.YYYY HH:mm:ss")]
+                    [`id__${taskId}__id`, oldStart ? DateTime.fromSeconds(oldStart).toFormat("dd.LL.y HH:mm") : "UNSET", moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                    [`id__${taskId}__id`, oldEnd ? DateTime.fromSeconds(oldEnd).toFormat("dd.LL.y HH:mm") : "UNSET", DateTime.fromSeconds(possibleEndDatetime).toFormat("dd.LL.y HH:mm")]
+                  ];
+                  let emailArgs = [
+                    [taskName, oldStart ? DateTime.fromSeconds(oldStart).toFormat("dd.LL.y HH:mm") : "UNSET", moment.unix(possibleStartDatetime).format("D.M.YYYY HH:mm:ss")],
+                    [taskName, oldEnd ? DateTime.fromSeconds(oldEnd).toFormat("dd.LL.y HH:mm") : "UNSET", DateTime.fromSeconds(possibleEndDatetime).toFormat("dd.LL.y HH:mm")]
                   ];
 
                   if (oldRepeat !== newHistoryRepeat){
                     types.push(repeat && repeat._id ? CHANGE_REPEAT : SET_REPEAT);
                     historyArgs.push(repeat && repeat._id ? [oldRepeat, newHistoryRepeat] : [newHistoryRepeat]);
                     notifArgs.push(repeat && repeat._id ? [oldRepeat, possibleRepeat, `id__${taskId}__id`] : [possibleRepeat, `id__${taskId}__id`]);
+                    notemailArgsifArgs.push(repeat && repeat._id ? [oldRepeat, possibleRepeat, taskName] : [possibleRepeat, taskName]);
                   }
 
                   writeHistoryAndSendNotifications(
@@ -631,6 +645,7 @@ if (closed || !openDatetime){
                     assigned,
                     notifications,
                     notifArgs,
+                    emailArgs,
                     folder._id,
                     dbUsers,
                   );

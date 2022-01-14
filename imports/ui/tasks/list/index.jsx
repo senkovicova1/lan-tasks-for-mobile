@@ -13,8 +13,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import moment from 'moment';
-
 import Select from 'react-select';
 
 import Switch from "react-switch";
@@ -23,10 +21,6 @@ import {
   Modal,
   ModalBody
 } from 'reactstrap';
-
-import {
-  writeHistoryAndSendNotifications,
-} from '/imports/api/handlers/tasksHandlers';
 
 import {
   HistoryCollection
@@ -86,6 +80,8 @@ import {
   CLOSED_STATUS,
   OPEN_STATUS,
 } from '/imports/other/messages';
+
+const { DateTime } = require("luxon");
 
 export default function TaskList( props ) {
 
@@ -200,7 +196,7 @@ document.onkeydown = function( e ) {
   switch ( e.which || e.keyCode ) {
     case 13:
       if ( newTaskName.length > 0 ) {
-        const dateCreated = moment().unix();
+        const dateCreated = parseInt(DateTime.now().toSeconds());
 
         addQuickTask(
           newTaskName,
@@ -297,7 +293,7 @@ document.onkeydown = function( e ) {
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
-                const dateCreated = moment().unix();
+                const dateCreated = parseInt(DateTime.now().toSeconds());
                 addQuickTask(
                   newTaskName,
                   null,

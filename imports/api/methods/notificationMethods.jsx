@@ -52,13 +52,23 @@ Meteor.methods({
       throw new Meteor.Error('Not authorized.');
     }
 
+    let changedNotifications = [...notifications];
+    changedNotifications.forEach((notification, i) => {
+      delete notification.emailArgs;
+    });
+
+    NotificationsCollection.insert( {
+      _id: userId,
+      changedNotifications
+    } );
+
     notifications.forEach((notification, i) => {
 
       const notificationType = notificationTypes.find(type => type.type === notification.type);
       let messageEn = notificationType.message['en'];
       let messageSk = notificationType.message['sk'];
 
-      notification.args.forEach((arg, i) => {
+      notification.emailArgs.forEach((arg, i) => {
         messageEn = messageEn.replace(`[${i}]`, arg);
         messageSk = messageSk.replace(`[${i}]`, arg);
       });
@@ -70,10 +80,6 @@ Meteor.methods({
 
 ${user.label} ${messageSk}
         `;
-        NotificationsCollection.insert( {
-          _id: userId,
-          notifications
-        } );
 
         Meteor.call(
         'sendEmail',
@@ -93,11 +99,20 @@ ${user.label} ${messageSk}
       throw new Meteor.Error('Not authorized.');
     }
 
+      let changedNotification = {...additionalNotification};
+      delete changedNotification.emailArgs;
+
+    NotificationsCollection.update( notificationId, {
+      $push: {
+        notifications: changedNotification
+      }
+    } );
+
       const notificationType = notificationTypes.find(type => type.type === additionalNotification.type);
       let messageEn = notificationType.message['en'];
       let messageSk = notificationType.message['sk'];
 
-      additionalNotification.args.forEach((arg, i) => {
+      additionalNotification.emailArgs.forEach((arg, i) => {
         messageEn = messageEn.replace(`[${i}]`, arg);
         messageSk = messageSk.replace(`[${i}]`, arg);
       });
@@ -110,11 +125,6 @@ ${user.label} ${messageSk}
 
 ${user.label} ${messageSk}
         `;
-        NotificationsCollection.update( notificationId, {
-          $push: {
-            notifications: additionalNotification
-          }
-        } );
 
         Meteor.call(
         'sendEmail',

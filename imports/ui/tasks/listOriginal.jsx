@@ -13,8 +13,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import moment from 'moment';
-
 import Select from 'react-select';
 
 import Switch from "react-switch";
@@ -85,6 +83,8 @@ import {
   CLOSED_STATUS,
   OPEN_STATUS,
 } from '/imports/other/messages';
+
+const { DateTime } = require("luxon");
 
 export default function TaskList( props ) {
 
@@ -199,7 +199,7 @@ document.onkeydown = function( e ) {
   switch ( e.which || e.keyCode ) {
     case 13:
       if ( newTaskName.length > 0 ) {
-        const dateCreated = moment().unix();
+        const dateCreated = parseInt(DateTime.now().toSeconds());
 
         addQuickTask(
           newTaskName,
@@ -296,7 +296,7 @@ document.onkeydown = function( e ) {
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
-                const dateCreated = moment().unix();
+                const dateCreated = parseInt(DateTime.now().toSeconds());
                 addQuickTask(
                   newTaskName,
                   null,
@@ -340,7 +340,7 @@ document.onkeydown = function( e ) {
               checked={task.closed}
               onChange={() => {
                 Meteor.call('tasks.closeTask', task, subtasks);
-                
+
                 let taskHistory = [history.find(entry => entry.task === task._id)];
                 if (taskHistory.length === 0){
                   taskHistory = [];
@@ -355,6 +355,7 @@ document.onkeydown = function( e ) {
                   task.assigned,
                   [],
                   [[`id__${task._id}__id`]],
+                  [[task.name],
                   task.folder._id,
                   dbUsers,
                 );
@@ -433,7 +434,7 @@ document.onkeydown = function( e ) {
 
 
                       let data = {
-                        removedDate: moment().unix(),
+                        removedDate: parseInt(DateTime.now().toSeconds()),
                       };
                       Meteor.call(
                         "tasks.updateSimpleAttribute",
@@ -577,7 +578,7 @@ document.onkeydown = function( e ) {
                   }
 
                   let data = {
-                    removedDate: moment().unix(),
+                    removedDate: parseInt(DateTime.now().toSeconds()),
                   };
                   Meteor.call(
                     "tasks.updateSimpleAttribute",

@@ -997,6 +997,7 @@ export const Sort = styled.div`
     width: 1.3em;
     margin-right: 0.6em;
   }
+
 `;
 
 export const Filter = styled.div`

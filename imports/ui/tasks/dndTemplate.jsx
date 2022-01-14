@@ -143,7 +143,7 @@ const addQuickTask = (containerId) => {
     openNewTask.find(t => t.container === containerId).name,
     [userId],
     folderID,
-    moment().unix(),
+    parseInt(DateTime.now().toSeconds()),
     containerId,
     () => {
       setOpenNewTask([...openNewTask.filter(open => open.container !== containerId)]);

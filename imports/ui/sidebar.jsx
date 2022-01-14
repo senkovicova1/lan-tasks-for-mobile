@@ -17,8 +17,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import moment from 'moment';
-
 import Select from 'react-select';
 
 import EditFilter from '/imports/ui/filters/editContainer';

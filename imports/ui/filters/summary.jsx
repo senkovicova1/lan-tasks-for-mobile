@@ -11,8 +11,6 @@ import {
   useSelector
 } from 'react-redux';
 
-import moment from 'moment';
-
 import {
   setFilter,
   setSearch
@@ -39,6 +37,8 @@ import {
 import {
   translations
 } from '/imports/other/translations';
+
+const { DateTime } = require("luxon");
 
 export default function FilterSummary( props ) {
 
@@ -196,7 +196,7 @@ export default function FilterSummary( props ) {
             src={CalendarIcon}
             alt="CalendarIcon icon not found"
             />
-          <label>{`${filter.datetimeMin ? moment.unix(filter.datetimeMin).format("D.M.YYYY") : translations[language].noStartDate} - ${filter.datetimeMax ? moment.unix(filter.datetimeMax).format("D.M.YYYY") : translations[language].noEndDate}`}</label>
+          <label>{`${filter.datetimeMin ? DateTime.fromSeconds(filter.datetimeMin).toFormat("dd.LL.y HH:mm") : translations[language].noStartDate} - ${filter.datetimeMax ? DateTime.fromSeconds(filter.datetimeMax).toFormat("dd.LL.y HH:mm") : translations[language].noEndDate}`}</label>
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();
@@ -222,7 +222,7 @@ export default function FilterSummary( props ) {
             src={AsteriskIcon}
             alt="AsteriskIcon icon not found"
             />
-          <label>{`${filter.dateCreatedMin ? moment.unix(filter.dateCreatedMin).format("D.M.YYYY") : translations[language].noStartDate} - ${filter.dateCreatedMax ? moment.unix(filter.dateCreatedMax).format("D.M.YYYY") : translations[language].noEndDate}`}</label>
+          <label>{`${filter.dateCreatedMin ? DateTime.fromSeconds(filter.dateCreatedMin).toFormat("dd.LL.y HH:mm") : translations[language].noStartDate} - ${filter.dateCreatedMax ? DateTime.fromSeconds(filter.dateCreatedMax).toFormat("dd.LL.y HH:mm") : translations[language].noEndDate}`}</label>
             <LinkButton
               onClick={(e) => {
                 e.preventDefault();

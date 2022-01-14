@@ -5,8 +5,6 @@ import React, {
 
 import Select from 'react-select';
 
-import moment from 'moment';
-
 import {
   Spinner
 } from 'reactstrap';
@@ -68,6 +66,8 @@ import {
   translations
 } from '/imports/other/translations';
 
+const { DateTime } = require("luxon");
+
 export default function TaskForm( props ) {
 
   const {
@@ -76,6 +76,7 @@ export default function TaskForm( props ) {
     addNewTask,
     wholeTask,
     taskId,
+    changeID,
     closed,
     setClosed,
     name,
@@ -143,7 +144,8 @@ export default function TaskForm( props ) {
           'tasks.updateSimpleAttribute',
           taskId,
           {
-            name: newTitle
+            name: newTitle,
+            changeID: (changeID ? changeID + 1 : 1)%1000
           }
         );
         writeHistoryAndSendNotifications(
@@ -154,6 +156,7 @@ export default function TaskForm( props ) {
           history,
           assigned,
           notifications,
+          [[oldName, newTitle]],
           [[oldName, newTitle]],
           folder._id,
           dbUsers,
@@ -199,7 +202,10 @@ export default function TaskForm( props ) {
                 Meteor.call(
                   'tasks.updateSimpleAttribute',
                   taskId,
-                  {closed: newClosed}
+                  {
+                    closed: newClosed,
+                    changeID: (changeID ? changeID + 1 : 1)%1000
+                  }
                 );
               }
 
@@ -212,6 +218,7 @@ export default function TaskForm( props ) {
                 assigned,
                 notifications,
                 [[`id__${taskId}__id`]],
+                [[(newTitle ? newTitle : name)]],
                 folder._id,
                 dbUsers,
               );
@@ -257,7 +264,8 @@ export default function TaskForm( props ) {
                 'tasks.updateSimpleAttribute',
                 taskId,
                 {
-                  important: newImportant
+                  important: newImportant,
+                  changeID: (changeID ? changeID + 1 : 1)%1000
                 }
               );
               writeHistoryAndSendNotifications(
@@ -269,6 +277,7 @@ export default function TaskForm( props ) {
                 assigned,
                 notifications,
                 [[`id__${taskId}__id`]],
+                [[(newTitle ? newTitle : name)]],
                 folder._id,
                 dbUsers,
               );
@@ -351,7 +360,8 @@ export default function TaskForm( props ) {
                 'tasks.updateSimpleAttribute',
                 taskId,
                 {
-                  container: e._id
+                  container: e._id,
+                  changeID: (changeID ? changeID + 1 : 1)%1000
                 }
               );
 
@@ -364,6 +374,7 @@ export default function TaskForm( props ) {
                 assigned,
                 notifications,
                 [[`id__${taskId}__id`, oldContainer.label, e.label]],
+                [[(newTitle ? newTitle : name), oldContainer.label, e.label]],
                 folder._id,
                 dbUsers,
               );
@@ -403,7 +414,8 @@ export default function TaskForm( props ) {
                   'tasks.updateSimpleAttribute',
                   taskId,
                   {
-                    assigned: e.map(user => user._id)
+                    assigned: e.map(user => user._id),
+                    changeID: (changeID ? changeID + 1 : 1)%1000
                   }
                 );
 
@@ -416,6 +428,7 @@ export default function TaskForm( props ) {
                   assigned,
                   notifications,
                   [[`id__${taskId}__id`, oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
+                  [[(newTitle ? newTitle : name), oldAssigned.map(user => user.label).join(", "), e.map(user => user.label).join(", ")]],
                   folder._id,
                   dbUsers,
                 );
@@ -431,6 +444,8 @@ export default function TaskForm( props ) {
         userId={userId}
         closed={closed}
         taskId={taskId}
+        taskName={(newTitle ? newTitle : name)}
+        changeID={changeID}
         folder={folder}
         allDay={props.allDay}
         setAllDay={props.setAllDay}
@@ -484,7 +499,8 @@ export default function TaskForm( props ) {
                 'tasks.updateSimpleAttribute',
                 taskId,
                 {
-                  hours: hours
+                  hours: hours,
+                  changeID: (changeID ? changeID + 1 : 1)%1000
                 }
               );
 
@@ -497,6 +513,7 @@ export default function TaskForm( props ) {
                 assigned,
                 notifications,
                 [[`id__${taskId}__id`, hours]],
+                [[(newTitle ? newTitle : name), hours]],
                 folder._id,
                 dbUsers,
               );
@@ -510,6 +527,8 @@ export default function TaskForm( props ) {
         userId={userId}
         closed={closed}
         taskId={taskId}
+        taskName={(newTitle ? newTitle : name)}
+        changeID={changeID}
         assigned={assigned}
         description={description}
         setDescription={setDescription}
@@ -524,6 +543,8 @@ export default function TaskForm( props ) {
       <Files
           userId={userId}
           taskId={taskId}
+          taskName={(newTitle ? newTitle : name)}
+          changeID={changeID}
           closed={closed}
           files={files}
           setFiles={setFiles}
@@ -539,6 +560,8 @@ export default function TaskForm( props ) {
         <Subtasks
             userId={userId}
             taskId={taskId}
+            taskName={(newTitle ? newTitle : name)}
+            changeID={changeID}
             closed={closed}
             displayedSubtasks={displayedSubtasks}
             addedSubtasks={addedSubtasks}
@@ -589,6 +612,8 @@ export default function TaskForm( props ) {
             userId={userId}
             closed={closed}
             taskId={taskId}
+            taskName={(newTitle ? newTitle : name)}
+            changeID={changeID}
             displayedComments={displayedComments}
             comments={comments}
             setComments={setComments}
@@ -642,7 +667,7 @@ export default function TaskForm( props ) {
                 props.repeat,
                 folder._id,
                 container ? container._id : 0,
-                moment().unix(),
+                parseInt(DateTime.now().toSeconds()),
                 onCancel
               )
             }}

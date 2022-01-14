@@ -1,14 +1,6 @@
 import React, {
-  useEffect,
-  useMemo,
   useState,
 } from 'react';
-
-import {
-  useSelector
-} from 'react-redux';
-
-import moment from 'moment';
 
 import {
   Spinner
@@ -19,9 +11,7 @@ import {
 } from '/imports/api/handlers/tasksHandlers';
 
 import {
-  PlusIcon,
   CloseIcon,
-  SendIcon,
   PaperClipIcon,
 } from "/imports/other/styles/icons";
 
@@ -41,11 +31,15 @@ import {
   translations
 } from '/imports/other/translations';
 
+const { DateTime } = require("luxon");
+
 export default function Files( props ) {
 
   const {
     userId,
     taskId,
+    taskName,
+    changeID,
     closed,
     files,
     folder,
@@ -54,7 +48,6 @@ export default function Files( props ) {
     history,
     language,
     addNewTask,
-    onCancel,
   } = props;
 
   const [ showSpinner, setShowSpinner ] = useState( false );
@@ -84,7 +77,8 @@ export default function Files( props ) {
                           'tasks.updateSimpleAttribute',
                           taskId,
                           {
-                            files: files.filter(f => f.dateCreated !== file.dateCreated)
+                            files: files.filter(f => f.dateCreated !== file.dateCreated),
+                            changeID: (changeID ? changeID + 1 : 1)%1000
                           }
                         );
 
@@ -97,6 +91,7 @@ export default function Files( props ) {
                           assigned,
                           notifications,
                           [[oldFile.name, `id__${taskId}__id`]],
+                          [[oldFile.name, taskName]],
                           folder._id,
                           dbUsers,
                         );
@@ -141,7 +136,7 @@ export default function Files( props ) {
               var reader = new FileReader();
               reader.onload = e => {
                 var newFile = {
-                  dateCreated: moment().unix(),
+                  dateCreated: parseInt(DateTime.now().toSeconds()),
                   name: file.name,
                   data: reader.result
                 };
@@ -151,7 +146,8 @@ export default function Files( props ) {
                     'tasks.updateSimpleAttribute',
                     taskId,
                     {
-                      files: [...files, newFile]
+                      files: [...files, newFile],
+                      changeID: (changeID ? changeID + 1 : 1)%1000
                     }
                   );
 
@@ -164,6 +160,7 @@ export default function Files( props ) {
                     assigned,
                     notifications,
                     [[newFile.name, `id__${taskId}__id`]],
+                    [[newFile.name, taskName]],
                     folder._id,
                     dbUsers,
                   );

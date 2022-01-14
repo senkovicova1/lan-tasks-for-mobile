@@ -1,5 +1,4 @@
 import React from 'react';
-import moment from 'moment';
 
 import { check } from 'meteor/check';
 
@@ -22,6 +21,8 @@ import {
   ADD_TASK,
   ADD_AND_ASSIGN
 } from '/imports/other/messages';
+
+const { DateTime } = require("luxon");
 
 Meteor.methods({
   'tasks.addTask'(name, assigned, folder, dateCreated, container) {
@@ -61,7 +62,8 @@ Meteor.methods({
         folder,
         container,
         dateCreated,
-        repeat: repeatId
+        repeat: repeatId,
+        changeID: 0,
       });
   },
 
@@ -112,6 +114,7 @@ Meteor.methods({
 
     let data = {
       closed: !task.closed,
+      changeID: (task.changeID ? task.changeID + 1 : 1 )%1000
     };
     TasksCollection.update( task._id, {
       $set: {
@@ -125,8 +128,37 @@ Meteor.methods({
       });
 
       let addAmount = parseInt(repeat.intervalNumber);
-      let addTimeType = repeat.intervalFrequency === "m" ? "M" : repeat.intervalFrequency;
-      const newStartDatetime = moment(task.startDatetime*1000).add(addAmount, addTimeType).unix();
+      let addTimeType = repeat.intervalFrequency;
+
+          let offset = {};
+
+          switch (addTimeType) {
+            case "d":
+              offset = {
+                days: addAmount
+              }
+              break;
+            case "w":
+              offset = {
+                weeks: addAmount
+              }
+              break;
+            case "m":
+              offset = {
+                months: addAmount
+              }
+              break;
+            case "y":
+              offset = {
+                years: addAmount
+              }
+              break;
+            default:
+            break;
+          }
+
+      const newStartDatetime = parseInt(DateTime.fromSeconds(task.startDatetime).plus(offset).toSeconds());
+
       if (!task.closed && task.repeat && (newStartDatetime <= repeat.repeatUntil || !repeat.repeatUntil)){
 
         let data = {
@@ -134,7 +166,7 @@ Meteor.methods({
           important: task.important,
           assigned: task.assigned.map(user => user._id),
           startDatetime: newStartDatetime,
-          endDatetime: moment(task.endDatetime*1000).add(addAmount, addTimeType).unix(),
+          endDatetime: parseInt(DateTime.fromSeconds(task.endDatetime).plus(offset).toSeconds()),
           allDay: task.allDay,
           hours: task.hours,
           description: task.description,
@@ -142,7 +174,7 @@ Meteor.methods({
           closed: false,
           folder: task.folder._id,
           container: 0,
-          dateCreated: moment().unix(),
+          dateCreated: parseInt(DateTime.now().toSeconds()),
           repeat: repeat._id
         };
         TasksCollection.insert({
@@ -157,7 +189,7 @@ Meteor.methods({
                 subtask.name,
                 false,
                 _id,
-                 moment().unix()
+                 parseInt(DateTime.now().toSeconds())
               )
             } );
             Meteor.call(

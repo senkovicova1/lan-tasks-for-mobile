@@ -2,6 +2,7 @@ import React, {
   useMemo,
   useState,
 }  from 'react';
+
 import {
   Meteor
 } from 'meteor/meteor';
@@ -37,8 +38,6 @@ export default function AddFilterContainer( props ) {
   const dispatch = useDispatch();
 
   const {
-    match,
-    location,
     title,
     folders,
     important,

@@ -4,12 +4,6 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
-} from 'react-redux';
-
-import moment from 'moment';
-
-import {
   writeHistoryAndSendNotifications,
 } from '/imports/api/handlers/tasksHandlers';
 
@@ -41,9 +35,10 @@ export default function Description( props ) {
     userId,
     closed,
     taskId,
+    taskName,
+    changeID,
     assigned,
     description,
-    setDescription,
     folder,
     dbUsers,
     notifications,
@@ -54,7 +49,6 @@ export default function Description( props ) {
 
   const [ newDescription, setNewDescription ] = useState( "" );
   const [ descriptionInFocus, setDescriptionInFocus ] = useState( false );
-  const [ saveInterval, setSaveInterval ] = useState(null);
 
   useEffect(() => {
     setNewDescription(description);
@@ -75,7 +69,8 @@ export default function Description( props ) {
           'tasks.updateSimpleAttribute',
           taskId,
           {
-            description: newDescription
+            description: newDescription,
+            changeID: (changeID ? changeID + 1 : 1)%1000
           }
         );
 
@@ -88,6 +83,7 @@ export default function Description( props ) {
           assigned,
           notifications,
           [[`id__${taskId}__id`]],
+          [[taskName]],
           folder._id,
           dbUsers,
         );
@@ -110,8 +106,6 @@ export default function Description( props ) {
     this.style.height = "auto";
     this.style.height = ( this.scrollHeight ) + "px";
   }
-
-  let timeout = null;
 
   return (
     <section style={{padding: "0px"}}>
@@ -142,46 +136,7 @@ export default function Description( props ) {
           }}
           />
       </section>
-      {
-        false &&
-        !addNewTask &&
-        descriptionInFocus &&
-        <ButtonRow>
-          <LinkButton
-            style={{marginLeft: "auto", marginRight: "0.6em"}}
-            disabled={closed}
-            onClick={(e) => {
-              e.preventDefault();
-              clearTimeout(timeout);
-              setNewDescription("");
-              setDescriptionInFocus(false);
-            }}
-            >
-            <img
-              className="icon"
-              style={{width: "1.6em", margin: "0em"}}
-              src={CloseIcon}
-              alt="CloseIcon icon not found"
-              />
-          </LinkButton>
-          <FullButton
-            colour=""
-            style={{marginRight: "0px", width: "100px", paddingLeft: "0px"}}
-            disabled={closed}
-            onClick={(e) => {
-              e.preventDefault();
-            }}
-            >
-            <img
-              className="icon"
-              style={{width: "1.6em", margin: "0em"}}
-              src={SendIcon}
-              alt="Send icon not found"
-              />
-            {translations[language].save}
-          </FullButton>
-        </ButtonRow>
-      }
+
     </section>
 
   );

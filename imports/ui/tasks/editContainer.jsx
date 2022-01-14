@@ -152,10 +152,9 @@ export default function EditTaskContainer( props ) {
   });
 
   if (!task){
-    return <div style={{position: "relative", background: "white", height: "300px"}}>
+    return (<div style={{position: "relative", background: "white", height: "300px"}}>
     <Loader />
-  </div>
-    ;
+  </div>)
   }
 
   return (

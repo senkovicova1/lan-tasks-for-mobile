@@ -1,16 +1,9 @@
 import React, {
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 
-import {
-  useSelector
-} from 'react-redux';
-
 import Select from 'react-select';
-
-import moment from 'moment';
 
 import {
   writeHistoryAndSendNotifications,
@@ -19,8 +12,6 @@ import {
 import {
   Spinner
 } from 'reactstrap';
-
-import Datetime from 'react-datetime';
 
 import {
   EmptyStarIcon,
@@ -45,7 +36,6 @@ import {
 } from '/imports/other/styles/selectStyles';
 
 import {
-  Form,
   TitleInput,
   TitleCheckbox,
   Input,
@@ -66,15 +56,9 @@ import {
 } from "/imports/other/styles/styledComponents";
 
 import {
-  NO_CHANGE,
   ADDED,
   EDITED,
-  DELETED
 } from '/imports/other/constants';
-
-import {
-  uint8ArrayToImg,
-} from '/imports/other/helperFunctions';
 
 import {
   SUBTASK_CLOSED,
@@ -89,11 +73,15 @@ import {
   translations
 } from '/imports/other/translations';
 
+const { DateTime } = require("luxon");
+
 export default function Subtasks( props ) {
 
   const {
     userId,
     taskId,
+    taskName,
+    changeID,
     closed,
     displayedSubtasks,
     addedSubtasks,
@@ -126,10 +114,18 @@ export default function Subtasks( props ) {
         e.preventDefault();
         setOpenNewSubtask( false );
         if (!addNewTask){
-          const dateCreated = moment().unix();
+          const dateCreated = parseInt(DateTime.now().toSeconds());
           setUpToDateSubtasks([...upToDateSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated} ]);
 
           Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
+
+          Meteor.call(
+            'tasks.updateSimpleAttribute',
+            taskId,
+            {
+              changeID: (changeID ? changeID + 1 : 1)%1000
+            }
+          );
 
           writeHistoryAndSendNotifications(
             userId,
@@ -140,12 +136,13 @@ export default function Subtasks( props ) {
             assigned,
             notifications,
             [[newSubtaskName, `id__${taskId}__id`]],
+            [[newSubtaskName, taskName]],
             folder._id,
             dbUsers,
           );
 
         } else{
-          setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
+          setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: parseInt(DateTime.now().toSeconds())}]);
         }
         setNewSubtaskName( "" );
       } else if (editedSubtask && !addNewTask){
@@ -170,6 +167,14 @@ export default function Subtasks( props ) {
 
         Meteor.call('subtasks.editSubtask', subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
 
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          taskId,
+          {
+            changeID: (changeID ? changeID + 1 : 1)%1000
+          }
+        );
+
        setPossibleSubtaskName("");
         setEditedSubtask(null);
 
@@ -182,6 +187,7 @@ export default function Subtasks( props ) {
           assigned,
           notifications,
           [[oldName, `id__${taskId}__id`, newName]],
+          [[oldName, taskName, newName]],
           folder._id,
           dbUsers,
         );
@@ -203,6 +209,14 @@ export default function Subtasks( props ) {
         addedSubtasks.forEach( ( subtask, i ) => {
           document.getElementById( `subtask_name ${subtask._id}` ).blur();
         } );
+
+        Meteor.call(
+          'tasks.updateSimpleAttribute',
+          taskId,
+          {
+            changeID: (changeID ? changeID + 1 : 1)%1000
+          }
+        );
 
       }
     }
@@ -256,6 +270,14 @@ export default function Subtasks( props ) {
                       subtask.dateCreated
                     );
 
+                    Meteor.call(
+                      'tasks.updateSimpleAttribute',
+                      taskId,
+                      {
+                        changeID: (changeID ? changeID + 1 : 1)%1000
+                      }
+                    );
+
                     writeHistoryAndSendNotifications(
                       userId,
                       taskId,
@@ -265,6 +287,7 @@ export default function Subtasks( props ) {
                       assigned,
                       notifications,
                       [[subtask.name, `id__${taskId}__id`]],
+                      [[subtask.name, taskName]],
                       folder._id,
                       dbUsers,
                     );
@@ -310,6 +333,14 @@ export default function Subtasks( props ) {
 
                       Meteor.call('subtasks.removeSubtask', subtask._id);
 
+                      Meteor.call(
+                        'tasks.updateSimpleAttribute',
+                        taskId,
+                        {
+                          changeID: (changeID ? changeID + 1 : 1)%1000
+                        }
+                      );
+
                       writeHistoryAndSendNotifications(
                         userId,
                         taskId,
@@ -319,6 +350,7 @@ export default function Subtasks( props ) {
                         assigned,
                         notifications,
                         [[oldName, `id__${taskId}__id`]],
+                        [[oldName, taskName]],
                         folder._id,
                         dbUsers,
                       );
@@ -359,6 +391,14 @@ export default function Subtasks( props ) {
 
                     Meteor.call('subtasks.editSubtask', subtask._id, possibleSubtaskName, subtask.closed, subtask.task, subtask.dateCreated);
 
+                    Meteor.call(
+                      'tasks.updateSimpleAttribute',
+                      taskId,
+                      {
+                        changeID: (changeID ? changeID + 1 : 1)%1000
+                      }
+                    );
+
                     setPossibleSubtaskName("");
                     setEditedSubtask(null);
 
@@ -371,6 +411,7 @@ export default function Subtasks( props ) {
                       assigned,
                       notifications,
                       [[oldName, `id__${taskId}__id`, newName]],
+                      [[oldName, taskName, newName]],
                       folder._id,
                       dbUsers,
                     );
@@ -445,11 +486,19 @@ export default function Subtasks( props ) {
                 onClick={(e) => {
                   e.preventDefault();
                   if (!addNewTask){
-                    const dateCreated = moment().unix();
+                    const dateCreated = parseInt(DateTime.now().toSeconds());
 
                     setUpToDateSubtasks([...upToDateSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated} ]);
 
                     Meteor.call('subtasks.addNewSubtask', newSubtaskName, false, taskId, dateCreated);
+
+                    Meteor.call(
+                      'tasks.updateSimpleAttribute',
+                      taskId,
+                      {
+                        changeID: (changeID ? changeID + 1 : 1)%1000
+                      }
+                    );
 
                     writeHistoryAndSendNotifications(
                       userId,
@@ -460,13 +509,14 @@ export default function Subtasks( props ) {
                       assigned,
                       notifications,
                       [[newSubtaskName, `id__${taskId}__id`]],
+                      [[newSubtaskName, taskName]],
                       folder._id,
                       dbUsers,
                     );
 
                   } else{
 
-                    setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: moment().unix()}]);
+                    setAddedSubtasks([...addedSubtasks, {change: ADDED, name: newSubtaskName, closed: false, dateCreated: parseInt(DateTime.now().toSeconds())}]);
 
                   }
 

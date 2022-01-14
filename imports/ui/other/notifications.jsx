@@ -11,8 +11,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import moment from 'moment';
-
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
@@ -63,6 +61,8 @@ import {
 import {
   translations
 } from '/imports/other/translations';
+
+const { DateTime } = require("luxon");
 
 export default function NotificationsList( props ) {
 
@@ -203,7 +203,7 @@ export default function NotificationsList( props ) {
             >
             <p>
               <span>
-                {`${moment.unix(notification.dateCreated).format("D.M.YYYY HH:mm:ss")}`}
+                {`${DateTime.fromSeconds(notification.dateCreated).toFormat("dd.LL.y HH:mm")}`}
               </span>
               <Input
                 type="checkbox"

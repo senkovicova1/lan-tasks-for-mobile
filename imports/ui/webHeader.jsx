@@ -149,7 +149,7 @@ export default function WebHeader( props ) {
         "customOrder",
         "custom-order-label",
       ];
-      if (!itemsInMenu.includes(targetElement.id) && !targetElement.id.includes("order")){
+      if (!itemsInMenu.includes(targetElement.id) && !targetElement.id.includes("order") && !targetElement.id.includes("label")){
         setOpenSort(false);
         return;
       }

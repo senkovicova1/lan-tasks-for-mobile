@@ -12,8 +12,6 @@ import {
   useTracker
 } from 'meteor/react-meteor-data';
 
-import moment from 'moment';
-
 import {
   TasksCollection
 } from '/imports/api/tasksCollection';
@@ -192,7 +190,6 @@ const [showClosed, setShowClosed] = useState(false);
           return noDataAvailable;
     }
 
-
       let query = {...getFilter()};
       const fields = {
         name: 1,
@@ -206,6 +203,7 @@ const [showClosed, setShowClosed] = useState(false);
         dateCreated: 1,
         folder: 1,
         repeat: 1,
+        changeID: 1
       };
       tasks = TasksCollection.find(
         query,
@@ -314,10 +312,10 @@ const [showClosed, setShowClosed] = useState(false);
     }
     return tasksWithAdvancedFilters
       .sort( ( t1, t2 ) => {
-        if ( sortBy === "assigned" ) {
+        if ( sortBy === "assignedUser" ) {
           return t1.assigned.map(assigned => assigned.label).join(" ").toLowerCase() < t2.assigned.map(assigned => assigned.label).join(" ").toLowerCase() ? 1 * multiplier : ( -1 ) * multiplier;
         }
-        if ( sortBy === "date" ) {
+        if ( sortBy === "dateCreated" ) {
           return t1.dateCreated < t2.dateCreated ? 1 * multiplier : ( -1 ) * multiplier;
         }
         if ( sortBy === "important" ) {

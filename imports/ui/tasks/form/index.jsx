@@ -8,8 +8,6 @@ import {
   useSelector
 } from 'react-redux';
 
-import moment from 'moment';
-
 import Form from './form';
 
 import {
@@ -17,49 +15,15 @@ import {
   DELETED
 } from '/imports/other/constants';
 
-import {
-  uint8ArrayToImg,
-} from '/imports/other/helperFunctions';
-
-import {
-  CLOSED_STATUS,
-  OPEN_STATUS,
-  TITLE,
-  IMPORTANT,
-  NOT_IMPORTANT,
-  CONTAINER,
-  ASSIGNED,
-  REMOVED_START_END,
-  SET_START,
-  SET_END,
-  SET_HOURS,
-  CHANGE_HOURS,
-  DESCRIPTION,
-  REMOVE_FILE,
-  ADD_FILE,
-  SUBTASK_CLOSED,
-  SUBTASK_OPENED,
-  REMOVE_SUBTASK,
-  RENAME_SUBTASK,
-  ADD_SUBTASK,
-  ADD_COMMENT,
-  EDIT_COMMENT,
-  REMOVE_COMMENT,
-  REMOVED_REPEAT,
-  CHANGE_REPEAT,
-  SET_REPEAT,
-  historyEntryTypes
-} from '/imports/other/messages';
-
-import {
-  translations
-} from '/imports/other/translations';
+const { DateTime } = require("luxon");
+// DateTime.fromSeconds(change.dateCreated).toFormat("dd.LL.y HH:mm")
 
 export default function FormIndex( props ) {
 
   const {
     match,
     _id: taskId,
+    changeID,
     closed: taskClosed,
     name: taskName,
     important: taskImportant,
@@ -218,8 +182,8 @@ export default function FormIndex( props ) {
           label: parseInt( taskRepeat.intervalNumber ) === 1 ? "month" : "months",
           value: "m"
         }, {
-          label: parseInt( taskRepeat.intervalNumber ) ? "y" : "years",
-          value: "years"
+          label: parseInt( taskRepeat.intervalNumber ) === 1 ? "year" : "years",
+          value: "y"
         } ].find( interval => interval.value === taskRepeat.intervalFrequency )
       } );
     } else {
@@ -236,19 +200,19 @@ export default function FormIndex( props ) {
       setPossibleEndDatetime( endDatetime );
     }
     if ( !startDatetime ) {
-      let now = moment().add( 1, 'days' );
-      if ( now.minutes() <= 15 ) {
-        now.minutes( 15 );
-      } else if ( now.minutes() <= 30 ) {
-        now.minutes( 30 );
-      } else if ( now.minutes() <= 45 ) {
-        now.minutes( 45 )
-      } else if ( now.minutes <= 60 ) {
-        now.add( 1, 'h' );
-        now.minutes( 0 );
+      let now = DateTime.now().plus({days: 1});
+      if ( now.minute <= 15 ) {
+        now.set( {minute: 15} );
+      } else if ( now.minute <= 30 ) {
+        now.set( {minute: 30} );
+      } else if ( now.minute <= 45 ) {
+        now.set( {minute: 45} );
+      } else if ( now.minute <= 60 ) {
+        now.plus({hours: 1});
+        now.set( {minute: 0} );
       }
-      setPossibleStartDatetime( now.unix() );
-      setPossibleEndDatetime( now.add( 30, 'minutes' ).unix() );
+      setPossibleStartDatetime( parseInt(now.toSeconds()) );
+      setPossibleEndDatetime( parseInt(now.plus({minutes: 30}).toSeconds()) );
     }
 
     if ( repeat ) {
@@ -364,10 +328,12 @@ export default function FormIndex( props ) {
         container: taskContainer,
         files: taskFiles,
         repeat: taskRepeat,
+        changeID
       }}
       history={history}
 
     taskId={taskId}
+    changeID={changeID}
     closed={closed}
     setClosed={setClosed}
     name={name}

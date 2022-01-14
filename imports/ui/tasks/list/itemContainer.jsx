@@ -9,8 +9,6 @@ import {
   useDispatch
 } from 'react-redux';
 
-import moment from 'moment';
-
 import {
   writeHistoryAndSendNotifications,
 } from '/imports/api/handlers/tasksHandlers';
@@ -56,6 +54,8 @@ import {
   CLOSED_STATUS,
   OPEN_STATUS,
 } from '/imports/other/messages';
+
+const { DateTime } = require("luxon");
 
 export default function TaskList( props ) {
 
@@ -108,6 +108,7 @@ export default function TaskList( props ) {
                     task.assigned,
                     [],
                     [[`id__${task._id}__id`]],
+                    [[task.name]],
                     task.folder._id,
                     dbUsers,
                   );
@@ -130,6 +131,7 @@ export default function TaskList( props ) {
                   task.assigned,
                   [],
                   [[`id__${task._id}__id`]],
+                  [[task.name]],
                   task.folder._id,
                   dbUsers,
                 );
@@ -206,7 +208,7 @@ export default function TaskList( props ) {
                       }
 
                       let data = {
-                        removedDate: moment().unix(),
+                        removedDate: parseInt(DateTime.now().toSeconds()),
                       };
                       Meteor.call(
                         "tasks.updateSimpleAttribute",

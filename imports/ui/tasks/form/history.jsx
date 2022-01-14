@@ -1,10 +1,10 @@
 import React from 'react';
 
-import moment from 'moment';
-
 import {
  historyEntryTypes
 } from '/imports/other/messages';
+
+const { DateTime } = require("luxon");
 
 export default function History( props ) {
 
@@ -30,7 +30,7 @@ export default function History( props ) {
             });
             return (
             <div className="history" key={change.dateCreated + "" + index}>
-              <p>{`${moment.unix(change.dateCreated).format("D.M.YYYY HH:mm:ss")}`}</p>
+              <p>{`${DateTime.fromSeconds(change.dateCreated).toFormat("dd.LL.y HH:mm")}`}</p>
               <p>{`${change.user.label} ${message}`}</p>
             </div>
           )})

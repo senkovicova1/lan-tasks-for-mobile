@@ -7,9 +7,9 @@ import {
   Meteor
 } from 'meteor/meteor';
 
-import Select from 'react-select';
-
 import moment from 'moment';
+
+import Select from 'react-select';
 
 import Datetime from 'react-datetime';
 
@@ -62,6 +62,8 @@ import {
 import {
   translations
 } from '/imports/other/translations';
+
+const { DateTime } = require("luxon");
 
 export default function FilterForm( props ) {
 

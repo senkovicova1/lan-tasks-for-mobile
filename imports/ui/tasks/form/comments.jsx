@@ -3,12 +3,6 @@ import React, {
 } from 'react';
 
 import {
-  useSelector
-} from 'react-redux';
-
-import moment from 'moment';
-
-import {
   writeHistoryAndSendNotifications,
 } from '/imports/api/handlers/tasksHandlers';
 
@@ -27,11 +21,6 @@ import {
   CommentContainer,
 } from "/imports/other/styles/styledComponents";
 
-
-import {
-  uint8ArrayToImg,
-} from '/imports/other/helperFunctions';
-
 import {
   ADD_COMMENT,
   EDIT_COMMENT,
@@ -43,22 +32,22 @@ import {
   translations
 } from '/imports/other/translations';
 
+const { DateTime } = require("luxon");
+
 export default function Comments( props ) {
 
   const {
     userId,
     closed,
     taskId,
+    taskName,
     displayedComments,
     comments,
-    setComments,
     folder,
     dbUsers,
     notifications,
     history,
     language,
-    addNewTask,
-    onCancel,
   } = props;
 
     const [ newCommentBody, setNewCommentBody ] = useState( "" );
@@ -101,7 +90,7 @@ export default function Comments( props ) {
               disabled={newCommentBody.length === 0 || closed}
               onClick={(e) => {
                 e.preventDefault();
-                const dateCreated = moment().unix();
+                const dateCreated = parseInt(DateTime.now().toSeconds());
                 Meteor.call(
                   'comments.addComment',
                   userId,
@@ -119,6 +108,7 @@ export default function Comments( props ) {
                   assigned,
                   notifications,
                   [[`id__${taskId}__id`]],
+                  [[taskName]],
                   folder._id,
                   dbUsers,
                 );
@@ -159,7 +149,7 @@ export default function Comments( props ) {
                   <label className="name">
                     {`${comment.author.name} ${comment.author.surname}`}
                   </label>
-                  <span className="dateCreated">{moment.unix(comment.dateCreated).add((new Date).getTimezoneOffset(), 'minutes').format("DD.MM.yyyy hh:mm")}</span>
+                  <span className="dateCreated">{DateTime.fromSeconds(comment.dateCreated).toFormat("dd.LL.y HH:mm")}</span>
                   {
                     !closed &&
                     comment.author._id === userId &&
@@ -204,6 +194,7 @@ export default function Comments( props ) {
                           assigned,
                           notifications,
                           [[`id__${taskId}__id`]],
+                          [[taskName]],
                           folder._id,
                           dbUsers,
                         );
@@ -280,6 +271,7 @@ export default function Comments( props ) {
                           assigned,
                           notifications,
                           [[`id__${taskId}__id`]],
+                          [[taskName]],
                           folder._id,
                           dbUsers,
                         );

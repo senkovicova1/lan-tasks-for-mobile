@@ -106,6 +106,8 @@ import {
 const localizer = momentLocalizer(moment);
 const DnDCalendar = withDragAndDrop(Calendar);
 
+const { DateTime } = require("luxon");
+
 let breakPoint = 50;
 
 export default function CalendarList( props ) {
@@ -226,12 +228,23 @@ const notifications = useSelector( ( state ) => state.notifications.value );
   useEffect( () => {
     //breakPoint -= 1;
 
-    const mappedAndFilteredTasks = tasksWithAdvancedFilters.filter( task => !task.closed ).map( task => ( {
-      ...task,
-      startDatetime: new Date( task.startDatetime * 1000 ),
-      endDatetime: new Date( task.endDatetime * 1000 ),
-      tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`
-    } ) );
+    const mappedAndFilteredTasks = tasksWithAdvancedFilters.filter( task => showClosed || !task.closed ).map( task => {
+      let possibleNewerTask = tasksWithDatetimes.find(t => t._id === task._id);
+      let possibleNewerTaskChangeID = possibleNewerTask && possibleNewerTask.changeID ? possibleNewerTask.changeID : -1;
+      let taskChangeID = task.changeID ? task.changeID : 0;
+      if (!possibleNewerTask || (possibleNewerTaskChangeID < taskChangeID )){
+        return {
+          ...task,
+          startDatetime: new Date( task.startDatetime * 1000 ),
+          endDatetime: new Date( task.endDatetime * 1000 ),
+          tooltip: `Assigned: ${task.assigned ? task.assigned.label : "None"}`
+        };
+      } else {
+        return {
+          ...possibleNewerTask
+        };
+      }
+  } );
 
     //ends with saturday - calendar goes from sun to sat
     const currentWeekEnd = moment().day( 6 ).hour( 0 ).minute( 0 ).second( 0 ).unix();
@@ -334,14 +347,20 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     let oldEnd = 0;
     let assigned = [];
     let folderId = null;
+    let newChangeID = 0;
+    let taskName = "";
+
     newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
       if (task._id === event._id){
         oldStart = task.startDatetime ? task.startDatetime : "UNSET";
         oldEnd = task.endDatetime ? task.endDatetime : "UNSET";
         assigned = [...task.assigned];
         folderId = task.folder._id;
+        newChangeID = (task.changeID ? task.changeID + 1 : 1)%1000;
+        taskName = task.name;
         return ({
           ...task,
+          changeID: newChangeID,
           startDatetime: start,
           endDatetime: end
         })
@@ -353,10 +372,10 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     Meteor.call(
       'tasks.updateSimpleAttribute',
       event._id,
-      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
+      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000, changeID: newChangeID}
     );
 
-      let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+      let taskHistory = [history.find(entry => entry.task === event._id)];
       if (taskHistory.length === 0){
         taskHistory = [];
       }
@@ -370,6 +389,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       assigned,
       [],
       [[`id__${event._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [`id__${event._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      [[taskName, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [taskName, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
       folderId,
       dbUsers,
     );
@@ -384,14 +404,20 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     let oldEnd = 0;
     let assigned = [];
     let folderId = null;
+    let newChangeID = 0;
+    let taskName = "";
+
     newTasksWithDatetimes = newTasksWithDatetimes.map(task => {
+      if (task._id === event._id){
         oldStart = task.startDatetime ? task.startDatetime : "UNSET";
         oldEnd = task.endDatetime ? task.endDatetime : "UNSET";
         assigned = [...task.assigned];
         folderId = task.folder._id;
-      if (task._id === event._id){
+        newChangeID = (task.changeID ? task.changeID + 1 : 1)%1000;
+        taskName = task.name;
         return ({
           ...task,
+          changeID: newChangeID,
           startDatetime: start,
           endDatetime: end
         })
@@ -403,10 +429,10 @@ const notifications = useSelector( ( state ) => state.notifications.value );
     Meteor.call(
       'tasks.updateSimpleAttribute',
       event._id,
-      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000}
+      {startDatetime: start.getTime() / 1000, endDatetime: end.getTime() / 1000, changeID: newChangeID}
     );
 
-      let taskHistory = [history.find(entry => entry.task === draggedEvent._id)];
+      let taskHistory = [history.find(entry => entry.task === event._id)];
       if (taskHistory.length === 0){
         taskHistory = [];
       }
@@ -420,6 +446,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       assigned,
       [],
       [[`id__${event._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [`id__${event._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
+      [[taskName, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(start.getTime() / 1000).format("D.M.YYYY HH:mm:ss")], [taskName, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(end.getTime() / 1000).format("D.M.YYYY HH:mm:ss")]],
       folderId,
       dbUsers,
     );
@@ -448,7 +475,9 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       const newTask = {
         ...draggedEvent,
         startDatetime: start,
-        endDatetime: end
+        endDatetime: end,
+        allDay,
+        changeID: (draggedEvent.changeID ? draggedEvent.changeID + 1 : 1)%1000,
       };
       newTasksWithDatetimes.push(newTask);
       setTasksWithDatetimes(newTasksWithDatetimes);
@@ -460,7 +489,9 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       const newTask = {
         ...draggedEvent,
         startDatetime: start,
-        endDatetime: end
+        endDatetime: end,
+        allDay,
+        changeID: (draggedEvent.changeID ? draggedEvent.changeID + 1 : 1)%1000,
       };
       newTasksWithDatetimes.push(newTask);
       setTasksWithDatetimes(newTasksWithDatetimes);
@@ -479,7 +510,9 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       draggedEvent._id,
       {
         startDatetime: newStartDatetime,
-        endDatetime: newEndDatetime
+        endDatetime: newEndDatetime,
+        allDay,
+        changeID: (draggedEvent.changeID ? draggedEvent.changeID + 1 : 1)%1000,
       }
     );
 
@@ -497,6 +530,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
       assigned,
       [],
       [[`id__${draggedEvent._id}__id`, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(newStartDatetime).format("D.M.YYYY HH:mm:ss")], [`id__${draggedEvent._id}__id`, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(newEndDatetime).format("D.M.YYYY HH:mm:ss")]],
+      [[draggedEvent.name, moment.unix(oldStart).format("D.M.YYYY HH:mm:ss"), moment.unix(newStartDatetime).format("D.M.YYYY HH:mm:ss")], [draggedEvent.name, moment.unix(oldEnd).format("D.M.YYYY HH:mm:ss"), moment.unix(newEndDatetime).format("D.M.YYYY HH:mm:ss")]],
       folderId,
       dbUsers,
     );
@@ -562,9 +596,10 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                       task.assigned,
                       [],
                       [[`id__${task._id}__id`]],
+                      [[task.name]],
                       task.folder._id,
                       dbUsers,
-                    );                    
+                    );
 
                   }}
                   />
@@ -625,7 +660,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                      }
 
                      let data = {
-                       removedDate: moment().unix(),
+                       removedDate: parseInt(DateTime.now().toSeconds()),
                      };
                      Meteor.call(
                        "tasks.updateSimpleAttribute",
@@ -737,6 +772,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                     task.assigned,
                     [],
                     [[`id__${task._id}__id`]],
+                    [[task.name]],
                     task.folder._id,
                     dbUsers,
                   );
@@ -801,7 +837,7 @@ const notifications = useSelector( ( state ) => state.notifications.value );
                    } );
 
                    let data = {
-                     removedDate: moment().unix(),
+                     removedDate: parseInt(DateTime.now().toSeconds()),
                    };
                    Meteor.call(
                      "tasks.updateSimpleAttribute",

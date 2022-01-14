@@ -361,6 +361,7 @@ const containers = useMemo( () => {
         removed.assigned,
         [],
         [[`id__${removed._id}__id`, sourceContainer, destinationContainer]],
+        [[removed.name, sourceContainer, destinationContainer]],
         removed.folder._id,
         dbUsers,
       );
@@ -531,7 +532,7 @@ const containers = useMemo( () => {
                               <LinkButton
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  const dateCreated = moment().unix();
+                                  const dateCreated = parseInt(DateTime.now().toSeconds());
                                   addQuickTask(
                                     openNewTask.find(t => t.container === container._id).name,
                                     container._id,
@@ -589,7 +590,7 @@ const containers = useMemo( () => {
                                                 task,
                                                 subtasks
                                               );
-                                              
+
                                               let taskHistory = [history.find(entry => entry.task === task._id)];
                                               if (taskHistory.length === 0){
                                                 taskHistory = [];
@@ -604,6 +605,7 @@ const containers = useMemo( () => {
                                                 task.assigned,
                                                 [],
                                                 [[`id__${task._id}__id`]],
+                                                [[task.name]],
                                                 task.folder._id,
                                                 dbUsers,
                                               );
@@ -671,7 +673,7 @@ const containers = useMemo( () => {
                                                } );
 
                                                let data = {
-                                                 removedDate: moment().unix(),
+                                                 removedDate: parseInt(DateTime.now().toSeconds()),
                                                };
                                                Meteor.call(
                                                  "tasks.updateSimpleAttribute",
@@ -835,7 +837,7 @@ const containers = useMemo( () => {
                                              }
 
                                              let data = {
-                                               removedDate: moment().unix(),
+                                               removedDate: parseInt(DateTime.now().toSeconds()),
                                              };
                                              Meteor.call(
                                                "tasks.updateSimpleAttribute",
